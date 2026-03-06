@@ -6,13 +6,16 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from db import create_db_and_tables
 from routes import trades, spots, pages
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
+    from alembic import command
+    from alembic.config import Config
+
+    alembic_cfg = Config(str(Path(__file__).resolve().parent / "alembic.ini"))
+    command.upgrade(alembic_cfg, "head")
     yield
 
 
