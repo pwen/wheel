@@ -50,8 +50,6 @@ function switchTab(tab) {
     });
     $("#tab-trades").classList.toggle("hidden", tab !== "trades");
     $("#tab-holdings").classList.toggle("hidden", tab !== "holdings");
-    $("#btn-new-trade").classList.toggle("hidden", tab !== "trades");
-    $("#btn-add-shares").classList.toggle("hidden", tab !== "holdings");
 }
 
 $$(".tab-btn").forEach(btn => {
