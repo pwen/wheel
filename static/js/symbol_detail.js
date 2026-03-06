@@ -25,6 +25,7 @@ async function loadSymbolDetail() {
         if (!res.ok) return;
         const data = await res.json();
 
+        renderSDSpotInfo(data.spot);
         renderSDOpenTrades(data.open_trades);
         renderSDClosedTrades(data.closed_trades);
         renderSDLots(data.lots);
@@ -136,10 +137,14 @@ async function loadSDLotPrices(symbol, lots) {
             uplCell.classList.add(upl >= 0 ? "text-green-600" : "text-red-600");
         });
 
-        // Update totals with live share P/L
+        // Update totals with live share data
         const totalShareMktVal = lots.reduce((s, l) => s + price * l.remaining_qty, 0);
         const totalShareCost = lots.reduce((s, l) => s + l.cost_per_share * l.remaining_qty, 0);
         const shareUpl = totalShareMktVal - totalShareCost;
+
+        const mktValCard = document.querySelector("#sd-totals [data-sd-mktval]");
+        if (mktValCard) mktValCard.textContent = fmtMoney(totalShareMktVal);
+
         const sharePLCard = document.querySelector("#sd-totals [data-sd-share-pl]");
         if (sharePLCard) {
             sharePLCard.textContent = fmtMoney(shareUpl);
@@ -150,20 +155,91 @@ async function loadSDLotPrices(symbol, lots) {
 }
 
 function renderSDTotals(totals) {
-    const cards = [
-        { label: "Premium Collected", value: fmtMoney(totals.total_premium_collected) },
-        { label: "Closing Costs", value: fmtMoney(totals.total_closing_cost) },
-        { label: "Realized P/L (Options)", value: fmtMoney(totals.total_realized_pl), color: totals.total_realized_pl >= 0 ? "text-green-600" : "text-red-600" },
-        { label: "Unrealized P/L (Shares)", value: "…", attr: 'data-sd-share-pl', color: "" },
-        { label: "Total Shares Held", value: totals.total_shares },
-        { label: "Share Cost Basis", value: fmtMoney(totals.total_share_cost) },
+    const optionsIncome = totals.total_premium_collected - totals.total_closing_cost;
+    const row1 = [
+        { label: "Options Income", value: fmtMoney(optionsIncome), color: optionsIncome >= 0 ? "text-green-600" : "text-red-600" },
+        { label: "Realized P/L", value: fmtMoney(totals.total_realized_pl), color: totals.total_realized_pl >= 0 ? "text-green-600" : "text-red-600" },
         { label: "Open Trades", value: totals.open_trade_count },
         { label: "Closed Trades", value: totals.closed_trade_count },
     ];
+    const row2 = [
+        { label: "Shares Held", value: totals.total_shares },
+        { label: "Market Value", value: "…", attr: 'data-sd-mktval' },
+        { label: "Cost Basis", value: fmtMoney(totals.total_share_cost) },
+        { label: "Unrealized P/L", value: "…", attr: 'data-sd-share-pl', color: "" },
+    ];
+    const all = [...row1, ...row2];
 
-    $("#sd-totals").innerHTML = cards.map(c => `
+    $("#sd-totals").innerHTML = all.map(c => `
     <div class="bg-gray-50 rounded-lg p-3">
       <div class="text-xs text-gray-500 mb-1">${c.label}</div>
       <div class="text-lg font-semibold ${c.color || ''}" ${c.attr || ''}>${c.value}</div>
     </div>`).join("");
+}
+
+function fmtBigNum(v) {
+    if (v == null) return "—";
+    if (v >= 1e12) return "$" + (v / 1e12).toFixed(2) + "T";
+    if (v >= 1e9) return "$" + (v / 1e9).toFixed(2) + "B";
+    if (v >= 1e6) return "$" + (v / 1e6).toFixed(1) + "M";
+    return "$" + v.toLocaleString();
+}
+
+function fmtVol(v) {
+    if (v == null) return "—";
+    if (v >= 1e6) return (v / 1e6).toFixed(1) + "M";
+    if (v >= 1e3) return (v / 1e3).toFixed(0) + "K";
+    return v.toLocaleString();
+}
+
+function renderSDSpotInfo(spot) {
+    const el = $("#sd-spot-info");
+    if (!spot || !spot.name) {
+        el.innerHTML = `<p class="text-gray-400 text-sm">No data yet — click Refresh to fetch from market.</p>`;
+        return;
+    }
+    const typeBadge = spot.asset_type === "etf"
+        ? '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-teal-100 text-teal-700">ETF</span>'
+        : '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-700">Stock</span>';
+
+    const items = [
+        spot.sector && `<span class="text-gray-500 text-sm">Sector:</span> <span class="text-sm">${spot.sector}</span>`,
+        spot.industry && `<span class="text-gray-500 text-sm">Industry:</span> <span class="text-sm">${spot.industry}</span>`,
+        spot.market_cap && `<span class="text-gray-500 text-sm">Mkt Cap:</span> <span class="text-sm">${fmtBigNum(spot.market_cap)}</span>`,
+        spot.pe_ratio && `<span class="text-gray-500 text-sm">P/E:</span> <span class="text-sm">${fmt(spot.pe_ratio)}</span>`,
+        spot.beta && `<span class="text-gray-500 text-sm">Beta:</span> <span class="text-sm">${fmt(spot.beta, 3)}</span>`,
+        spot.avg_daily_volume && `<span class="text-gray-500 text-sm">Avg Vol:</span> <span class="text-sm">${fmtVol(spot.avg_daily_volume)}</span>`,
+        spot.aum && `<span class="text-gray-500 text-sm">AUM:</span> <span class="text-sm">${fmtBigNum(spot.aum)}</span>`,
+        spot.expense_ratio && `<span class="text-gray-500 text-sm">Expense:</span> <span class="text-sm">${(spot.expense_ratio * 100).toFixed(2)}%</span>`,
+    ].filter(Boolean);
+
+    el.innerHTML = `
+    <div class="flex items-center gap-2 mb-2">
+      <span class="font-semibold">${spot.name}</span>
+      ${typeBadge}
+    </div>
+    <div class="flex flex-wrap gap-x-4 gap-y-1">
+      ${items.join("")}
+    </div>`;
+}
+
+async function refreshSpotInfo() {
+    const parts = window.location.pathname.split("/");
+    const symbol = decodeURIComponent(parts[parts.length - 1]);
+    const btn = $("#sd-refresh-btn");
+    btn.textContent = "Refreshing…";
+    btn.disabled = true;
+    try {
+        const res = await fetch(`/api/spots/${encodeURIComponent(symbol)}/refresh`, { method: "POST" });
+        if (res.ok) {
+            // Re-fetch detail to get updated spot info
+            const detRes = await fetch(`/api/spots/${encodeURIComponent(symbol)}/detail`);
+            if (detRes.ok) {
+                const data = await detRes.json();
+                renderSDSpotInfo(data.spot);
+            }
+        }
+    } catch { /* ignore */ }
+    btn.textContent = "Refresh";
+    btn.disabled = false;
 }

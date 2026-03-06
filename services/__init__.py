@@ -1,7 +1,45 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from decimal import Decimal
 
 import yfinance as yf
+
+from models.spot import AssetType
+
+
+def populate_spot_info(spot, session) -> None:
+    """Fetch metadata from yfinance and update a Spot record in place."""
+    try:
+        info = yf.Ticker(spot.symbol).info
+    except Exception:
+        return
+
+    quote_type = info.get("quoteType", "")
+    if quote_type == "ETF":
+        spot.asset_type = AssetType.ETF
+    elif quote_type == "EQUITY":
+        spot.asset_type = AssetType.STOCK
+
+    spot.name = info.get("shortName") or info.get("longName")
+    spot.sector = info.get("sector")
+    spot.industry = info.get("industry")
+    if info.get("beta") is not None:
+        spot.beta = Decimal(str(round(info["beta"], 3)))
+    if info.get("trailingPE") is not None:
+        spot.pe_ratio = Decimal(str(round(info["trailingPE"], 2)))
+    if info.get("marketCap") is not None:
+        spot.market_cap = Decimal(str(info["marketCap"]))
+    if info.get("averageVolume") is not None:
+        spot.avg_daily_volume = info["averageVolume"]
+    if info.get("totalAssets") is not None:
+        spot.aum = Decimal(str(info["totalAssets"]))
+    if info.get("annualReportExpenseRatio") is not None:
+        spot.expense_ratio = Decimal(str(round(info["annualReportExpenseRatio"], 4)))
+
+    spot.updated_at = datetime.utcnow()
+    session.add(spot)
+    session.commit()
+    session.refresh(spot)
 
 
 def get_spot_price_on_date(symbol: str, on_date: date) -> float | None:

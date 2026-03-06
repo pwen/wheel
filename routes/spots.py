@@ -1,28 +1,6 @@
 from decimal import Decimal
+from datetime import date, datetime
 from typing import Optional
-from datetime import date
-
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from sqlmodel import Session, select
-
-from db import get_session
-from models import Spot
-
-router = APIRouter(tags=["spots"])
-
-
-class SpotCreate(BaseModel):
-    symbol: str
-    name: Optional[str] = None
-    asset_type: Optional[str] = None
-    is_etf: bool = False
-    notes: Optional[str] = None
-
-
-from decimal import Decimal
-from typing import Optional
-from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -30,6 +8,7 @@ from sqlmodel import Session, select
 
 from db import get_session
 from models import Spot, Trade, TradeStatus, ShareLot
+from services import populate_spot_info
 
 router = APIRouter(tags=["spots"])
 
@@ -87,6 +66,19 @@ def spot_detail(symbol: str, session: Session = Depends(get_session)):
 
     return {
         "symbol": symbol,
+        "spot": {
+            "name": spot.name,
+            "asset_type": spot.asset_type,
+            "sector": spot.sector,
+            "industry": spot.industry,
+            "beta": float(spot.beta) if spot.beta else None,
+            "pe_ratio": float(spot.pe_ratio) if spot.pe_ratio else None,
+            "market_cap": float(spot.market_cap) if spot.market_cap else None,
+            "avg_daily_volume": spot.avg_daily_volume,
+            "aum": float(spot.aum) if spot.aum else None,
+            "expense_ratio": float(spot.expense_ratio) if spot.expense_ratio else None,
+            "updated_at": spot.updated_at.isoformat() if spot.updated_at else None,
+        },
         "open_trades": open_trades,
         "closed_trades": closed_trades,
         "lots": lot_dicts,
@@ -101,6 +93,17 @@ def spot_detail(symbol: str, session: Session = Depends(get_session)):
             "lot_count": len(lot_dicts),
         },
     }
+
+
+@router.post("/spots/{symbol}/refresh")
+def refresh_spot(symbol: str, session: Session = Depends(get_session)):
+    """Re-fetch spot metadata from yfinance."""
+    symbol = symbol.upper()
+    spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
+    if not spot:
+        raise HTTPException(404, f"Symbol {symbol} not found")
+    populate_spot_info(spot, session)
+    return {"ok": True}
 
 
 @router.get("/spots")

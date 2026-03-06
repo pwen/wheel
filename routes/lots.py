@@ -51,6 +51,11 @@ def create_lot(body: LotCreate, session: Session = Depends(get_session)):
         session.add(spot)
         session.commit()
         session.refresh(spot)
+        from services import populate_spot_info
+        try:
+            populate_spot_info(spot, session)
+        except Exception:
+            pass
 
     lot = ShareLot(
         underlying_id=spot.id,

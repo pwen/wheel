@@ -99,6 +99,12 @@ def create_trade(body: TradeCreate, session: Session = Depends(get_session)):
         session.add(spot)
         session.commit()
         session.refresh(spot)
+        # Auto-fetch metadata in background
+        from services import populate_spot_info
+        try:
+            populate_spot_info(spot, session)
+        except Exception:
+            pass
 
     trade = Trade(
         underlying_id=spot.id,

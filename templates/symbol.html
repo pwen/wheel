@@ -20,6 +20,18 @@
 
     <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
+        <!-- Spot Info -->
+        <section>
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">About</h3>
+                <button onclick="refreshSpotInfo()" id="sd-refresh-btn"
+                    class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Refresh</button>
+            </div>
+            <div id="sd-spot-info" class="bg-white border rounded-lg p-4">
+                <p class="text-gray-400 text-sm">Loading…</p>
+            </div>
+        </section>
+
         <!-- Totals -->
         <section>
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Totals</h3>
