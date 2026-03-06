@@ -1,5 +1,6 @@
 // ---- Helpers ----
 const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
 const fmt = (v, decimals = 2) => v != null ? Number(v).toFixed(decimals) : "—";
 const fmtMoney = (v) => v != null ? "$" + Number(v).toFixed(2) : "—";
 
@@ -7,21 +8,77 @@ const fmtMoney = (v) => v != null ? "$" + Number(v).toFixed(2) : "—";
 function openModal() { $("#modal").classList.remove("hidden"); }
 function closeModal() { $("#modal").classList.add("hidden"); }
 
+// ---- State ----
+let allTrades = [];
+let sortCol = null;
+let sortAsc = true;
+
+// ---- Filtering ----
+function getFilters() {
+    return {
+        spot: $("#filter-spot").value,
+        type: $("#filter-type").value,
+        status: $("#filter-status").value,
+    };
+}
+
+function applyFilters(trades) {
+    const f = getFilters();
+    return trades.filter(t =>
+        (!f.spot || t.symbol === f.spot) &&
+        (!f.type || t.strategy_type === f.type) &&
+        (!f.status || t.status === f.status)
+    );
+}
+
+function populateSpotFilter() {
+    const select = $("#filter-spot");
+    const current = select.value;
+    const symbols = [...new Set(allTrades.map(t => t.symbol))].sort();
+    select.innerHTML = '<option value="">All</option>' +
+        symbols.map(s => `<option value="${s}">${s}</option>`).join("");
+    select.value = current;
+}
+
+// ---- Sorting ----
+function applySorting(trades) {
+    if (!sortCol) return trades;
+    const sorted = [...trades];
+    sorted.sort((a, b) => {
+        let va = a[sortCol], vb = b[sortCol];
+        if (va == null && vb == null) return 0;
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        if (typeof va === "string") return va.localeCompare(vb);
+        return va - vb;
+    });
+    if (!sortAsc) sorted.reverse();
+    return sorted;
+}
+
+function updateSortArrows() {
+    $$("th[data-sort] .sort-arrow").forEach(el => el.textContent = "");
+    if (sortCol) {
+        const th = $(`th[data-sort="${sortCol}"]`);
+        if (th) th.querySelector(".sort-arrow").textContent = sortAsc ? " ▲" : " ▼";
+    }
+}
+
 // ---- Render trades ----
-async function loadTrades() {
-    const res = await fetch("/api/trades");
-    const trades = await res.json();
+function renderTrades() {
+    const filtered = applyFilters(allTrades);
+    const sorted = applySorting(filtered);
     const tbody = $("#trades-body");
     const emptyMsg = $("#empty-msg");
 
-    if (trades.length === 0) {
+    if (sorted.length === 0) {
         tbody.innerHTML = "";
         emptyMsg.classList.remove("hidden");
         return;
     }
 
     emptyMsg.classList.add("hidden");
-    tbody.innerHTML = trades.map((t) => `
+    tbody.innerHTML = sorted.map((t) => `
     <tr class="hover:bg-gray-50">
       <td class="px-3 py-2 font-medium">${t.symbol}</td>
       <td class="px-3 py-2">
@@ -59,6 +116,15 @@ async function loadTrades() {
       <td class="px-3 py-2 max-w-[200px] truncate">${t.notes || ""}</td>
     </tr>
   `).join("");
+
+    updateSortArrows();
+}
+
+async function loadTrades() {
+    const res = await fetch("/api/trades");
+    allTrades = await res.json();
+    populateSpotFilter();
+    renderTrades();
 }
 
 // ---- Form submit ----
@@ -89,6 +155,25 @@ $("#trade-form").addEventListener("submit", async (e) => {
         const err = await res.json();
         alert("Error: " + JSON.stringify(err.detail || err));
     }
+});
+
+// ---- Sort click handlers ----
+$$("th[data-sort]").forEach(th => {
+    th.addEventListener("click", () => {
+        const col = th.dataset.sort;
+        if (sortCol === col) {
+            sortAsc = !sortAsc;
+        } else {
+            sortCol = col;
+            sortAsc = true;
+        }
+        renderTrades();
+    });
+});
+
+// ---- Filter change handlers ----
+["#filter-spot", "#filter-type", "#filter-status"].forEach(sel => {
+    $(sel).addEventListener("change", () => renderTrades());
 });
 
 // ---- Live prices (async backfill) ----

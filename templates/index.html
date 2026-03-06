@@ -24,12 +24,40 @@
     <!-- Main -->
     <main class="max-w-[95vw] mx-auto px-4 py-6">
 
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-4 mb-4 items-end">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Spot</label>
+                <select id="filter-spot" class="border rounded-lg px-3 py-1.5 text-sm">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                <select id="filter-type" class="border rounded-lg px-3 py-1.5 text-sm">
+                    <option value="">All</option>
+                    <option value="CSP">CSP</option>
+                    <option value="CC">CC</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                <select id="filter-status" class="border rounded-lg px-3 py-1.5 text-sm">
+                    <option value="">All</option>
+                    <option value="open">Open</option>
+                    <option value="closed">Closed</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="rolled">Rolled</option>
+                </select>
+            </div>
+        </div>
+
         <!-- Trade Table -->
         <div class="bg-white shadow rounded-lg overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="px-3 py-2 text-left font-semibold">Spot</th>
+                        <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="symbol">Spot <span class="sort-arrow text-xs"></span></th>
                         <th class="px-3 py-2 text-left font-semibold">Type</th>
                         <th class="px-3 py-2 text-right font-semibold">Spot Price at Open</th>
                         <th class="px-3 py-2 text-right font-semibold">Spot Price</th>
@@ -39,14 +67,14 @@
                         <th class="px-3 py-2 text-right font-semibold">Total Premium</th>
                         <th class="px-3 py-2 text-right font-semibold">Premium Per Share</th>
                         <th class="px-3 py-2 text-right font-semibold">Break-Even Price</th>
-                        <th class="px-3 py-2 text-left font-semibold">Date Opened</th>
-                        <th class="px-3 py-2 text-right font-semibold">DTE</th>
+                        <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="opened_at">Date Opened <span class="sort-arrow text-xs"></span></th>
+                        <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="dte">DTE <span class="sort-arrow text-xs"></span></th>
                         <th class="px-3 py-2 text-left font-semibold">Date Closed</th>
                         <th class="px-3 py-2 text-right font-semibold">Close Cost</th>
                         <th class="px-3 py-2 text-right font-semibold">Close Spot</th>
                         <th class="px-3 py-2 text-right font-semibold">Days in Trade</th>
-                        <th class="px-3 py-2 text-right font-semibold">P/L</th>
-                        <th class="px-3 py-2 text-right font-semibold">P/L %</th>
+                        <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="realized_pl">P/L <span class="sort-arrow text-xs"></span></th>
+                        <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="realized_pl_pct">P/L % <span class="sort-arrow text-xs"></span></th>
                         <th class="px-3 py-2 text-left font-semibold">Status</th>
                         <th class="px-3 py-2 text-left font-semibold">Notes</th>
                     </tr>
