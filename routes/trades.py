@@ -7,7 +7,10 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from db import get_session
-from models import Trade, StrategyType, TradeStatus, TradeEvent, EventType, Spot
+from models import (
+    Trade, StrategyType, TradeStatus, TradeEvent, EventType,
+    Spot, ShareLot, LotSource,
+)
 
 router = APIRouter(tags=["trades"])
 
@@ -28,6 +31,22 @@ class TradeClose(BaseModel):
     closing_cost: Decimal = Decimal("0")
     closing_spot: Optional[Decimal] = None
     status: TradeStatus = TradeStatus.EXPIRED
+
+
+class TradeAssign(BaseModel):
+    assigned_at: date
+    closing_spot: Optional[Decimal] = None
+
+
+class TradeRoll(BaseModel):
+    roll_date: date
+    closing_cost: Decimal  # cost to close the old leg
+    closing_spot: Optional[Decimal] = None
+    # new leg fields
+    new_strike: Decimal
+    new_expiry_date: date
+    new_total_premium: Decimal
+    new_contracts: Optional[int] = None  # defaults to same qty
 
 
 class TradeUpdate(BaseModel):
@@ -140,11 +159,14 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
 
 @router.post("/trades/{trade_id}/close")
 def close_trade(trade_id: int, body: TradeClose, session: Session = Depends(get_session)):
+    """Close a trade as Expired or BTC."""
     trade = session.get(Trade, trade_id)
     if not trade:
         raise HTTPException(404, "Trade not found")
     if trade.status != TradeStatus.OPEN:
         raise HTTPException(400, "Trade is not open")
+    if body.status not in (TradeStatus.EXPIRED, TradeStatus.BTC):
+        raise HTTPException(400, "Use /assign or /roll for that status")
 
     trade.closed_at = body.closed_at
     trade.closing_cost = body.closing_cost
@@ -166,6 +188,139 @@ def close_trade(trade_id: int, body: TradeClose, session: Session = Depends(get_
     spot = session.get(Spot, trade.underlying_id)
     d["symbol"] = spot.symbol if spot else "?"
     return d
+
+
+@router.post("/trades/{trade_id}/assign")
+def assign_trade(trade_id: int, body: TradeAssign, session: Session = Depends(get_session)):
+    """Handle option assignment. CSP → creates a ShareLot. CC → consumes ShareLots (FIFO)."""
+    trade = session.get(Trade, trade_id)
+    if not trade:
+        raise HTTPException(404, "Trade not found")
+    if trade.status != TradeStatus.OPEN:
+        raise HTTPException(400, "Trade is not open")
+
+    # Update trade
+    trade.closed_at = body.assigned_at
+    trade.closing_cost = Decimal("0")
+    trade.closing_spot = body.closing_spot
+    trade.status = TradeStatus.ASSIGNED
+
+    # Create ASSIGNMENT event
+    event = TradeEvent(
+        trade_id=trade.id,
+        event_type=EventType.ASSIGNMENT,
+        event_date=body.assigned_at,
+        qty=trade.contracts,
+        price=Decimal("0"),
+    )
+    session.add(event)
+
+    total_shares = trade.contracts * trade.multiplier
+
+    if trade.strategy_type == StrategyType.CSP:
+        # CSP assignment: you buy shares at strike. True cost basis = strike - premium/share
+        cost_basis = trade.strike - trade.premium_per_share
+        lot = ShareLot(
+            underlying_id=trade.underlying_id,
+            qty=total_shares,
+            remaining_qty=total_shares,
+            cost_per_share=cost_basis,
+            acquired_at=body.assigned_at,
+            source=LotSource.ASSIGNMENT,
+            linked_trade_id=trade.id,
+        )
+        session.add(lot)
+    else:
+        # CC assignment: you sell shares at strike. Consume lots FIFO.
+        lots = session.exec(
+            select(ShareLot)
+            .where(ShareLot.underlying_id == trade.underlying_id)
+            .where(ShareLot.remaining_qty > 0)
+            .order_by(ShareLot.acquired_at)
+        ).all()
+        remaining_to_sell = total_shares
+        for lot in lots:
+            if remaining_to_sell <= 0:
+                break
+            consumed = min(lot.remaining_qty, remaining_to_sell)
+            lot.remaining_qty -= consumed
+            remaining_to_sell -= consumed
+            session.add(lot)
+        if remaining_to_sell > 0:
+            # Not enough shares — still proceed but note the shortfall
+            pass
+
+    session.commit()
+    session.refresh(trade)
+
+    d = _trade_to_dict(trade)
+    spot = session.get(Spot, trade.underlying_id)
+    d["symbol"] = spot.symbol if spot else "?"
+    return d
+
+
+@router.post("/trades/{trade_id}/roll")
+def roll_trade(trade_id: int, body: TradeRoll, session: Session = Depends(get_session)):
+    """Roll a trade: close the old leg and open a new one, linked via TradeEvents."""
+    trade = session.get(Trade, trade_id)
+    if not trade:
+        raise HTTPException(404, "Trade not found")
+    if trade.status != TradeStatus.OPEN:
+        raise HTTPException(400, "Trade is not open")
+
+    # --- Close old trade ---
+    trade.closed_at = body.roll_date
+    trade.closing_cost = body.closing_cost
+    trade.closing_spot = body.closing_spot
+    trade.status = TradeStatus.ROLLED
+
+    roll_close_event = TradeEvent(
+        trade_id=trade.id,
+        event_type=EventType.ROLL_CLOSE,
+        event_date=body.roll_date,
+        qty=trade.contracts,
+        price=body.closing_cost,
+    )
+    session.add(roll_close_event)
+    session.commit()
+    session.refresh(roll_close_event)
+
+    # --- Create new trade ---
+    new_contracts = body.new_contracts if body.new_contracts else trade.contracts
+    new_trade = Trade(
+        underlying_id=trade.underlying_id,
+        strategy_type=trade.strategy_type,
+        strike=body.new_strike,
+        expiry_date=body.new_expiry_date,
+        contracts=new_contracts,
+        total_premium=body.new_total_premium,
+        opened_at=body.roll_date,
+        spot_price_at_open=body.closing_spot,
+    )
+    session.add(new_trade)
+    session.commit()
+    session.refresh(new_trade)
+
+    roll_open_event = TradeEvent(
+        trade_id=new_trade.id,
+        event_type=EventType.ROLL_OPEN,
+        event_date=body.roll_date,
+        qty=new_contracts,
+        price=body.new_total_premium,
+        linked_event_id=roll_close_event.id,
+    )
+    session.add(roll_open_event)
+    session.commit()
+    session.refresh(new_trade)
+
+    spot = session.get(Spot, trade.underlying_id)
+    symbol = spot.symbol if spot else "?"
+
+    old_d = _trade_to_dict(trade)
+    old_d["symbol"] = symbol
+    new_d = _trade_to_dict(new_trade)
+    new_d["symbol"] = symbol
+    return {"closed_trade": old_d, "new_trade": new_d}
 
 
 @router.get("/trades/{trade_id}")
