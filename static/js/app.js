@@ -6,6 +6,8 @@ function updateURL() {
     // Tab
     const activeTab = document.querySelector(".tab-btn.text-indigo-600");
     if (activeTab) params.set("tab", activeTab.dataset.tab);
+    // Trade view (open / closed)
+    params.set("view", tradeView);
     // Filters
     const spot = $("#filter-spot").value;
     const type = $("#filter-type").value;
@@ -25,6 +27,8 @@ function restoreFromURL() {
     const p = new URLSearchParams(location.search);
     // Tab
     switchTab(p.get("tab") || "trades");
+    // Trade view
+    switchTradeView(p.get("view") || "open");
     // Filters (spot filter is populated after trades load, so set it later)
     if (p.get("type")) $("#filter-type").value = p.get("type");
     if (p.get("status")) $("#filter-status").value = p.get("status");
@@ -57,7 +61,15 @@ $$(".tab-btn").forEach(btn => {
     });
 });
 
-// Sort headers
+// Trade view sub-tabs (open / closed)
+$$(".trade-view-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        switchTradeView(btn.dataset.view);
+        updateURL();
+    });
+});
+
+// Sort headers — bind on both tables
 $$("th[data-sort]").forEach(th => {
     th.addEventListener("click", () => {
         const col = th.dataset.sort;

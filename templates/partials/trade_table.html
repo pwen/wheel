@@ -1,48 +1,89 @@
-<!-- Trade Table -->
-<div class="bg-white shadow rounded-lg overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-100">
-            <tr>
-                <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none group" data-sort="symbol">
-                    Spot <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
-                </th>
-                <th class="px-3 py-2 text-left font-semibold">Type</th>
-                <th class="px-3 py-2 text-right font-semibold">Spot Price</th>
-                <th class="px-3 py-2 text-right font-semibold">Strike Price</th>
-                <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">Expiry</th>
-                <th class="px-3 py-2 text-right font-semibold">Qty</th>
-                <th class="px-3 py-2 text-right font-semibold">Total Premium</th>
-                <th class="px-3 py-2 text-right font-semibold">Premium Per Share</th>
-                <th class="px-3 py-2 text-right font-semibold">Break-Even Price</th>
-                <th class="px-3 py-2 text-right font-semibold">Option Price</th>
-                <th class="px-3 py-2 text-right font-semibold">Unreal. P/L</th>
-                <th class="px-3 py-2 text-right font-semibold">Unreal. P/L %</th>
-                <th class="px-3 py-2 text-right font-semibold">IV</th>
-                <th class="px-3 py-2 text-left font-semibold whitespace-nowrap cursor-pointer select-none group" data-sort="opened_at">
-                    Date Opened <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
-                </th>
-                <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none group" data-sort="dte">
-                    DTE <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
-                </th>
-                <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">Date Closed</th>
-                <th class="px-3 py-2 text-right font-semibold">Close Cost</th>
-                <th class="px-3 py-2 text-right font-semibold">Close Spot</th>
-                <th class="px-3 py-2 text-right font-semibold">Days in Trade</th>
-                <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none group" data-sort="realized_pl">
-                    P/L <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
-                </th>
-                <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none group"
-                    data-sort="realized_pl_pct">
-                    P/L % <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
-                </th>
-                <th class="px-3 py-2 text-left font-semibold">Status</th>
-                <th class="px-3 py-2 text-center font-semibold">Actions</th>
-            </tr>
-        </thead>
-        <tbody id="trades-body" class="divide-y divide-gray-100">
-            <!-- rows injected by JS -->
-        </tbody>
-    </table>
-    <p id="empty-msg" class="text-center text-gray-400 py-8 hidden">No trades yet — click "+ New Trade" to get
-        started.</p>
+<!-- Trade Sub-tabs -->
+<div class="flex gap-2 mb-4">
+    <button class="trade-view-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white"
+        data-view="open">Open Trades</button>
+    <button class="trade-view-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-700 border"
+        data-view="closed">Closed Trades</button>
+</div>
+
+<!-- Open Trades Table -->
+<div id="view-open">
+    <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none group" data-sort="symbol">
+                        Spot <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
+                    </th>
+                    <th class="px-3 py-2 text-left font-semibold">Type</th>
+                    <th class="px-3 py-2 text-right font-semibold">Spot Price</th>
+                    <th class="px-3 py-2 text-right font-semibold">Strike Price</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">Expiry</th>
+                    <th class="px-3 py-2 text-right font-semibold">Qty</th>
+                    <th class="px-3 py-2 text-right font-semibold">Total Premium</th>
+                    <th class="px-3 py-2 text-right font-semibold">Premium/Share</th>
+                    <th class="px-3 py-2 text-right font-semibold">Break-Even</th>
+                    <th class="px-3 py-2 text-right font-semibold">Option Price</th>
+                    <th class="px-3 py-2 text-right font-semibold">Unreal. P/L</th>
+                    <th class="px-3 py-2 text-right font-semibold">Unreal. P/L %</th>
+                    <th class="px-3 py-2 text-right font-semibold">IV</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap cursor-pointer select-none group"
+                        data-sort="opened_at">
+                        Date Opened <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
+                    </th>
+                    <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none group" data-sort="dte">
+                        DTE <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
+                    </th>
+                    <th class="px-3 py-2 text-right font-semibold">Days in Trade</th>
+                    <th class="px-3 py-2 text-center font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="open-trades-body" class="divide-y divide-gray-100">
+            </tbody>
+        </table>
+        <p id="open-empty-msg" class="text-center text-gray-400 py-8 hidden">No open trades.</p>
+    </div>
+</div>
+
+<!-- Closed Trades Table -->
+<div id="view-closed" class="hidden">
+    <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none group" data-sort="symbol">
+                        Spot <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
+                    </th>
+                    <th class="px-3 py-2 text-left font-semibold">Type</th>
+                    <th class="px-3 py-2 text-right font-semibold">Strike Price</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">Expiry</th>
+                    <th class="px-3 py-2 text-right font-semibold">Qty</th>
+                    <th class="px-3 py-2 text-right font-semibold">Total Premium</th>
+                    <th class="px-3 py-2 text-right font-semibold">Premium/Share</th>
+                    <th class="px-3 py-2 text-right font-semibold">Break-Even</th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap cursor-pointer select-none group"
+                        data-sort="opened_at">
+                        Date Opened <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
+                    </th>
+                    <th class="px-3 py-2 text-left font-semibold whitespace-nowrap">Date Closed</th>
+                    <th class="px-3 py-2 text-right font-semibold">Days in Trade</th>
+                    <th class="px-3 py-2 text-right font-semibold">Close Cost</th>
+                    <th class="px-3 py-2 text-right font-semibold">Close Spot</th>
+                    <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none group"
+                        data-sort="realized_pl">
+                        P/L <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
+                    </th>
+                    <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none group"
+                        data-sort="realized_pl_pct">
+                        P/L % <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
+                    </th>
+                    <th class="px-3 py-2 text-left font-semibold">Status</th>
+                    <th class="px-3 py-2 text-center font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="closed-trades-body" class="divide-y divide-gray-100">
+            </tbody>
+        </table>
+        <p id="closed-empty-msg" class="text-center text-gray-400 py-8 hidden">No closed trades yet.</p>
+    </div>
 </div>
