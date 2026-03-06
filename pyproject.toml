@@ -1,0 +1,9 @@
+[project]
+name = "wheel-tracker"
+version = "0.1.0"
+description = "Minimal Streamlit demo for wheel strategy tracker"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.3.3",
+    "streamlit>=1.55.0",
+]
