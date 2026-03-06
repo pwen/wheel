@@ -22,17 +22,16 @@ function renderTrades() {
           ${t.strategy_type}
         </span>
       </td>
-      <td class="px-3 py-2 text-right">${fmtMoney(t.spot_price_at_open)}</td>
-      <td class="px-3 py-2 text-right font-medium" data-price-sym="${t.symbol}">…</td>
+      <td class="px-3 py-2 text-right font-medium" data-price-sym="${t.symbol}" data-strike="${t.strike}" data-type="${t.strategy_type}">…</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.strike)}</td>
-      <td class="px-3 py-2">${t.expiry_date}</td>
+      <td class="px-3 py-2 whitespace-nowrap">${t.expiry_date}</td>
       <td class="px-3 py-2 text-right">${t.contracts}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.total_premium)}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.premium_per_share)}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.break_even)}</td>
-      <td class="px-3 py-2">${t.opened_at}</td>
+      <td class="px-3 py-2 whitespace-nowrap">${t.opened_at}</td>
       <td class="px-3 py-2 text-right">${t.dte}</td>
-      <td class="px-3 py-2">${t.closed_at || "—"}</td>
+      <td class="px-3 py-2 whitespace-nowrap">${t.closed_at || "—"}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.closing_cost)}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.closing_spot)}</td>
       <td class="px-3 py-2 text-right">${t.days_in_trade}</td>
@@ -48,7 +47,6 @@ function renderTrades() {
           ${t.status}
         </span>
       </td>
-      <td class="px-3 py-2 max-w-[200px] truncate">${t.notes || ""}</td>
     </tr>
   `).join("");
 
