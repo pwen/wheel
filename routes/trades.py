@@ -1,6 +1,6 @@
 from decimal import Decimal
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -58,11 +58,10 @@ class TradeUpdate(BaseModel):
     total_premium: Optional[Decimal] = None
     opened_at: Optional[date] = None
     spot_price_at_open: Optional[Decimal] = None
-    # Closing fields (for editing closed trades)
+    # Closing fields (for editing closed trades — status is immutable)
     closed_at: Optional[date] = None
     closing_cost: Optional[Decimal] = None
     closing_spot: Optional[Decimal] = None
-    status: Optional[TradeStatus] = None
 
 
 def _trade_to_dict(t: Trade) -> dict:
@@ -137,8 +136,6 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
     if not trade:
         raise HTTPException(404, "Trade not found")
 
-    old_status = trade.status
-
     if body.symbol is not None:
         symbol = body.symbol.upper()
         spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
@@ -151,17 +148,19 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
 
     for field in ["strategy_type", "strike", "expiry_date", "contracts",
                    "total_premium", "opened_at", "spot_price_at_open",
-                   "closed_at", "closing_cost", "closing_spot", "status"]:
+                   "closed_at", "closing_cost", "closing_spot"]:
         val = getattr(body, field)
         if val is not None:
             setattr(trade, field, val)
 
-    new_status = trade.status
+    trade.updated_at = datetime.utcnow()
 
-    # --- Sync side-effects for closed trades ---
-    if new_status != TradeStatus.OPEN:
+    # --- Sync side-effects ---
+    _sync_open_event(trade, session)
+    if trade.status != TradeStatus.OPEN:
         _sync_close_event(trade, session)
-        _sync_assignment_lot(trade, old_status, new_status, session)
+        if trade.status == TradeStatus.ASSIGNED:
+            _sync_assignment_lot(trade, session)
 
     session.commit()
     session.refresh(trade)
@@ -170,6 +169,21 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
     spot = session.get(Spot, trade.underlying_id)
     d["symbol"] = spot.symbol if spot else "?"
     return d
+
+
+def _sync_open_event(trade: Trade, session: Session):
+    """Keep the OPEN event in sync with the trade's opening fields."""
+    event = session.exec(
+        select(TradeEvent)
+        .where(TradeEvent.trade_id == trade.id)
+        .where(TradeEvent.event_type == EventType.OPEN)
+    ).first()
+    if not event:
+        return
+    event.event_date = trade.opened_at
+    event.qty = trade.contracts
+    event.price = trade.total_premium
+    session.add(event)
 
 
 def _sync_close_event(trade: Trade, session: Session):
@@ -190,54 +204,19 @@ def _sync_close_event(trade: Trade, session: Session):
     session.add(event)
 
 
-def _sync_assignment_lot(
-    trade: Trade,
-    old_status: TradeStatus,
-    new_status: TradeStatus,
-    session: Session,
-):
-    """Handle ShareLot changes when assignment status changes."""
-    was_assigned = old_status == TradeStatus.ASSIGNED
-    is_assigned = new_status == TradeStatus.ASSIGNED
-
-    if was_assigned and not is_assigned:
-        # Status changed away from assigned — remove the lot created by assignment
-        lot = session.exec(
-            select(ShareLot)
-            .where(ShareLot.linked_trade_id == trade.id)
-            .where(ShareLot.source == LotSource.ASSIGNMENT)
-        ).first()
-        if lot:
-            session.delete(lot)
-
-    elif not was_assigned and is_assigned and trade.strategy_type == StrategyType.CSP:
-        # Status changed TO assigned — create the assignment lot (CSP only)
-        total_shares = trade.contracts * trade.multiplier
-        cost_basis = trade.strike - trade.premium_per_share
-        lot = ShareLot(
-            underlying_id=trade.underlying_id,
-            qty=total_shares,
-            remaining_qty=total_shares,
-            cost_per_share=cost_basis,
-            acquired_at=trade.closed_at or trade.expiry_date,
-            source=LotSource.ASSIGNMENT,
-            linked_trade_id=trade.id,
-        )
-        session.add(lot)
-
-    elif was_assigned and is_assigned:
-        # Still assigned — update the existing lot's cost basis & date
-        lot = session.exec(
-            select(ShareLot)
-            .where(ShareLot.linked_trade_id == trade.id)
-            .where(ShareLot.source == LotSource.ASSIGNMENT)
-        ).first()
-        if lot:
-            cost_basis = trade.strike - trade.premium_per_share
-            lot.cost_per_share = cost_basis
-            if trade.closed_at:
-                lot.acquired_at = trade.closed_at
-            session.add(lot)
+def _sync_assignment_lot(trade: Trade, session: Session):
+    """Update the ShareLot cost basis and date for an assigned trade."""
+    lot = session.exec(
+        select(ShareLot)
+        .where(ShareLot.linked_trade_id == trade.id)
+        .where(ShareLot.source == LotSource.ASSIGNMENT)
+    ).first()
+    if not lot:
+        return
+    lot.cost_per_share = trade.strike - trade.premium_per_share
+    if trade.closed_at:
+        lot.acquired_at = trade.closed_at
+    session.add(lot)
 
 
 @router.post("/trades/{trade_id}/close")

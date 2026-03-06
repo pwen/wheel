@@ -81,6 +81,8 @@ function setCloseAction(action) {
 
 async function handleCloseTrade(e) {
     e.preventDefault();
+    const label = closeAction === "expired" ? "expire this trade" : "buy-to-close this trade";
+    if (!confirm(`Are you sure you want to ${label}? This action is irreversible.`)) return;
     const fd = new FormData(e.target);
     const body = Object.fromEntries(fd.entries());
     body.status = closeAction === "expired" ? "expired" : "btc";
@@ -104,6 +106,7 @@ async function handleCloseTrade(e) {
 
 async function handleAssignTrade(e) {
     e.preventDefault();
+    if (!confirm("Are you sure you want to record this assignment? This action is irreversible.")) return;
     const fd = new FormData(e.target);
     const body = Object.fromEntries(fd.entries());
     if (body.closing_spot) body.closing_spot = parseFloat(body.closing_spot);
@@ -125,6 +128,7 @@ async function handleAssignTrade(e) {
 
 async function handleRollTrade(e) {
     e.preventDefault();
+    if (!confirm("Are you sure you want to roll this trade? The current trade will be closed and a new one created. This action is irreversible.")) return;
     const fd = new FormData(e.target);
     const body = Object.fromEntries(fd.entries());
     body.closing_cost = parseFloat(body.closing_cost);

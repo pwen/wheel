@@ -161,7 +161,6 @@ function handleTradeFormSubmit(e) {
     if (body.closing_spot) body.closing_spot = parseFloat(body.closing_spot);
     else delete body.closing_spot;
     if (!body.closed_at) delete body.closed_at;
-    if (!body.status) delete body.status;
 
     const url = editingTradeId ? `/api/trades/${editingTradeId}` : "/api/trades";
     const method = editingTradeId ? "PATCH" : "POST";

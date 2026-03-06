@@ -25,7 +25,7 @@ function openModal(trade) {
         if (trade.status !== "open") {
             closeFields.classList.remove("hidden");
             form.closed_at.value = trade.closed_at || "";
-            form.status.value = trade.status;
+            $("#edit-status-display").textContent = statusLabel(trade.status);
             form.closing_cost.value = trade.closing_cost != null ? trade.closing_cost : "";
             form.closing_spot.value = trade.closing_spot != null ? trade.closing_spot : "";
         } else {
