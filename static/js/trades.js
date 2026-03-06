@@ -155,6 +155,13 @@ function handleTradeFormSubmit(e) {
     body.total_premium = parseFloat(body.total_premium);
     if (body.spot_price_at_open) body.spot_price_at_open = parseFloat(body.spot_price_at_open);
     else delete body.spot_price_at_open;
+    // Closing fields (only sent when editing a closed trade)
+    if (body.closing_cost) body.closing_cost = parseFloat(body.closing_cost);
+    else delete body.closing_cost;
+    if (body.closing_spot) body.closing_spot = parseFloat(body.closing_spot);
+    else delete body.closing_spot;
+    if (!body.closed_at) delete body.closed_at;
+    if (!body.status) delete body.status;
 
     const url = editingTradeId ? `/api/trades/${editingTradeId}` : "/api/trades";
     const method = editingTradeId ? "PATCH" : "POST";

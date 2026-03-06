@@ -58,6 +58,11 @@ class TradeUpdate(BaseModel):
     total_premium: Optional[Decimal] = None
     opened_at: Optional[date] = None
     spot_price_at_open: Optional[Decimal] = None
+    # Closing fields (for editing closed trades)
+    closed_at: Optional[date] = None
+    closing_cost: Optional[Decimal] = None
+    closing_spot: Optional[Decimal] = None
+    status: Optional[TradeStatus] = None
 
 
 def _trade_to_dict(t: Trade) -> dict:
@@ -132,6 +137,8 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
     if not trade:
         raise HTTPException(404, "Trade not found")
 
+    old_status = trade.status
+
     if body.symbol is not None:
         symbol = body.symbol.upper()
         spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
@@ -143,10 +150,18 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
         trade.underlying_id = spot.id
 
     for field in ["strategy_type", "strike", "expiry_date", "contracts",
-                   "total_premium", "opened_at", "spot_price_at_open"]:
+                   "total_premium", "opened_at", "spot_price_at_open",
+                   "closed_at", "closing_cost", "closing_spot", "status"]:
         val = getattr(body, field)
         if val is not None:
             setattr(trade, field, val)
+
+    new_status = trade.status
+
+    # --- Sync side-effects for closed trades ---
+    if new_status != TradeStatus.OPEN:
+        _sync_close_event(trade, session)
+        _sync_assignment_lot(trade, old_status, new_status, session)
 
     session.commit()
     session.refresh(trade)
@@ -155,6 +170,74 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
     spot = session.get(Spot, trade.underlying_id)
     d["symbol"] = spot.symbol if spot else "?"
     return d
+
+
+def _sync_close_event(trade: Trade, session: Session):
+    """Update the CLOSE / ASSIGNMENT / ROLL_CLOSE event to match edited trade fields."""
+    close_event_types = [EventType.CLOSE, EventType.ASSIGNMENT, EventType.ROLL_CLOSE]
+    event = session.exec(
+        select(TradeEvent)
+        .where(TradeEvent.trade_id == trade.id)
+        .where(TradeEvent.event_type.in_(close_event_types))
+        .order_by(TradeEvent.created_at.desc())
+    ).first()
+    if not event:
+        return
+    if trade.closed_at:
+        event.event_date = trade.closed_at
+    event.price = trade.closing_cost or Decimal("0")
+    event.qty = trade.contracts
+    session.add(event)
+
+
+def _sync_assignment_lot(
+    trade: Trade,
+    old_status: TradeStatus,
+    new_status: TradeStatus,
+    session: Session,
+):
+    """Handle ShareLot changes when assignment status changes."""
+    was_assigned = old_status == TradeStatus.ASSIGNED
+    is_assigned = new_status == TradeStatus.ASSIGNED
+
+    if was_assigned and not is_assigned:
+        # Status changed away from assigned — remove the lot created by assignment
+        lot = session.exec(
+            select(ShareLot)
+            .where(ShareLot.linked_trade_id == trade.id)
+            .where(ShareLot.source == LotSource.ASSIGNMENT)
+        ).first()
+        if lot:
+            session.delete(lot)
+
+    elif not was_assigned and is_assigned and trade.strategy_type == StrategyType.CSP:
+        # Status changed TO assigned — create the assignment lot (CSP only)
+        total_shares = trade.contracts * trade.multiplier
+        cost_basis = trade.strike - trade.premium_per_share
+        lot = ShareLot(
+            underlying_id=trade.underlying_id,
+            qty=total_shares,
+            remaining_qty=total_shares,
+            cost_per_share=cost_basis,
+            acquired_at=trade.closed_at or trade.expiry_date,
+            source=LotSource.ASSIGNMENT,
+            linked_trade_id=trade.id,
+        )
+        session.add(lot)
+
+    elif was_assigned and is_assigned:
+        # Still assigned — update the existing lot's cost basis & date
+        lot = session.exec(
+            select(ShareLot)
+            .where(ShareLot.linked_trade_id == trade.id)
+            .where(ShareLot.source == LotSource.ASSIGNMENT)
+        ).first()
+        if lot:
+            cost_basis = trade.strike - trade.premium_per_share
+            lot.cost_per_share = cost_basis
+            if trade.closed_at:
+                lot.acquired_at = trade.closed_at
+            session.add(lot)
 
 
 @router.post("/trades/{trade_id}/close")
