@@ -40,3 +40,38 @@ function openModal(trade) {
     $("#modal").classList.remove("hidden");
 }
 function closeModal() { $("#modal").classList.add("hidden"); editingTradeId = null; }
+
+// Auto-fetch spot price when symbol + opened_at are filled (new trade only)
+let _spotPriceController = null;
+async function fetchSpotPrice() {
+    if (editingTradeId) return; // skip for edits
+    const form = $("#trade-form");
+    const symbol = form.symbol.value.trim();
+    const openedAt = form.opened_at.value;
+    if (!symbol || !openedAt) return;
+
+    // Abort any in-flight request
+    if (_spotPriceController) _spotPriceController.abort();
+    _spotPriceController = new AbortController();
+
+    const input = form.spot_price_at_open;
+    input.placeholder = "Fetching…";
+    try {
+        const res = await fetch(`/api/spot-price?symbol=${encodeURIComponent(symbol)}&on_date=${openedAt}`, {
+            signal: _spotPriceController.signal,
+        });
+        const data = await res.json();
+        if (data.price != null && !input.value) {
+            input.value = data.price;
+        }
+        input.placeholder = "";
+    } catch (e) {
+        if (e.name !== "AbortError") input.placeholder = "";
+    }
+}
+
+(function () {
+    const form = $("#trade-form");
+    form.symbol.addEventListener("change", fetchSpotPrice);
+    form.opened_at.addEventListener("change", fetchSpotPrice);
+})();

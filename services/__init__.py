@@ -1,4 +1,32 @@
+from datetime import date, timedelta
+
 import yfinance as yf
+
+
+def get_spot_price_on_date(symbol: str, on_date: date) -> float | None:
+    """Fetch the spot closing price for a symbol on a given date.
+
+    If the date is today, returns the current price.
+    If the date is in the past, returns the market close price for that day.
+    """
+    try:
+        ticker = yf.Ticker(symbol)
+        if on_date >= date.today():
+            return float(ticker.fast_info.last_price)
+        # Fetch a small window around the date to handle weekends/holidays
+        start = on_date - timedelta(days=5)
+        end = on_date + timedelta(days=1)
+        hist = ticker.history(start=start.isoformat(), end=end.isoformat())
+        if hist.empty:
+            return None
+        # Get the closest date <= on_date
+        hist.index = hist.index.tz_localize(None)
+        mask = hist.index.date <= on_date
+        if not mask.any():
+            return None
+        return round(float(hist.loc[mask, "Close"].iloc[-1]), 2)
+    except Exception:
+        return None
 
 
 def get_current_prices(symbols: list[str]) -> dict[str, float | None]:

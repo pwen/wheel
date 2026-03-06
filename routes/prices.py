@@ -1,10 +1,19 @@
 from typing import Optional
+from datetime import date
+
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-from services import get_current_prices, get_option_quotes
+from services import get_current_prices, get_option_quotes, get_spot_price_on_date
 
 router = APIRouter(tags=["prices"])
+
+
+@router.get("/spot-price")
+def spot_price(symbol: str = Query(...), on_date: date = Query(...)):
+    symbol = symbol.upper()
+    price = get_spot_price_on_date(symbol, on_date)
+    return {"symbol": symbol, "date": on_date.isoformat(), "price": price}
 
 
 @router.get("/prices")
