@@ -214,6 +214,13 @@ function renderSDSpotInfo(spot) {
         spot.expense_ratio && `<span class="text-gray-500 text-sm">Expense:</span> <span class="text-sm">${(spot.expense_ratio * 100).toFixed(2)}%</span>`,
     ].filter(Boolean);
 
+    const optItems = [
+        spot.implied_volatility && `<span class="text-gray-500 text-sm">IV (30d ATM):</span> <span class="text-sm">${(spot.implied_volatility * 100).toFixed(1)}%</span>`,
+        spot.option_volume && `<span class="text-gray-500 text-sm">Opt Vol:</span> <span class="text-sm">${fmtVol(spot.option_volume)}</span>`,
+        spot.open_interest && `<span class="text-gray-500 text-sm">Open Int:</span> <span class="text-sm">${fmtVol(spot.open_interest)}</span>`,
+        spot.bid_ask_spread != null && `<span class="text-gray-500 text-sm">Bid-Ask:</span> <span class="text-sm">$${spot.bid_ask_spread.toFixed(2)}</span>`,
+    ].filter(Boolean);
+
     el.innerHTML = `
     <div class="flex items-center gap-2 mb-2">
       <span class="font-semibold">${spot.name}</span>
@@ -221,7 +228,12 @@ function renderSDSpotInfo(spot) {
     </div>
     <div class="flex flex-wrap gap-x-4 gap-y-1">
       ${items.join("")}
-    </div>`;
+    </div>
+    ${optItems.length ? `
+    <div class="border-t mt-2 pt-2 flex flex-wrap gap-x-4 gap-y-1">
+      <span class="text-gray-400 text-xs font-semibold uppercase tracking-wide w-full">Options</span>
+      ${optItems.join("")}
+    </div>` : ""}`;
 }
 
 async function refreshSpotInfo() {

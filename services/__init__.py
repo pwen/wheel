@@ -10,7 +10,8 @@ from models.spot import AssetType
 def populate_spot_info(spot, session) -> None:
     """Fetch metadata from yfinance and update a Spot record in place."""
     try:
-        info = yf.Ticker(spot.symbol).info
+        ticker = yf.Ticker(spot.symbol)
+        info = ticker.info
     except Exception:
         return
 
@@ -24,8 +25,9 @@ def populate_spot_info(spot, session) -> None:
     spot.sector = info.get("sector") or info.get("category")
     spot.industry = info.get("industry")
     spot.region = info.get("region")
-    if info.get("beta") is not None:
-        spot.beta = Decimal(str(round(info["beta"], 3)))
+    beta = info.get("beta") or info.get("beta3Year")
+    if beta is not None:
+        spot.beta = Decimal(str(round(beta, 3)))
     if info.get("trailingPE") is not None:
         spot.pe_ratio = Decimal(str(round(info["trailingPE"], 2)))
     if info.get("marketCap") is not None:
@@ -38,10 +40,61 @@ def populate_spot_info(spot, session) -> None:
     if expense is not None:
         spot.expense_ratio = Decimal(str(round(expense / 100, 6)))
 
+    # Options market data: volume, OI, ATM IV, bid-ask spread
+    _populate_options_data(ticker, info, spot)
+
     spot.updated_at = datetime.utcnow()
     session.add(spot)
     session.commit()
     session.refresh(spot)
+
+
+def _populate_options_data(ticker, info: dict, spot) -> None:
+    """Fetch options chain data and populate liquidity fields on a Spot."""
+    try:
+        expirations = ticker.options
+        if not expirations:
+            return
+
+        # Pick expiry closest to 30 days out for representative data
+        today = date.today()
+        target = today + timedelta(days=30)
+        best_exp = min(expirations, key=lambda e: abs((date.fromisoformat(e) - target).days))
+
+        chain = ticker.option_chain(best_exp)
+        puts = chain.puts
+        calls = chain.calls
+
+        # Total option volume and open interest for this expiry
+        put_vol = puts["volume"].sum() if not puts["volume"].isna().all() else 0
+        call_vol = calls["volume"].sum() if not calls["volume"].isna().all() else 0
+        total_vol = int(put_vol + call_vol)
+        if total_vol > 0:
+            spot.option_volume = total_vol
+
+        total_oi = int(puts["openInterest"].sum() + calls["openInterest"].sum())
+        if total_oi > 0:
+            spot.open_interest = total_oi
+
+        # ATM implied volatility and bid-ask spread
+        current_price = info.get("currentPrice") or info.get("regularMarketPrice")
+        if current_price and len(puts) > 0 and len(calls) > 0:
+            atm_put = puts.iloc[(puts["strike"] - current_price).abs().argsort()[:1]]
+            atm_call = calls.iloc[(calls["strike"] - current_price).abs().argsort()[:1]]
+
+            put_iv = atm_put["impliedVolatility"].values[0]
+            call_iv = atm_call["impliedVolatility"].values[0]
+            avg_iv = (put_iv + call_iv) / 2
+            if avg_iv > 0:
+                spot.implied_volatility = Decimal(str(round(avg_iv, 4)))
+
+            put_spread = atm_put["ask"].values[0] - atm_put["bid"].values[0]
+            call_spread = atm_call["ask"].values[0] - atm_call["bid"].values[0]
+            avg_spread = (put_spread + call_spread) / 2
+            if avg_spread >= 0:
+                spot.bid_ask_spread = Decimal(str(round(avg_spread, 2)))
+    except Exception:
+        pass  # Options data is best-effort
 
 
 def get_spot_price_on_date(symbol: str, on_date: date) -> float | None:
