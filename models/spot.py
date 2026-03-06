@@ -16,7 +16,6 @@ class Spot(SQLModel, table=True):
     symbol: str = Field(index=True, unique=True)
     name: Optional[str] = None
     asset_type: Optional[AssetType] = None
-    exchange: Optional[str] = None
     sector: Optional[str] = None
     industry: Optional[str] = None
     region: Optional[str] = None
@@ -24,5 +23,13 @@ class Spot(SQLModel, table=True):
     pe_ratio: Optional[Decimal] = None
     beta: Optional[Decimal] = None
     market_cap: Optional[Decimal] = None
+    # Liquidity — underlying
+    aum: Optional[Decimal] = None
+    avg_daily_volume: Optional[int] = None
+    # Liquidity — options market
+    option_volume: Optional[int] = None
+    open_interest: Optional[int] = None
+    implied_volatility: Optional[Decimal] = None
+    bid_ask_spread: Optional[Decimal] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

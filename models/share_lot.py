@@ -8,8 +8,7 @@ from sqlmodel import Field, SQLModel
 
 class LotSource(str, enum.Enum):
     ASSIGNMENT = "assignment"
-    MANUAL_BUY = "manual_buy"
-    TRANSFER = "transfer"
+    PURCHASE = "purchase"
 
 
 class ShareLot(SQLModel, table=True):

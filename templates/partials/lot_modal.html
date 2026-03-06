@@ -1,0 +1,41 @@
+<!-- Modal: Add / Edit Share Lot -->
+<div id="lot-modal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+        <h2 id="lot-modal-title" class="text-lg font-bold mb-4">Add Shares</h2>
+        <form id="lot-form" class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <label class="block font-medium mb-1">Symbol</label>
+                <input name="symbol" required class="w-full border rounded-lg px-3 py-2" placeholder="e.g. COPX" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">Quantity</label>
+                <input name="qty" type="number" min="1" required class="w-full border rounded-lg px-3 py-2"
+                    value="100" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">Cost per Share ($)</label>
+                <input name="cost_per_share" type="number" step="0.01" required
+                    class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">Date Acquired</label>
+                <input name="acquired_at" type="date" required class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">Source</label>
+                <select name="source" class="w-full border rounded-lg px-3 py-2">
+                    <option value="purchase">Purchase</option>
+                    <option value="assignment">Assignment</option>
+                </select>
+            </div>
+            <div></div>
+            <div class="col-span-2 flex justify-end gap-3 mt-2">
+                <button type="button" onclick="closeLotModal()"
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button type="submit" id="lot-submit-btn"
+                    class="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg">Add
+                    Shares</button>
+            </div>
+        </form>
+    </div>
+</div>
