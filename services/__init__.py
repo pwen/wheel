@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, timedelta
 
 import yfinance as yf
@@ -68,33 +69,39 @@ def get_option_quotes(contracts: list[dict]) -> dict[int, dict]:
     for c in contracts:
         by_symbol.setdefault(c["symbol"], []).append(c)
 
-    for sym, trades in by_symbol.items():
+    def _fetch_symbol(sym: str, trades: list[dict]) -> dict[int, dict]:
+        """Fetch option data for all trades of a single symbol."""
+        out = {}
         try:
             ticker = yf.Ticker(sym)
-            # Cache chains per expiry
             chains: dict[str, object] = {}
             for t in trades:
-                expiry = t["expiry_date"]  # "YYYY-MM-DD"
+                expiry = t["expiry_date"]
                 try:
                     if expiry not in chains:
                         chains[expiry] = ticker.option_chain(expiry)
                     chain = chains[expiry]
-                    # CSP = put, CC = call
                     df = chain.puts if t["strategy_type"] == "CSP" else chain.calls
                     row = df[df["strike"] == float(t["strike"])]
                     if row.empty:
-                        results[t["trade_id"]] = {"mid": None, "iv": None}
+                        out[t["trade_id"]] = {"mid": None, "iv": None}
                         continue
                     row = row.iloc[0]
                     bid = float(row["bid"]) if row["bid"] > 0 else None
                     ask = float(row["ask"]) if row["ask"] > 0 else None
                     mid = round((bid + ask) / 2, 4) if bid and ask else (bid or ask)
                     iv = round(float(row["impliedVolatility"]) * 100, 2) if row["impliedVolatility"] else None
-                    results[t["trade_id"]] = {"mid": mid, "iv": iv}
+                    out[t["trade_id"]] = {"mid": mid, "iv": iv}
                 except Exception:
-                    results[t["trade_id"]] = {"mid": None, "iv": None}
+                    out[t["trade_id"]] = {"mid": None, "iv": None}
         except Exception:
             for t in trades:
-                results[t["trade_id"]] = {"mid": None, "iv": None}
+                out[t["trade_id"]] = {"mid": None, "iv": None}
+        return out
+
+    with ThreadPoolExecutor(max_workers=min(8, len(by_symbol))) as pool:
+        futures = {pool.submit(_fetch_symbol, sym, trades): sym for sym, trades in by_symbol.items()}
+        for future in as_completed(futures):
+            results.update(future.result())
 
     return results
