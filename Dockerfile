@@ -9,6 +9,6 @@ RUN uv sync --no-dev --frozen 2>/dev/null || uv sync --no-dev
 
 COPY . .
 
-EXPOSE 5002
+EXPOSE ${PORT:-5002}
 
-CMD ["/app/.venv/bin/python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5002"]
+CMD ["sh", "-c", "/app/.venv/bin/python -m uvicorn app:app --host 0.0.0.0 --port ${PORT:-5002}"]

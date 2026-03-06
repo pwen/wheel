@@ -35,6 +35,11 @@ app.include_router(lots.router, prefix="/api")
 app.include_router(pages.router)
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 if __name__ == "__main__":
     import uvicorn
 
