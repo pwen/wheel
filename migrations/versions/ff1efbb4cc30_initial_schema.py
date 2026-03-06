@@ -1,8 +1,8 @@
 """initial_schema
 
-Revision ID: 5b26323b0822
+Revision ID: ff1efbb4cc30
 Revises: 
-Create Date: 2026-03-06 21:22:30.226582
+Create Date: 2026-03-06 15:26:05.690449
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = '5b26323b0822'
+revision: str = 'ff1efbb4cc30'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,7 +26,6 @@ def upgrade() -> None:
     sa.Column('symbol', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('asset_type', sa.Enum('STOCK', 'ETF', name='assettype'), nullable=True),
-    sa.Column('exchange', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('sector', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('industry', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('region', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
@@ -34,8 +33,12 @@ def upgrade() -> None:
     sa.Column('pe_ratio', sa.Numeric(), nullable=True),
     sa.Column('beta', sa.Numeric(), nullable=True),
     sa.Column('market_cap', sa.Numeric(), nullable=True),
-    sa.Column('is_etf', sa.Boolean(), nullable=False),
-    sa.Column('notes', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('aum', sa.Numeric(), nullable=True),
+    sa.Column('avg_daily_volume', sa.Integer(), nullable=True),
+    sa.Column('option_volume', sa.Integer(), nullable=True),
+    sa.Column('open_interest', sa.Integer(), nullable=True),
+    sa.Column('implied_volatility', sa.Numeric(), nullable=True),
+    sa.Column('bid_ask_spread', sa.Numeric(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -50,19 +53,16 @@ def upgrade() -> None:
     sa.Column('contracts', sa.Integer(), nullable=False),
     sa.Column('multiplier', sa.Integer(), nullable=False),
     sa.Column('total_premium', sa.Numeric(), nullable=False),
-    sa.Column('status', sa.Enum('OPEN', 'CLOSED', 'ASSIGNED', 'ROLLED', name='tradestatus'), nullable=False),
+    sa.Column('status', sa.Enum('OPEN', 'EXPIRED', 'BTC', 'ASSIGNED', 'ROLLED', name='tradestatus'), nullable=False),
     sa.Column('opened_at', sa.Date(), nullable=False),
     sa.Column('closed_at', sa.Date(), nullable=True),
     sa.Column('closing_cost', sa.Numeric(), nullable=True),
     sa.Column('closing_spot', sa.Numeric(), nullable=True),
     sa.Column('spot_price_at_open', sa.Numeric(), nullable=True),
-    sa.Column('broker_trade_id', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('notes', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['underlying_id'], ['spot.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('broker_trade_id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_trade_opened_at'), 'trade', ['opened_at'], unique=False)
     op.create_index(op.f('ix_trade_underlying_id'), 'trade', ['underlying_id'], unique=False)
@@ -73,9 +73,8 @@ def upgrade() -> None:
     sa.Column('remaining_qty', sa.Integer(), nullable=False),
     sa.Column('cost_per_share', sa.Numeric(), nullable=False),
     sa.Column('acquired_at', sa.Date(), nullable=False),
-    sa.Column('source', sa.Enum('ASSIGNMENT', 'MANUAL_BUY', 'TRANSFER', name='lotsource'), nullable=False),
+    sa.Column('source', sa.Enum('ASSIGNMENT', 'PURCHASE', name='lotsource'), nullable=False),
     sa.Column('linked_trade_id', sa.Integer(), nullable=True),
-    sa.Column('notes', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['linked_trade_id'], ['trade.id'], ),
     sa.ForeignKeyConstraint(['underlying_id'], ['spot.id'], ),
@@ -89,9 +88,7 @@ def upgrade() -> None:
     sa.Column('event_date', sa.Date(), nullable=False),
     sa.Column('qty', sa.Integer(), nullable=False),
     sa.Column('price', sa.Numeric(), nullable=False),
-    sa.Column('fees', sa.Numeric(), nullable=False),
     sa.Column('linked_event_id', sa.Integer(), nullable=True),
-    sa.Column('notes', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['linked_event_id'], ['tradeevent.id'], ),
     sa.ForeignKeyConstraint(['trade_id'], ['trade.id'], ),

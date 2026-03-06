@@ -34,7 +34,6 @@ class Trade(SQLModel, table=True):
     closing_cost: Optional[Decimal] = None
     closing_spot: Optional[Decimal] = None
     spot_price_at_open: Optional[Decimal] = None
-    broker_trade_id: Optional[str] = Field(default=None, unique=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(
         default_factory=datetime.utcnow,
