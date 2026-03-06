@@ -27,7 +27,6 @@ class Trade(SQLModel, table=True):
     contracts: int
     multiplier: int = 100
     total_premium: Decimal
-    commission: Decimal = Decimal("0")
     status: TradeStatus = TradeStatus.OPEN
     opened_at: date = Field(index=True)
     closed_at: Optional[date] = None
@@ -67,7 +66,7 @@ class Trade(SQLModel, table=True):
         if self.closed_at is None:
             return None
         closing = self.closing_cost or Decimal("0")
-        return self.total_premium - closing - self.commission
+        return self.total_premium - closing
 
     @property
     def realized_pl_pct(self) -> Optional[Decimal]:

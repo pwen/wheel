@@ -19,7 +19,6 @@ class TradeCreate(BaseModel):
     expiry_date: date
     contracts: int
     total_premium: Decimal
-    commission: Decimal = Decimal("0")
     opened_at: date
     spot_price_at_open: Optional[Decimal] = None
     notes: Optional[str] = None
@@ -29,6 +28,18 @@ class TradeClose(BaseModel):
     closed_at: date
     closing_cost: Decimal
     closing_spot: Optional[Decimal] = None
+    notes: Optional[str] = None
+
+
+class TradeUpdate(BaseModel):
+    symbol: Optional[str] = None
+    strategy_type: Optional[StrategyType] = None
+    strike: Optional[Decimal] = None
+    expiry_date: Optional[date] = None
+    contracts: Optional[int] = None
+    total_premium: Optional[Decimal] = None
+    opened_at: Optional[date] = None
+    spot_price_at_open: Optional[Decimal] = None
     notes: Optional[str] = None
 
 
@@ -75,7 +86,6 @@ def create_trade(body: TradeCreate, session: Session = Depends(get_session)):
         expiry_date=body.expiry_date,
         contracts=body.contracts,
         total_premium=body.total_premium,
-        commission=body.commission,
         opened_at=body.opened_at,
         spot_price_at_open=body.spot_price_at_open,
         notes=body.notes,
@@ -97,6 +107,37 @@ def create_trade(body: TradeCreate, session: Session = Depends(get_session)):
 
     d = _trade_to_dict(trade)
     d["symbol"] = symbol
+    return d
+
+
+@router.patch("/trades/{trade_id}")
+def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(get_session)):
+    trade = session.get(Trade, trade_id)
+    if not trade:
+        raise HTTPException(404, "Trade not found")
+
+    if body.symbol is not None:
+        symbol = body.symbol.upper()
+        spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
+        if not spot:
+            spot = Spot(symbol=symbol)
+            session.add(spot)
+            session.commit()
+            session.refresh(spot)
+        trade.underlying_id = spot.id
+
+    for field in ["strategy_type", "strike", "expiry_date", "contracts",
+                   "total_premium", "opened_at", "spot_price_at_open", "notes"]:
+        val = getattr(body, field)
+        if val is not None:
+            setattr(trade, field, val)
+
+    session.commit()
+    session.refresh(trade)
+
+    d = _trade_to_dict(trade)
+    spot = session.get(Spot, trade.underlying_id)
+    d["symbol"] = spot.symbol if spot else "?"
     return d
 
 

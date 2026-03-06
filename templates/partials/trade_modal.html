@@ -1,7 +1,7 @@
-<!-- Modal: New Trade -->
+<!-- Modal: New / Edit Trade -->
 <div id="modal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
-        <h2 class="text-lg font-bold mb-4">New Trade</h2>
+        <h2 id="modal-title" class="text-lg font-bold mb-4">New Trade</h2>
         <form id="trade-form" class="grid grid-cols-2 gap-4 text-sm">
             <div>
                 <label class="block font-medium mb-1">Symbol</label>
@@ -47,7 +47,7 @@
             <div class="col-span-2 flex justify-end gap-3 mt-2">
                 <button type="button" onclick="closeModal()"
                     class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button type="submit"
+                <button type="submit" id="modal-submit-btn"
                     class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2 rounded-lg">Save
                     Trade</button>
             </div>

@@ -47,6 +47,9 @@ function renderTrades() {
           ${t.status}
         </span>
       </td>
+      <td class="px-3 py-2 text-center">
+        <button onclick='editTrade(${JSON.stringify(t.id)})' class="text-indigo-600 hover:text-indigo-800 text-xs font-medium">Edit</button>
+      </td>
     </tr>
   `).join("");
 
@@ -58,6 +61,11 @@ async function loadTrades() {
     allTrades = await res.json();
     populateSpotFilter(allTrades);
     renderTrades();
+}
+
+function editTrade(id) {
+    const trade = allTrades.find(t => t.id === id);
+    if (trade) openModal(trade);
 }
 
 function handleTradeFormSubmit(e) {
@@ -72,15 +80,18 @@ function handleTradeFormSubmit(e) {
     else delete body.spot_price_at_open;
     if (!body.notes) delete body.notes;
 
-    fetch("/api/trades", {
-        method: "POST",
+    const url = editingTradeId ? `/api/trades/${editingTradeId}` : "/api/trades";
+    const method = editingTradeId ? "PATCH" : "POST";
+
+    fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
     }).then(res => {
         if (res.ok) {
             closeModal();
             e.target.reset();
-            loadTrades();
+            loadTrades().then(loadPrices);
         } else {
             res.json().then(err => alert("Error: " + JSON.stringify(err.detail || err)));
         }
