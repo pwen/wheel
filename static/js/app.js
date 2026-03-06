@@ -31,7 +31,7 @@ async function loadTrades() {
         </span>
       </td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.spot_price_at_open)}</td>
-      <td class="px-3 py-2 text-right font-medium">${fmtMoney(t.current_price)}</td>
+      <td class="px-3 py-2 text-right font-medium" data-price-sym="${t.symbol}">…</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.strike)}</td>
       <td class="px-3 py-2">${t.expiry_date}</td>
       <td class="px-3 py-2 text-right">${t.contracts}</td>
@@ -91,5 +91,24 @@ $("#trade-form").addEventListener("submit", async (e) => {
     }
 });
 
+// ---- Live prices (async backfill) ----
+async function loadPrices() {
+    const cells = document.querySelectorAll("[data-price-sym]");
+    const symbols = [...new Set([...cells].map(c => c.dataset.priceSym))];
+    if (symbols.length === 0) return;
+
+    try {
+        const res = await fetch("/api/prices?" + symbols.map(s => "symbols=" + s).join("&"));
+        const prices = await res.json();
+        cells.forEach(cell => {
+            const sym = cell.dataset.priceSym;
+            const price = prices[sym];
+            cell.textContent = price != null ? fmtMoney(price) : "—";
+        });
+    } catch {
+        cells.forEach(cell => cell.textContent = "—");
+    }
+}
+
 // ---- Init ----
-loadTrades();
+loadTrades().then(loadPrices);

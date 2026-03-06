@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from routes import trades, spots, pages
+from routes import trades, spots, prices, pages
 
 
 @asynccontextmanager
@@ -28,6 +28,7 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 # API routes
 app.include_router(trades.router, prefix="/api")
 app.include_router(spots.router, prefix="/api")
+app.include_router(prices.router, prefix="/api")
 
 # Page routes (HTML)
 app.include_router(pages.router)

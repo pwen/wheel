@@ -8,7 +8,6 @@ from sqlmodel import Session, select
 
 from db import get_session
 from models import Trade, StrategyType, TradeStatus, TradeEvent, EventType, Spot
-from services import get_current_prices
 
 router = APIRouter(tags=["trades"])
 
@@ -49,23 +48,11 @@ def list_trades(session: Session = Depends(get_session)):
     trades = session.exec(
         select(Trade).order_by(Trade.opened_at.desc())
     ).all()
-
-    # Collect unique symbols for batch price lookup
-    spot_cache: dict[int, str] = {}
-    for t in trades:
-        if t.underlying_id not in spot_cache:
-            spot = session.get(Spot, t.underlying_id)
-            spot_cache[t.underlying_id] = spot.symbol if spot else "?"
-
-    symbols = list(set(spot_cache.values()) - {"?"})
-    prices = get_current_prices(symbols)
-
     results = []
     for t in trades:
         d = _trade_to_dict(t)
-        sym = spot_cache.get(t.underlying_id, "?")
-        d["symbol"] = sym
-        d["current_price"] = prices.get(sym)
+        spot = session.get(Spot, t.underlying_id)
+        d["symbol"] = spot.symbol if spot else "?"
         results.append(d)
     return results
 
