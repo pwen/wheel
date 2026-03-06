@@ -19,7 +19,7 @@ stop:
 	docker compose down
 
 logs: 
-	docker compose logs app -f
+	docker compose logs app --follow
 
 reset-db: 
 	docker compose down -v

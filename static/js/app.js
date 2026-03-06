@@ -31,6 +31,7 @@ async function loadTrades() {
         </span>
       </td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.spot_price_at_open)}</td>
+      <td class="px-3 py-2 text-right font-medium">${fmtMoney(t.current_price)}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.strike)}</td>
       <td class="px-3 py-2">${t.expiry_date}</td>
       <td class="px-3 py-2 text-right">${t.contracts}</td>

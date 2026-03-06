@@ -21,6 +21,10 @@ services:
       - "5002:5002"
     environment:
       DATABASE_URL: postgresql://wheel:wheel@db:5432/wheel
+    volumes:
+      - .:/app
+      - /app/.venv
+    command: ["/app/.venv/bin/python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5002", "--reload"]
     depends_on:
       db:
         condition: service_healthy
