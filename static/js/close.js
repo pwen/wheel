@@ -4,11 +4,11 @@ let closingTradeId = null;
 let closeAction = null;
 
 const STATUS_CONFIG = {
-    open:     { label: "Open",     cls: "bg-yellow-100 text-yellow-700" },
-    expired:  { label: "Expired",  cls: "bg-gray-200 text-gray-600" },
-    btc:      { label: "BTC",      cls: "bg-blue-100 text-blue-700" },
+    open: { label: "Open", cls: "bg-yellow-100 text-yellow-700" },
+    expired: { label: "Expired", cls: "bg-gray-200 text-gray-600" },
+    btc: { label: "BTC", cls: "bg-blue-100 text-blue-700" },
     assigned: { label: "Assigned", cls: "bg-orange-100 text-orange-700" },
-    rolled:   { label: "Rolled",   cls: "bg-purple-100 text-purple-700" },
+    rolled: { label: "Rolled", cls: "bg-purple-100 text-purple-700" },
 };
 
 function statusBadge(s) { return (STATUS_CONFIG[s] || STATUS_CONFIG.open).cls; }
@@ -95,7 +95,7 @@ async function handleCloseTrade(e) {
     });
     if (res.ok) {
         closeCloseModal();
-        loadTrades().then(loadPrices);
+        loadTrades().then(() => { loadPrices(); loadOptionPrices(); });
     } else {
         const err = await res.json();
         alert("Error: " + JSON.stringify(err.detail || err));
@@ -116,7 +116,7 @@ async function handleAssignTrade(e) {
     });
     if (res.ok) {
         closeCloseModal();
-        loadTrades().then(loadPrices);
+        loadTrades().then(() => { loadPrices(); loadOptionPrices(); });
     } else {
         const err = await res.json();
         alert("Error: " + JSON.stringify(err.detail || err));
@@ -142,7 +142,7 @@ async function handleRollTrade(e) {
     });
     if (res.ok) {
         closeCloseModal();
-        loadTrades().then(loadPrices);
+        loadTrades().then(() => { loadPrices(); loadOptionPrices(); });
     } else {
         const err = await res.json();
         alert("Error: " + JSON.stringify(err.detail || err));

@@ -101,6 +101,7 @@ loadTrades().then(() => {
     if (p.get("spot")) $("#filter-spot").value = p.get("spot");
     renderTrades();
     loadPrices();
+    loadOptionPrices();
 });
 loadLots();
 

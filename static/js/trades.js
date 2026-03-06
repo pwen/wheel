@@ -29,6 +29,10 @@ function renderTrades() {
       <td class="px-3 py-2 text-right">${fmtMoney(t.total_premium)}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.premium_per_share)}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.break_even)}</td>
+      <td class="px-3 py-2 text-right" data-opt-mid="${t.id}">…</td>
+      <td class="px-3 py-2 text-right" data-opt-upl="${t.id}">…</td>
+      <td class="px-3 py-2 text-right" data-opt-upl-pct="${t.id}">…</td>
+      <td class="px-3 py-2 text-right" data-opt-iv="${t.id}">…</td>
       <td class="px-3 py-2 whitespace-nowrap">${t.opened_at}</td>
       <td class="px-3 py-2 text-right">${t.dte}</td>
       <td class="px-3 py-2 whitespace-nowrap">${t.closed_at || "—"}</td>
@@ -91,7 +95,7 @@ function handleTradeFormSubmit(e) {
         if (res.ok) {
             closeModal();
             e.target.reset();
-            loadTrades().then(loadPrices);
+            loadTrades().then(() => { loadPrices(); loadOptionPrices(); });
         } else {
             res.json().then(err => alert("Error: " + JSON.stringify(err.detail || err)));
         }
