@@ -23,130 +23,17 @@
 
     <!-- Main -->
     <main class="max-w-[95vw] mx-auto px-4 py-6">
-
-        <!-- Filters -->
-        <div class="flex flex-wrap gap-4 mb-4 items-end">
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Spot</label>
-                <select id="filter-spot" class="border rounded-lg px-3 py-1.5 text-sm">
-                    <option value="">All</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
-                <select id="filter-type" class="border rounded-lg px-3 py-1.5 text-sm">
-                    <option value="">All</option>
-                    <option value="CSP">CSP</option>
-                    <option value="CC">CC</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
-                <select id="filter-status" class="border rounded-lg px-3 py-1.5 text-sm">
-                    <option value="">All</option>
-                    <option value="open">Open</option>
-                    <option value="closed">Closed</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="rolled">Rolled</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Trade Table -->
-        <div class="bg-white shadow rounded-lg overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="symbol">Spot <span class="sort-arrow text-xs"></span></th>
-                        <th class="px-3 py-2 text-left font-semibold">Type</th>
-                        <th class="px-3 py-2 text-right font-semibold">Spot Price at Open</th>
-                        <th class="px-3 py-2 text-right font-semibold">Spot Price</th>
-                        <th class="px-3 py-2 text-right font-semibold">Strike Price</th>
-                        <th class="px-3 py-2 text-left font-semibold">Expiry</th>
-                        <th class="px-3 py-2 text-right font-semibold">Qty</th>
-                        <th class="px-3 py-2 text-right font-semibold">Total Premium</th>
-                        <th class="px-3 py-2 text-right font-semibold">Premium Per Share</th>
-                        <th class="px-3 py-2 text-right font-semibold">Break-Even Price</th>
-                        <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="opened_at">Date Opened <span class="sort-arrow text-xs"></span></th>
-                        <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="dte">DTE <span class="sort-arrow text-xs"></span></th>
-                        <th class="px-3 py-2 text-left font-semibold">Date Closed</th>
-                        <th class="px-3 py-2 text-right font-semibold">Close Cost</th>
-                        <th class="px-3 py-2 text-right font-semibold">Close Spot</th>
-                        <th class="px-3 py-2 text-right font-semibold">Days in Trade</th>
-                        <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="realized_pl">P/L <span class="sort-arrow text-xs"></span></th>
-                        <th class="px-3 py-2 text-right font-semibold cursor-pointer select-none hover:text-indigo-600" data-sort="realized_pl_pct">P/L % <span class="sort-arrow text-xs"></span></th>
-                        <th class="px-3 py-2 text-left font-semibold">Status</th>
-                        <th class="px-3 py-2 text-left font-semibold">Notes</th>
-                    </tr>
-                </thead>
-                <tbody id="trades-body" class="divide-y divide-gray-100">
-                    <!-- rows injected by JS -->
-                </tbody>
-            </table>
-            <p id="empty-msg" class="text-center text-gray-400 py-8 hidden">No trades yet — click "+ New Trade" to get
-                started.</p>
-        </div>
+        {% include "partials/filters.html" %}
+        {% include "partials/trade_table.html" %}
     </main>
 
-    <!-- Modal: New Trade -->
-    <div id="modal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
-            <h2 class="text-lg font-bold mb-4">New Trade</h2>
-            <form id="trade-form" class="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                    <label class="block font-medium mb-1">Symbol</label>
-                    <input name="symbol" required class="w-full border rounded-lg px-3 py-2" placeholder="e.g. COPX" />
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Type</label>
-                    <select name="strategy_type" required class="w-full border rounded-lg px-3 py-2">
-                        <option value="CSP">Cash-Secured Put (CSP)</option>
-                        <option value="CC">Covered Call (CC)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Strike</label>
-                    <input name="strike" type="number" step="0.01" required
-                        class="w-full border rounded-lg px-3 py-2" />
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Expiry Date</label>
-                    <input name="expiry_date" type="date" required class="w-full border rounded-lg px-3 py-2" />
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Contracts</label>
-                    <input name="contracts" type="number" min="1" required class="w-full border rounded-lg px-3 py-2"
-                        value="1" />
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Total Premium ($)</label>
-                    <input name="total_premium" type="number" step="0.01" required
-                        class="w-full border rounded-lg px-3 py-2" />
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Spot Price at Open</label>
-                    <input name="spot_price_at_open" type="number" step="0.01"
-                        class="w-full border rounded-lg px-3 py-2" />
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Date Opened</label>
-                    <input name="opened_at" type="date" required class="w-full border rounded-lg px-3 py-2" />
-                </div>
-                <div class="col-span-2">
-                    <label class="block font-medium mb-1">Notes</label>
-                    <textarea name="notes" rows="2" class="w-full border rounded-lg px-3 py-2"></textarea>
-                </div>
-                <div class="col-span-2 flex justify-end gap-3 mt-2">
-                    <button type="button" onclick="closeModal()"
-                        class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                    <button type="submit"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2 rounded-lg">Save
-                        Trade</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    {% include "partials/trade_modal.html" %}
 
+    <script src="/static/js/helpers.js"></script>
+    <script src="/static/js/filters.js"></script>
+    <script src="/static/js/sorting.js"></script>
+    <script src="/static/js/trades.js"></script>
+    <script src="/static/js/prices.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 
