@@ -21,14 +21,13 @@ class TradeCreate(BaseModel):
     total_premium: Decimal
     opened_at: date
     spot_price_at_open: Optional[Decimal] = None
-    notes: Optional[str] = None
 
 
 class TradeClose(BaseModel):
     closed_at: date
-    closing_cost: Decimal
+    closing_cost: Decimal = Decimal("0")
     closing_spot: Optional[Decimal] = None
-    notes: Optional[str] = None
+    status: TradeStatus = TradeStatus.EXPIRED
 
 
 class TradeUpdate(BaseModel):
@@ -40,7 +39,6 @@ class TradeUpdate(BaseModel):
     total_premium: Optional[Decimal] = None
     opened_at: Optional[date] = None
     spot_price_at_open: Optional[Decimal] = None
-    notes: Optional[str] = None
 
 
 def _trade_to_dict(t: Trade) -> dict:
@@ -88,7 +86,6 @@ def create_trade(body: TradeCreate, session: Session = Depends(get_session)):
         total_premium=body.total_premium,
         opened_at=body.opened_at,
         spot_price_at_open=body.spot_price_at_open,
-        notes=body.notes,
     )
     session.add(trade)
     session.commit()
@@ -127,7 +124,7 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
         trade.underlying_id = spot.id
 
     for field in ["strategy_type", "strike", "expiry_date", "contracts",
-                   "total_premium", "opened_at", "spot_price_at_open", "notes"]:
+                   "total_premium", "opened_at", "spot_price_at_open"]:
         val = getattr(body, field)
         if val is not None:
             setattr(trade, field, val)
@@ -152,9 +149,7 @@ def close_trade(trade_id: int, body: TradeClose, session: Session = Depends(get_
     trade.closed_at = body.closed_at
     trade.closing_cost = body.closing_cost
     trade.closing_spot = body.closing_spot
-    trade.status = TradeStatus.CLOSED
-    if body.notes:
-        trade.notes = (trade.notes or "") + "\n" + body.notes
+    trade.status = body.status
 
     event = TradeEvent(
         trade_id=trade.id,

@@ -78,7 +78,6 @@ function handleTradeFormSubmit(e) {
     body.total_premium = parseFloat(body.total_premium);
     if (body.spot_price_at_open) body.spot_price_at_open = parseFloat(body.spot_price_at_open);
     else delete body.spot_price_at_open;
-    if (!body.notes) delete body.notes;
 
     const url = editingTradeId ? `/api/trades/${editingTradeId}` : "/api/trades";
     const method = editingTradeId ? "PATCH" : "POST";

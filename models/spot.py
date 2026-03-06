@@ -24,7 +24,5 @@ class Spot(SQLModel, table=True):
     pe_ratio: Optional[Decimal] = None
     beta: Optional[Decimal] = None
     market_cap: Optional[Decimal] = None
-    is_etf: bool = False
-    notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

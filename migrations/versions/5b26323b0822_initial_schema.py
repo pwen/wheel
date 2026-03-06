@@ -1,8 +1,8 @@
-"""initial schema
+"""initial_schema
 
-Revision ID: bb016ed931ff
+Revision ID: 5b26323b0822
 Revises: 
-Create Date: 2026-03-06 13:43:39.170478
+Create Date: 2026-03-06 21:22:30.226582
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'bb016ed931ff'
+revision: str = '5b26323b0822'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -50,7 +50,6 @@ def upgrade() -> None:
     sa.Column('contracts', sa.Integer(), nullable=False),
     sa.Column('multiplier', sa.Integer(), nullable=False),
     sa.Column('total_premium', sa.Numeric(), nullable=False),
-    sa.Column('commission', sa.Numeric(), nullable=False),
     sa.Column('status', sa.Enum('OPEN', 'CLOSED', 'ASSIGNED', 'ROLLED', name='tradestatus'), nullable=False),
     sa.Column('opened_at', sa.Date(), nullable=False),
     sa.Column('closed_at', sa.Date(), nullable=True),

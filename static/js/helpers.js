@@ -20,7 +20,6 @@ function openModal(trade) {
         form.total_premium.value = trade.total_premium;
         form.spot_price_at_open.value = trade.spot_price_at_open || "";
         form.opened_at.value = trade.opened_at;
-        form.notes.value = trade.notes || "";
     } else {
         editingTradeId = null;
         $("#modal-title").textContent = "New Trade";

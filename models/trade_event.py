@@ -23,7 +23,5 @@ class TradeEvent(SQLModel, table=True):
     event_date: date
     qty: int
     price: Decimal
-    fees: Decimal = Decimal("0")
     linked_event_id: Optional[int] = Field(default=None, foreign_key="tradeevent.id")
-    notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

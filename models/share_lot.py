@@ -21,5 +21,4 @@ class ShareLot(SQLModel, table=True):
     acquired_at: date
     source: LotSource
     linked_trade_id: Optional[int] = Field(default=None, foreign_key="trade.id")
-    notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
