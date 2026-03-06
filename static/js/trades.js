@@ -36,7 +36,7 @@ function renderOpenTrades(trades) {
       <td class="px-3 py-2 font-medium">${t.symbol}</td>
       <td class="px-3 py-2">
         <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
-          ${t.strategy_type === 'CSP' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}">
+          ${t.strategy_type === 'CSP' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
           ${t.strategy_type}
         </span>
       </td>
@@ -78,7 +78,7 @@ function renderClosedTrades(trades) {
       <td class="px-3 py-2 font-medium">${t.symbol}</td>
       <td class="px-3 py-2">
         <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
-          ${t.strategy_type === 'CSP' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}">
+          ${t.strategy_type === 'CSP' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
           ${t.strategy_type}
         </span>
       </td>
