@@ -22,8 +22,13 @@ updateSortArrows();
     $(sel).addEventListener("change", () => renderTrades());
 });
 
-// Trade form
+// Trade form (new / edit)
 $("#trade-form").addEventListener("submit", handleTradeFormSubmit);
+
+// Close forms
+$("#close-form").addEventListener("submit", handleCloseTrade);
+$("#assign-form").addEventListener("submit", handleAssignTrade);
+$("#roll-form").addEventListener("submit", handleRollTrade);
 
 // Load data
 loadTrades().then(loadPrices);

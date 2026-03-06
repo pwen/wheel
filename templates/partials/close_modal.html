@@ -1,0 +1,111 @@
+<!-- Modal: Close / Assign / Roll Trade -->
+<div id="close-modal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
+        <h2 id="close-modal-title" class="text-lg font-bold mb-4">Close Trade</h2>
+
+        <!-- Action picker -->
+        <div class="flex gap-2 mb-4">
+            <button type="button" onclick="setCloseAction('expired')"
+                class="close-action-btn px-3 py-1.5 rounded-lg text-sm font-medium border" data-action="expired">Expired
+                Worthless</button>
+            <button type="button" onclick="setCloseAction('btc')"
+                class="close-action-btn px-3 py-1.5 rounded-lg text-sm font-medium border" data-action="btc">Buy to
+                Close</button>
+            <button type="button" onclick="setCloseAction('assigned')"
+                class="close-action-btn px-3 py-1.5 rounded-lg text-sm font-medium border"
+                data-action="assigned">Assigned</button>
+            <button type="button" onclick="setCloseAction('rolled')"
+                class="close-action-btn px-3 py-1.5 rounded-lg text-sm font-medium border"
+                data-action="rolled">Roll</button>
+        </div>
+
+        <!-- Expired / BTC form -->
+        <form id="close-form" class="hidden grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <label class="block font-medium mb-1">Date Closed</label>
+                <input name="closed_at" type="date" required class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">Spot Price at Close</label>
+                <input name="closing_spot" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div id="close-cost-field">
+                <label class="block font-medium mb-1">Closing Cost ($)</label>
+                <input name="closing_cost" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2"
+                    value="0" />
+            </div>
+            <div class="col-span-2 flex justify-end gap-3 mt-2">
+                <button type="button" onclick="closeCloseModal()"
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button type="submit" id="close-submit-btn"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2 rounded-lg">Close
+                    Trade</button>
+            </div>
+        </form>
+
+        <!-- Assign form -->
+        <form id="assign-form" class="hidden grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <label class="block font-medium mb-1">Assignment Date</label>
+                <input name="assigned_at" type="date" required class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">Spot Price at Assignment</label>
+                <input name="closing_spot" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div class="col-span-2 flex justify-end gap-3 mt-2">
+                <button type="button" onclick="closeCloseModal()"
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button type="submit"
+                    class="bg-orange-600 hover:bg-orange-700 text-white font-medium px-5 py-2 rounded-lg">Confirm
+                    Assignment</button>
+            </div>
+        </form>
+
+        <!-- Roll form -->
+        <form id="roll-form" class="hidden grid grid-cols-2 gap-4 text-sm">
+            <p class="col-span-2 text-xs text-gray-500 -mb-2">Closing the current leg:</p>
+            <div>
+                <label class="block font-medium mb-1">Roll Date</label>
+                <input name="roll_date" type="date" required class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">Closing Cost ($)</label>
+                <input name="closing_cost" type="number" step="0.01" required
+                    class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">Spot Price at Roll</label>
+                <input name="closing_spot" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div></div>
+            <p class="col-span-2 text-xs text-gray-500 -mb-2">Opening the new leg:</p>
+            <div>
+                <label class="block font-medium mb-1">New Strike</label>
+                <input name="new_strike" type="number" step="0.01" required
+                    class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">New Expiry</label>
+                <input name="new_expiry_date" type="date" required class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">New Premium ($)</label>
+                <input name="new_total_premium" type="number" step="0.01" required
+                    class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+                <label class="block font-medium mb-1">New Contracts</label>
+                <input name="new_contracts" type="number" min="1" class="w-full border rounded-lg px-3 py-2"
+                    placeholder="Same as current" />
+            </div>
+            <div class="col-span-2 flex justify-end gap-3 mt-2">
+                <button type="button" onclick="closeCloseModal()"
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button type="submit"
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-5 py-2 rounded-lg">Roll
+                    Trade</button>
+            </div>
+        </form>
+    </div>
+</div>

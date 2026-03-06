@@ -43,12 +43,13 @@ function renderTrades() {
       </td>
       <td class="px-3 py-2">
         <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
-          ${t.status === 'open' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-600'}">
-          ${t.status}
+          ${statusBadge(t.status)}">
+          ${statusLabel(t.status)}
         </span>
       </td>
-      <td class="px-3 py-2 text-center">
+      <td class="px-3 py-2 text-center whitespace-nowrap">
         <button onclick='editTrade(${JSON.stringify(t.id)})' class="text-indigo-600 hover:text-indigo-800 text-xs font-medium">Edit</button>
+        ${t.status === 'open' ? `<button onclick='openCloseModal(${JSON.stringify(t.id)})' class="ml-2 text-red-600 hover:text-red-800 text-xs font-medium">Close</button>` : ''}
       </td>
     </tr>
   `).join("");
