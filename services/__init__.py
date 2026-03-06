@@ -21,8 +21,9 @@ def populate_spot_info(spot, session) -> None:
         spot.asset_type = AssetType.STOCK
 
     spot.name = info.get("shortName") or info.get("longName")
-    spot.sector = info.get("sector")
+    spot.sector = info.get("sector") or info.get("category")
     spot.industry = info.get("industry")
+    spot.region = info.get("region")
     if info.get("beta") is not None:
         spot.beta = Decimal(str(round(info["beta"], 3)))
     if info.get("trailingPE") is not None:
@@ -33,8 +34,9 @@ def populate_spot_info(spot, session) -> None:
         spot.avg_daily_volume = info["averageVolume"]
     if info.get("totalAssets") is not None:
         spot.aum = Decimal(str(info["totalAssets"]))
-    if info.get("annualReportExpenseRatio") is not None:
-        spot.expense_ratio = Decimal(str(round(info["annualReportExpenseRatio"], 4)))
+    expense = info.get("netExpenseRatio") or info.get("annualReportExpenseRatio")
+    if expense is not None:
+        spot.expense_ratio = Decimal(str(round(expense / 100, 6)))
 
     spot.updated_at = datetime.utcnow()
     session.add(spot)

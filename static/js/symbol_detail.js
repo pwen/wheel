@@ -205,6 +205,7 @@ function renderSDSpotInfo(spot) {
     const items = [
         spot.sector && `<span class="text-gray-500 text-sm">Sector:</span> <span class="text-sm">${spot.sector}</span>`,
         spot.industry && `<span class="text-gray-500 text-sm">Industry:</span> <span class="text-sm">${spot.industry}</span>`,
+        spot.region && `<span class="text-gray-500 text-sm">Region:</span> <span class="text-sm">${spot.region}</span>`,
         spot.market_cap && `<span class="text-gray-500 text-sm">Mkt Cap:</span> <span class="text-sm">${fmtBigNum(spot.market_cap)}</span>`,
         spot.pe_ratio && `<span class="text-gray-500 text-sm">P/E:</span> <span class="text-sm">${fmt(spot.pe_ratio)}</span>`,
         spot.beta && `<span class="text-gray-500 text-sm">Beta:</span> <span class="text-sm">${fmt(spot.beta, 3)}</span>`,

@@ -71,6 +71,7 @@ def spot_detail(symbol: str, session: Session = Depends(get_session)):
             "asset_type": spot.asset_type,
             "sector": spot.sector,
             "industry": spot.industry,
+            "region": spot.region,
             "beta": float(spot.beta) if spot.beta else None,
             "pe_ratio": float(spot.pe_ratio) if spot.pe_ratio else None,
             "market_cap": float(spot.market_cap) if spot.market_cap else None,
