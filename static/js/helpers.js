@@ -1,7 +1,7 @@
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 const fmt = (v, decimals = 2) => v != null ? Number(v).toFixed(decimals) : "—";
-const fmtMoney = (v) => v != null ? "$" + Number(v).toFixed(2) : "—";
+const fmtMoney = (v) => v != null ? (Number(v) < 0 ? "-$" + Math.abs(Number(v)).toFixed(2) : "$" + Number(v).toFixed(2)) : "—";
 
 let editingTradeId = null;
 
@@ -55,6 +55,8 @@ async function fetchSpotPrice() {
     _spotPriceController = new AbortController();
 
     const input = form.spot_price_at_open;
+    const spinner = $("#spot-price-spinner");
+    spinner.classList.remove("hidden");
     input.placeholder = "Fetching…";
     try {
         const res = await fetch(`/api/spot-price?symbol=${encodeURIComponent(symbol)}&on_date=${openedAt}`, {
@@ -64,9 +66,13 @@ async function fetchSpotPrice() {
         if (data.price != null && !input.value) {
             input.value = data.price;
         }
-        input.placeholder = "";
+        input.placeholder = "Auto-fills from market data";
+        spinner.classList.add("hidden");
     } catch (e) {
-        if (e.name !== "AbortError") input.placeholder = "";
+        if (e.name !== "AbortError") {
+            input.placeholder = "Auto-fills from market data";
+            spinner.classList.add("hidden");
+        }
     }
 }
 
