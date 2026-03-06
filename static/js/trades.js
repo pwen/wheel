@@ -33,7 +33,7 @@ function renderOpenTrades(trades) {
     emptyMsg.classList.add("hidden");
     tbody.innerHTML = trades.map(t => `
     <tr class="hover:bg-gray-50">
-      <td class="px-3 py-2 font-medium">${t.symbol}</td>
+      <td class="px-3 py-2 font-medium"><a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a></td>
       <td class="px-3 py-2">
         <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
           ${t.strategy_type === 'CSP' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
@@ -75,7 +75,7 @@ function renderClosedTrades(trades) {
     emptyMsg.classList.add("hidden");
     tbody.innerHTML = trades.map(t => `
     <tr class="hover:bg-gray-50">
-      <td class="px-3 py-2 font-medium">${t.symbol}</td>
+      <td class="px-3 py-2 font-medium"><a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a></td>
       <td class="px-3 py-2">
         <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
           ${t.strategy_type === 'CSP' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">

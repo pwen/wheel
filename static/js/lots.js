@@ -47,7 +47,7 @@ function renderLots() {
         const totalCost = lot.cost_per_share * lot.remaining_qty;
         return `
     <tr class="hover:bg-gray-50">
-      <td class="px-3 py-2 font-medium">${lot.symbol}</td>
+      <td class="px-3 py-2 font-medium"><a href="/symbol/${encodeURIComponent(lot.symbol)}" class="text-indigo-600 hover:underline">${lot.symbol}</a></td>
       <td class="px-3 py-2 text-right">${lot.qty}</td>
       <td class="px-3 py-2 text-right">${lot.remaining_qty}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(lot.cost_per_share)}</td>
