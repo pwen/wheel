@@ -1,9 +1,13 @@
 [project]
 name = "wheel-tracker"
 version = "0.1.0"
-description = "Minimal Streamlit demo for wheel strategy tracker"
+description = "Wheel strategy tracker — FastAPI + SQLModel + Tailwind"
 requires-python = ">=3.11"
 dependencies = [
-    "pandas>=2.3.3",
-    "streamlit>=1.55.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.34",
+    "sqlmodel>=0.0.22",
+    "psycopg2-binary>=2.9",
+    "jinja2>=3.1",
+    "alembic>=1.14",
 ]
