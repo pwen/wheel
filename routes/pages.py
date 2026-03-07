@@ -12,6 +12,11 @@ async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@router.get("/dashboard")
+async def dashboard_page(request: Request):
+    return templates.TemplateResponse("dashboard.html", {"request": request})
+
+
 @router.get("/symbol/{symbol}")
 async def symbol_page(symbol: str, request: Request):
     return templates.TemplateResponse("symbol.html", {"request": request, "symbol": symbol.upper()})

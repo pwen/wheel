@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Wheel Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="/" class="text-gray-400 hover:text-gray-600">&larr; Trades</a>
+                <h1 class="text-xl font-bold tracking-tight">Dashboard</h1>
+            </div>
+            <div id="vix-banner" class="text-sm"></div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Performance Cards -->
+        <section>
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Performance</h3>
+            <div id="perf-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <p class="text-gray-400 text-sm col-span-full">Loading…</p>
+            </div>
+        </section>
+
+        <!-- Strategy Split -->
+        <section>
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">By Strategy</h3>
+            <div id="strat-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <p class="text-gray-400 text-sm col-span-full">Loading…</p>
+            </div>
+        </section>
+
+        <!-- P/L by Symbol -->
+        <section>
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">P/L by Symbol</h3>
+            <div id="symbol-table" class="bg-white border rounded-lg overflow-hidden">
+                <p class="text-gray-400 text-sm p-4">Loading…</p>
+            </div>
+        </section>
+
+        <!-- P/L by Month -->
+        <section>
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">P/L by Month</h3>
+            <div id="month-table" class="bg-white border rounded-lg overflow-hidden">
+                <p class="text-gray-400 text-sm p-4">Loading…</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/static/js/helpers.js"></script>
+    <script src="/static/js/vix.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+
+</html>
