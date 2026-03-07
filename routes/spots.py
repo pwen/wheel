@@ -1,8 +1,10 @@
+import logging
+import os
 from decimal import Decimal
 from datetime import date, datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -10,7 +12,18 @@ from db import get_session
 from models import Spot, Trade, TradeStatus, ShareLot
 from services import populate_spot_info
 
+log = logging.getLogger(__name__)
 router = APIRouter(tags=["spots"])
+
+
+def verify_cron_token(authorization: str = Header(...)):
+    """Verify Bearer token matches CRON_SECRET for scheduled jobs."""
+    expected = os.environ.get("CRON_SECRET", "")
+    if not expected:
+        raise HTTPException(403, "CRON_SECRET not configured")
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or token != expected:
+        raise HTTPException(401, "Invalid cron token")
 
 
 class SpotCreate(BaseModel):
@@ -132,3 +145,31 @@ def get_spot(spot_id: int, session: Session = Depends(get_session)):
     if not spot:
         raise HTTPException(404, "Spot not found")
     return spot
+
+
+@router.post("/spots/refresh-all")
+def refresh_all_spots(
+    tier: str = "weekly",
+    session: Session = Depends(get_session),
+    _auth: None = Depends(verify_cron_token),
+):
+    """Bulk refresh spot data. tier=weekly (market data) or monthly (fundamentals)."""
+    from services.refresh import refresh_fundamentals, refresh_market_data
+
+    spots = session.exec(select(Spot).order_by(Spot.symbol)).all()
+    results = {"total": len(spots), "updated": 0, "failed": []}
+
+    for spot in spots:
+        try:
+            if tier == "monthly":
+                ok = refresh_fundamentals(spot, session)
+            else:
+                ok = refresh_market_data(spot, session)
+            if ok:
+                results["updated"] += 1
+        except Exception as e:
+            log.warning("refresh failed for %s: %s", spot.symbol, e)
+            results["failed"].append(spot.symbol)
+
+    session.commit()
+    return results

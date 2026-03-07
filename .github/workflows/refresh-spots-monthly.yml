@@ -1,0 +1,22 @@
+name: Monthly Spot Refresh (Fundamentals)
+
+on:
+    schedule:
+        # 1st of every month at 08:00 UTC
+        - cron: "0 8 1 * *"
+    workflow_dispatch: # Allow manual trigger
+
+jobs:
+    refresh:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Refresh fundamentals for all spots
+              env:
+                  APP_URL: ${{ secrets.APP_URL }}
+                  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+              run: |
+                  curl -sf -X POST \
+                    "${APP_URL}/api/spots/refresh-all?tier=monthly" \
+                    -H "Authorization: Bearer ${CRON_SECRET}" \
+                    -H "Content-Type: application/json" \
+                    --max-time 120 | jq .
