@@ -82,40 +82,21 @@ function renderAllocations(data, priceMap) {
     const vix = window._sharedVixData;
     const rg = vix && vix.regime ? regimeGuidance[vix.regime] : null;
 
-    let regimeHtml = "";
-    if (rg) {
-        regimeHtml = `
-                <div class="text-xs">
-                    <span class="${rg.color} font-bold">${rg.label}</span>
-                    <span class="text-gray-400 dark:text-gray-500 ml-1">VIX ${vix.vix}</span>
-                    <span class="text-gray-400 dark:text-gray-500 ml-1">→ Target</span>
-                    <span class="font-bold text-gray-700 dark:text-gray-300 ml-1">${rg.core}%</span>
-                    <span class="text-gray-400 dark:text-gray-500">core /</span>
-                    <span class="font-bold text-gray-700 dark:text-gray-300">${rg.proxy}%</span>
-                    <span class="text-gray-400 dark:text-gray-500">proxy</span>
-                </div>`;
-    }
-
     // Summary bar
     summaryEl.innerHTML = `
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 px-4 py-3">
             <div class="flex items-center gap-4">
-                <div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Total Wheel Capital</span>
-                    <span class="ml-2 text-lg font-bold text-gray-900 dark:text-gray-100">${fmtMoney(totalWheelValue)}</span>
-                </div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Total Wheel Capital</span>
+                <span class="text-lg font-bold text-gray-900 dark:text-gray-100">${fmtMoney(totalWheelValue)}</span>
             </div>
-            <div class="flex items-center gap-6 mt-2">
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                    <span class="w-16 inline-block">Actual</span>
-                    Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${sharesPct}%)</span>
-                    <span class="mx-2 text-gray-300 dark:text-gray-600">|</span>
-                    CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${cspPct}%)</span>
-                </div>
-            </div>${rg ? `
-            <div class="flex items-center gap-6 mt-1">
-                ${regimeHtml}
-            </div>` : ""}
+            <div class="grid mt-2 text-xs" style="grid-template-columns: 4.5rem 1fr 1fr; row-gap: 0.25rem; column-gap: 1rem;">
+                <span class="text-gray-500 dark:text-gray-400">Actual</span>
+                <span class="text-gray-500 dark:text-gray-400">Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${sharesPct}%)</span></span>
+                <span class="text-gray-500 dark:text-gray-400">CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${cspPct}%)</span></span>
+                ${rg ? `<span class="${rg.color} font-bold">${rg.label}</span>
+                <span class="text-gray-400 dark:text-gray-500">Target <span class="font-bold text-gray-700 dark:text-gray-300">${rg.core}%</span> core <span class="text-gray-300 dark:text-gray-600 ml-1">VIX ${vix.vix}</span></span>
+                <span class="text-gray-400 dark:text-gray-500">Target <span class="font-bold text-gray-700 dark:text-gray-300">${rg.proxy}%</span> proxy</span>` : ""}
+            </div>
         </div>`;
 
     // Group by group name for visual sections
@@ -128,8 +109,12 @@ function renderAllocations(data, priceMap) {
 
     let html = "";
     for (const [groupName, acs] of Object.entries(byGroup)) {
+        const groupTotal = acs.reduce((s, ac) => s + ac.total_value, 0);
+        const groupPct = totalWheelValue > 0 ? (groupTotal / totalWheelValue * 100).toFixed(1) : "0.0";
         html += `<div class="mb-6">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">${esc(groupName)}</h3>`;
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">${esc(groupName)} <span class="ml-2 text-base font-bold text-indigo-600 dark:text-indigo-400">${groupPct}%</span></h3>
+            </div>`;
 
         for (const ac of acs) {
             const allEntries = [
@@ -137,7 +122,7 @@ function renderAllocations(data, priceMap) {
                 ...ac.proxy.map(e => ({ ...e, role: "proxy" })),
             ];
 
-            const actualPct = totalWheelValue > 0 ? (ac.total_value / totalWheelValue * 100) : 0;
+            const wheelPct = totalWheelValue > 0 ? (ac.total_value / totalWheelValue * 100) : 0;
             const coreVal = ac.core_value;
             const proxyVal = ac.proxy_value + ac.csp_committed;
             const corePct = ac.total_value > 0 ? (coreVal / ac.total_value * 100) : 0;
@@ -152,6 +137,7 @@ function renderAllocations(data, priceMap) {
                         <span class="text-xs text-gray-500 dark:text-gray-400">${splitLabel}</span>
                     </div>
                     <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold text-indigo-600 dark:text-indigo-400">${wheelPct.toFixed(1)}%</span>
                         <span class="text-sm font-medium text-gray-900 dark:text-gray-100">${fmtMoney(ac.total_value)}</span>
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
