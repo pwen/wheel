@@ -105,7 +105,7 @@ function renderGlance(t, currentPrice) {
       </div>
     </div>` : ''}
     <p class="text-base text-gray-900 mb-3">${obligation}</p>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div>
         <div class="text-xs text-gray-500 uppercase">Premium Collected</div>
         <div class="text-lg font-semibold">${fmtMoney(premiumCollected)}</div>
@@ -119,6 +119,10 @@ function renderGlance(t, currentPrice) {
       <div>
         <div class="text-xs text-gray-500 uppercase">Return on Capital</div>
         <div class="text-lg font-semibold ${rocColor}">${returnOnCapital != null ? fmtPct(returnOnCapital) : '<span class="text-gray-400 text-sm">—</span>'}</div>
+      </div>
+      <div>
+        <div class="text-xs text-gray-500 uppercase" title="Premium collected as a % of cash secured (strike × shares). Measures income earned relative to capital committed." style="cursor:help; text-decoration:underline dotted">Premium Yield</div>
+        <div class="text-lg font-semibold">${(() => { const cash = Number(t.strike) * t.contracts * t.multiplier; return cash > 0 ? fmtPct(premiumCollected / cash * 100) : '—'; })()}</div>
       </div>
       <div>
         <div class="text-xs text-gray-500 uppercase">Time Elapsed</div>

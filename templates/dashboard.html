@@ -23,12 +23,24 @@
 
     <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
+        <!-- Trades Needing Attention -->
+        <section id="attention-section" class="hidden">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Trades Needing Attention</h3>
+            <div id="attention-list" class="space-y-2"></div>
+        </section>
+
         <!-- Performance Cards -->
         <section>
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Performance</h3>
             <div id="perf-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <p class="text-gray-400 text-sm col-span-full">Loading…</p>
             </div>
+        </section>
+
+        <!-- Outcome Distribution -->
+        <section id="outcome-section" class="hidden">
+            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Outcome Distribution</h3>
+            <div id="outcome-dist" class="bg-white border rounded-lg p-4"></div>
         </section>
 
         <!-- Strategy Split -->
