@@ -35,8 +35,42 @@ function openCloseModal(tradeId) {
     $("#assign-form").querySelector("[name=assigned_at]").value = today;
     $("#roll-form").querySelector("[name=roll_date]").value = today;
 
+    // Auto-fetch spot price for today
+    const trade = allTrades.find(t => t.id === tradeId);
+    if (trade) _fetchClosingSpotPrice(trade.symbol, today);
+
     $("#close-modal-title").textContent = "Close Trade";
     $("#close-modal").classList.remove("hidden");
+}
+
+let _closingSpotController = null;
+async function _fetchClosingSpotPrice(symbol, onDate) {
+    if (_closingSpotController) _closingSpotController.abort();
+    _closingSpotController = new AbortController();
+
+    // Set placeholder on all closing_spot inputs
+    const inputs = [
+        $("#close-form").querySelector("[name=closing_spot]"),
+        $("#assign-form").querySelector("[name=closing_spot]"),
+        $("#roll-form").querySelector("[name=closing_spot]"),
+    ];
+    inputs.forEach(inp => { inp.placeholder = "Fetching…"; inp.value = ""; });
+
+    try {
+        const res = await fetch(
+            `/api/spot-price?symbol=${encodeURIComponent(symbol)}&on_date=${onDate}`,
+            { signal: _closingSpotController.signal }
+        );
+        const data = await res.json();
+        inputs.forEach(inp => {
+            if (data.price != null && !inp.value) inp.value = data.price;
+            inp.placeholder = "";
+        });
+    } catch (e) {
+        if (e.name !== "AbortError") {
+            inputs.forEach(inp => { inp.placeholder = ""; });
+        }
+    }
 }
 
 function closeCloseModal() {
