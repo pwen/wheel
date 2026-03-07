@@ -509,6 +509,7 @@ function _buildTradeContext(t, currentPrice) {
     cost_to_close: costToClose,
     iv_rank: t.iv_rank_data?.iv_rank ?? null,
     theta_daily_income: live.theta ? Math.abs(live.theta) * t.contracts * t.multiplier : 0,
+    vix: _vixCache,
   };
 }
 

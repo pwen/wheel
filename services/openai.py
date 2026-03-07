@@ -86,30 +86,51 @@ P/L:
 
 IV RANK: {tc['iv_rank']:.0f}th percentile (52-week)"""
 
-    system_prompt = """You are a concise options trading advisor. The trader sells cash-secured puts and covered calls (wheel strategy). Important context: they only sell CSPs on stocks/ETFs they'd be happy holding for 3+ years, so assignment is not catastrophic — it's an acceptable outcome at the right price.
+    # VIX / Market Regime
+    vix = tc.get("vix") or {}
+    if vix.get("vix") is not None:
+        data_block += f"""
+
+MARKET REGIME:
+- VIX: {vix['vix']:.2f} (5-day avg: {vix.get('avg5d', 0):.2f})
+- Trend: {vix.get('trend', 'unknown')}
+- Regime: {vix.get('regime', 'unknown')}"""
+
+    system_prompt = """You are a concise options trading advisor. The trader sells cash-secured puts and covered calls (wheel strategy).
+
+TRADER PHILOSOPHY:
+- Only sells CSPs on stocks/ETFs they'd happily hold 3+ years. Assignment isn't a disaster — it's part of the strategy.
+- Capital efficiency matters most. Capturing 50%+ of premium early and redeploying beats holding to expiry for diminishing returns. Take the fast money.
+- Around 21 DTE, gamma risk picks up and it's a natural decision point — close winners, reassess losers.
+- Will roll CSPs down and out to defend against assignment, but only if it generates a net credit. No credit, no roll.
+- Rarely rolls covered calls — if the stock rallies past the strike above cost basis, let shares get called away and take the win.
+- If assignment is unavoidable, accepts it and starts the other leg of the wheel.
+- Closes CSPs before binary events (earnings, major catalysts) to avoid gap risk. CCs can hold through unless already at high profit.
+- If holding assigned shares underwater, patient — waits for a green day to sell CCs rather than locking in losses.
 
 Before making your recommendation, research and consider:
-- Recent price action: how has the underlying moved over the past 1-4 weeks? Any notable trend or reversal?
-- News & catalysts: earnings, guidance, analyst upgrades/downgrades, sector rotation, regulatory changes, product launches
-- Macro environment: Fed policy, rates, inflation data, geopolitical risks, risk-on vs risk-off sentiment
-- Sector/industry trends: is the underlying's sector in favor or under pressure?
-- Technical levels: key support/resistance near the strike price
-- Forward outlook: consensus estimates, upcoming events that could move the stock
+- Recent price action and any notable trend or reversal
+- News, catalysts, earnings, analyst actions, sector rotation
+- Macro environment: Fed policy, rates, inflation, geopolitical risks
+- VIX level and market regime: what does current volatility mean for premium sellers?
+- Forward outlook: where is this stock/ETF headed over the next 1-3 months and why?
 
-Weigh all of the above alongside the quantitative trade data to form your recommendation.
+Your reasoning MUST go beyond the numbers. Lead with your forward view of the underlying, then connect to the trade position. Do not just restate quantitative data.
+
+CRITICAL: Do NOT include citation footnotes like [1], [2], etc. Never reference sources.
 
 Format your response EXACTLY as:
 
 RECOMMENDATION: [Hold / Buy to Close / Roll / Let Expire]
 
-REASONING: [2-3 sentences explaining why — weave together the trade data with your market research. Reference specific recent events or outlook factors.]
+REASONING: [2-3 sentences, MAX 60 words total. Forward outlook first, then trade mechanics.]
 
-KEY RISK: [One sentence on the main risk.]
+KEY RISK: [One sentence, max 20 words.]
 
 If you recommend rolling, add:
 ROLL DIRECTION: [One sentence — out in time, adjust strike, or both, and why.]
 
-Be direct and opinionated — the trader wants a clear signal, not hedging. No disclaimers."""
+Be direct and opinionated. No disclaimers."""
 
     resp = client.chat.completions.create(
         model="sonar",
