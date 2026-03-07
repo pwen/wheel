@@ -55,8 +55,9 @@ async function fetchVix() {
     } catch { return null; }
 }
 
-function renderVixBanner(el) {
-    fetchVix().then(data => {
+function renderVixBanner(el, prefetchedData) {
+    const p = prefetchedData ? Promise.resolve(prefetchedData) : fetchVix();
+    p.then(data => {
         if (!data || data.vix == null) {
             el.innerHTML = `<span class="text-gray-400 text-xs">VIX unavailable</span>`;
             return;

@@ -21,16 +21,31 @@ function plColor(v) {
     return Number(v) >= 0 ? "text-green-600" : "text-red-600";
 }
 
-function renderPerformance(p) {
+function renderPerformance(p, vixData) {
     const el = $("#perf-cards");
+
+    // Avg DTE sub-text: compare to regime recommendation
+    let dteSub = null;
+    if (p.avg_dte_at_open != null) {
+        dteSub = "at open";
+        if (vixData && vixData.regime) {
+            const ideal = { bull: "30-45d", sideways: "30-45d", bear: "45-60d", crisis: "60-90d" };
+            dteSub = `Regime suggests ${ideal[vixData.regime] || "30-45d"}`;
+        }
+    }
+
     el.innerHTML = [
         card("Total Premium", fmtMoney(p.total_premium), `${p.total_trades} trades`),
         card("Realized P/L", fmtMoney(p.total_realized_pl),
             `${p.closed_trades} closed`, plColor(p.total_realized_pl)),
+        '<div id="unreal-pl-card">' + card("Unrealized P/L", '<span class="text-gray-400 text-sm">Fetching…</span>', `${p.open_trades} open`) + '</div>',
         card("Win Rate", p.win_rate != null ? fmtPct(p.win_rate) : "—",
             `${p.wins}W / ${p.losses}L`,
             p.win_rate != null ? (p.win_rate >= 70 ? "text-green-600" : p.win_rate >= 50 ? "text-yellow-600" : "text-red-600") : ""),
         card("Avg Days in Trade", p.avg_days_in_trade != null ? p.avg_days_in_trade + "d" : "—"),
+        card("Avg DTE at Open", p.avg_dte_at_open != null ? p.avg_dte_at_open + "d" : "—",
+            dteSub, null,
+            "Average days to expiration when trades were opened. Wheel sweet spot is typically 30-45 DTE."),
         card("Avg P/L per Trade", fmtMoney(p.avg_pl_per_trade), null, plColor(p.avg_pl_per_trade)),
         card("Annualized ROC", p.annualized_roc != null ? fmtPct(p.annualized_roc) : "—",
             "Return on capital (annualized)", plColor(p.annualized_roc)),
@@ -42,49 +57,19 @@ function renderPerformance(p) {
     ].join("");
 }
 
-function renderAttention(attention) {
-    const section = $("#attention-section");
-    const el = $("#attention-list");
-    if (!attention.length) { section.classList.add("hidden"); return; }
-
-    section.classList.remove("hidden");
-    el.innerHTML = attention.map(t => {
-        const tags = t.reasons.map(r => {
-            if (r.type === "dte_critical") return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">⚠️ ${r.label}</span>`;
-            if (r.type === "dte_warning") return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">⏰ ${r.label}</span>`;
-            if (r.type === "profit_target") return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">💰 ${r.label}</span>`;
-            if (r.type === "itm") return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">🔴 ${r.label}</span>`;
-            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">${r.label}</span>`;
-        }).join(" ");
-        const badge = t.strategy_type === "CSP"
-            ? `<span class="px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">CSP</span>`
-            : `<span class="px-2 py-0.5 rounded text-xs font-semibold bg-sky-100 text-sky-700">CC</span>`;
-        return `
-        <a href="/trade/${t.id}" class="block bg-white border rounded-lg p-3 hover:border-indigo-300 transition-colors">
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <div class="flex items-center gap-2">
-              ${badge}
-              <span class="font-semibold">${t.symbol}</span>
-              <span class="text-gray-500 text-sm">$${t.strike} exp ${t.expiry_date}</span>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">${tags}</div>
-          </div>
-        </a>`;
-    }).join("");
+function updateUnrealizedPL(totalUPL) {
+    const wrapper = $("#unreal-pl-card");
+    if (!wrapper) return;
+    const inner = wrapper.querySelector(".text-xl");
+    if (inner) {
+        inner.textContent = fmtMoney(totalUPL);
+        inner.className = `text-xl font-semibold ${plColor(totalUPL)}`;
+    }
 }
 
-async function enrichAttentionWithPrices(attention) {
+async function fetchUnrealizedPL(attention) {
     if (!attention.length) return;
 
-    // Fetch spot prices for ITM check
-    const symbols = [...new Set(attention.map(t => t.symbol))];
-    let prices = {};
-    try {
-        const res = await fetch("/api/prices?" + symbols.map(s => "symbols=" + s).join("&"));
-        prices = await res.json();
-    } catch { /* ignore */ }
-
-    // Fetch option prices for profit check
     const contracts = attention.map(t => ({
         trade_id: t.id,
         symbol: t.symbol,
@@ -92,39 +77,25 @@ async function enrichAttentionWithPrices(attention) {
         strike: t.strike,
         strategy_type: t.strategy_type,
     }));
-    let optionPrices = {};
+
     try {
         const res = await fetch("/api/option-prices", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(contracts),
         });
-        optionPrices = await res.json();
-    } catch { /* ignore */ }
+        if (!res.ok) return;
+        const optionPrices = await res.json();
 
-    // Enrich with live data flags
-    let changed = false;
-    for (const t of attention) {
-        const spot = prices[t.symbol];
-        if (spot != null) {
-            const itm = t.strategy_type === "CSP" ? spot < t.strike : spot > t.strike;
-            if (itm) {
-                t.reasons.push({ type: "itm", label: `ITM — spot $${Number(spot).toFixed(2)}` });
-                changed = true;
+        let totalUPL = 0;
+        for (const t of attention) {
+            const quote = optionPrices[t.id];
+            if (quote && quote.mid != null) {
+                totalUPL += (t.premium_per_share - quote.mid) * t.contracts * t.multiplier;
             }
         }
-        const quote = optionPrices[t.id];
-        if (quote && quote.mid != null) {
-            const upl = (t.premium_per_share - quote.mid) * t.contracts * t.multiplier;
-            const uplPct = t.total_premium > 0 ? (upl / t.total_premium) * 100 : 0;
-            const inFirstHalf = t.days_in_trade <= t.dte / 2;
-            if (inFirstHalf && uplPct >= 50) {
-                t.reasons.push({ type: "profit_target", label: `${uplPct.toFixed(0)}% profit in first half — consider BTC` });
-                changed = true;
-            }
-        }
-    }
-    if (changed) renderAttention(attention);
+        updateUnrealizedPL(totalUPL);
+    } catch { /* ignore */ }
 }
 
 const OUTCOME_META = {
@@ -206,6 +177,7 @@ function renderSymbolTable(symbols) {
         <td class="px-4 py-2 text-right">${s.count}</td>
         <td class="px-4 py-2 text-right">${fmtMoney(s.premium)}</td>
         <td class="px-4 py-2 text-right ${plColor(s.realized_pl)}">${fmtMoney(s.realized_pl)}</td>
+        <td class="px-4 py-2 text-right ${plColor(s.annualized_roc)}">${s.annualized_roc != null ? fmtPct(s.annualized_roc) : "—"}</td>
         <td class="px-4 py-2 text-right">${s.wins + s.losses > 0 ? fmtPct(s.wins / (s.wins + s.losses) * 100) : "—"}</td>
         <td class="px-4 py-2 text-right">${s.assignment_rate != null ? fmtPct(s.assignment_rate) : "—"}</td>
       </tr>`).join("");
@@ -218,6 +190,7 @@ function renderSymbolTable(symbols) {
           <th class="px-4 py-2 text-right">Trades</th>
           <th class="px-4 py-2 text-right">Premium</th>
           <th class="px-4 py-2 text-right">Realized P/L</th>
+          <th class="px-4 py-2 text-right">Ann. ROC</th>
           <th class="px-4 py-2 text-right">Win Rate</th>
           <th class="px-4 py-2 text-right">Assign Rate</th>
         </tr>
@@ -346,18 +319,24 @@ function initPLToggles() {
 }
 
 // Init
+let _vixData = null;
+
 document.addEventListener("DOMContentLoaded", async () => {
-    // VIX banner
-    const vixEl = document.getElementById("vix-banner");
-    if (vixEl) renderVixBanner(vixEl);
-
     try {
-        const res = await fetch("/api/dashboard/stats");
-        if (!res.ok) throw new Error("Failed to load dashboard");
-        const data = await res.json();
+        // Fetch dashboard stats and VIX in parallel
+        const [statsRes, vixRes] = await Promise.all([
+            fetch("/api/dashboard/stats"),
+            fetch("/api/vix"),
+        ]);
 
-        renderPerformance(data.performance);
-        renderAttention(data.attention);
+        _vixData = vixRes.ok ? await vixRes.json() : null;
+        const vixEl = document.getElementById("vix-banner");
+        if (vixEl && _vixData) renderVixBanner(vixEl, _vixData);
+
+        if (!statsRes.ok) throw new Error("Failed to load dashboard");
+        const data = await statsRes.json();
+
+        renderPerformance(data.performance, _vixData);
         renderOutcomeDistribution(data.outcome_distribution);
         renderStrategy(data.by_strategy);
         renderSymbolTable(data.by_symbol);
@@ -367,8 +346,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         initPLToggles();
         renderPLTime();
 
-        // Async: enrich attention list with live prices (ITM + profit check)
-        enrichAttentionWithPrices(data.attention);
+        // Async: fetch live option prices for unrealized P/L card
+        fetchUnrealizedPL(data.attention);
     } catch (e) {
         $("#perf-cards").innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
     }

@@ -17,17 +17,14 @@
                 <a href="/" class="text-gray-400 hover:text-gray-600">&larr; Trades</a>
                 <h1 class="text-xl font-bold tracking-tight">Dashboard</h1>
             </div>
-            <div id="vix-banner" class="text-sm"></div>
+            <div class="flex items-center gap-4">
+                <a href="/recap" class="text-sm text-gray-500 hover:text-gray-700">Recap</a>
+                <div id="vix-banner" class="text-sm"></div>
+            </div>
         </div>
     </header>
 
     <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-
-        <!-- Trades Needing Attention -->
-        <section id="attention-section" class="hidden">
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Trades Needing Attention</h3>
-            <div id="attention-list" class="space-y-2"></div>
-        </section>
 
         <!-- Performance Cards -->
         <section>
@@ -83,7 +80,6 @@
             <div id="symbol-table" class="bg-white border rounded-lg overflow-hidden">
                 <p class="text-gray-400 text-sm p-4">Loading…</p>
             </div>
-        </section>
         </section>
 
     </main>

@@ -24,7 +24,6 @@ def dashboard_stats(session: Session = Depends(get_session)):
 
     # --- Performance ---
     total_premium = sum(float(t.total_premium) for t in trades)
-    total_closing_cost = sum(float(t.closing_cost or 0) for t in closed_trades)
     total_realized_pl = sum(float(t.realized_pl) for t in closed_trades if t.realized_pl is not None)
 
     wins = sum(1 for t in closed_trades if t.realized_pl is not None and t.realized_pl >= 0)
@@ -55,6 +54,11 @@ def dashboard_stats(session: Session = Depends(get_session)):
             # daily return × 365
             annualized_roc = (total_realized_pl / total_capital_days) * 365 * 100
 
+    # --- Avg DTE at Open ---
+    avg_dte_at_open = None
+    if trades:
+        avg_dte_at_open = round(sum(t.dte for t in trades) / len(trades), 1)
+
     # --- Premium Yield (avg premium as % of cash reserved) ---
     premium_yields = []
     for t in trades:
@@ -72,13 +76,17 @@ def dashboard_stats(session: Session = Depends(get_session)):
     by_symbol = defaultdict(lambda: {
         "premium": 0, "realized_pl": 0, "count": 0,
         "wins": 0, "losses": 0, "assigned": 0, "closed_count": 0,
+        "capital": 0, "capital_days": 0,
     })
     for t in trades:
         sym = spots.get(t.underlying_id, "?")
         by_symbol[sym]["premium"] += float(t.total_premium)
         by_symbol[sym]["count"] += 1
+        cash = float(t.strike) * t.contracts * t.multiplier
+        by_symbol[sym]["capital"] += cash
         if t.status != TradeStatus.OPEN:
             by_symbol[sym]["closed_count"] += 1
+            by_symbol[sym]["capital_days"] += cash * t.days_in_trade
             if t.status == TradeStatus.ASSIGNED:
                 by_symbol[sym]["assigned"] += 1
             if t.realized_pl is not None:
@@ -93,13 +101,17 @@ def dashboard_stats(session: Session = Depends(get_session)):
         assign_rate = None
         if data["closed_count"] > 0:
             assign_rate = round(data["assigned"] / data["closed_count"] * 100, 1)
+        ann_roc = None
+        if data["capital_days"] > 0:
+            ann_roc = round((data["realized_pl"] / data["capital_days"]) * 365 * 100, 2)
         symbol_breakdown.append({
             "symbol": sym,
             **data,
             "assignment_rate": assign_rate,
+            "annualized_roc": ann_roc,
         })
 
-    # --- Trades Needing Attention (backend flags) ---
+    # --- Trades Needing Attention (all open trades, backend flags) ---
     attention = []
     today = date.today()
     for t in open_trades:
@@ -110,18 +122,18 @@ def dashboard_stats(session: Session = Depends(get_session)):
             reasons.append({"type": "dte_critical", "label": f"{remaining}d to expiry — gamma risk zone"})
         elif remaining <= 21:
             reasons.append({"type": "dte_warning", "label": f"{remaining}d to expiry — consider managing"})
-        if reasons:
-            attention.append({
-                "id": t.id, "symbol": sym, "strategy_type": t.strategy_type.value,
-                "strike": float(t.strike), "expiry_date": t.expiry_date.isoformat(),
-                "remaining_dte": remaining,
-                "dte": t.dte,
-                "days_in_trade": t.days_in_trade,
-                "premium_per_share": float(t.premium_per_share),
-                "contracts": t.contracts, "multiplier": t.multiplier,
-                "total_premium": float(t.total_premium),
-                "reasons": reasons,
-            })
+        # Always include so frontend can add ITM/profit flags
+        attention.append({
+            "id": t.id, "symbol": sym, "strategy_type": t.strategy_type.value,
+            "strike": float(t.strike), "expiry_date": t.expiry_date.isoformat(),
+            "remaining_dte": remaining,
+            "dte": t.dte,
+            "days_in_trade": t.days_in_trade,
+            "premium_per_share": float(t.premium_per_share),
+            "contracts": t.contracts, "multiplier": t.multiplier,
+            "total_premium": float(t.total_premium),
+            "reasons": reasons,
+        })
 
     # --- P/L by Month ---
     by_month = defaultdict(lambda: {"premium": 0, "realized_pl": 0, "opened": 0, "closed": 0})
@@ -174,6 +186,7 @@ def dashboard_stats(session: Session = Depends(get_session)):
             "capital_deployed": round(capital_deployed, 2),
             "annualized_roc": round(annualized_roc, 2) if annualized_roc is not None else None,
             "avg_premium_yield": round(avg_premium_yield, 2) if avg_premium_yield is not None else None,
+            "avg_dte_at_open": avg_dte_at_open,
         },
         "outcome_distribution": dict(outcome_dist),
         "attention": attention,
