@@ -64,9 +64,10 @@ function renderGlance(t, currentPrice) {
     const premiumCollected = Number(t.total_premium);
     const isOpen = t.status === "open";
 
+    const shares = t.contracts * t.multiplier;
     const obligation = t.strategy_type === "CSP"
-        ? `Obligated to buy ${t.contracts * t.multiplier} shares of ${t.symbol} at $${fmt(t.strike, 2)} if assigned by ${t.expiry_date}.`
-        : `Obligated to sell ${t.contracts * t.multiplier} shares of ${t.symbol} at $${fmt(t.strike, 2)} if assigned by ${t.expiry_date}.`;
+        ? `Obligated to buy <span class="font-bold">${shares}</span> shares of ${t.symbol} at <span class="font-bold">$${fmt(t.strike, 2)}</span> if assigned by <span class="font-bold">${t.expiry_date}</span>.`
+        : `Obligated to sell <span class="font-bold">${shares}</span> shares of ${t.symbol} at <span class="font-bold">$${fmt(t.strike, 2)}</span> if assigned by <span class="font-bold">${t.expiry_date}</span>.`;
 
     // Unrealized P/L = premium collected - (mid * contracts * multiplier)
     let unrealPL = null;
@@ -91,7 +92,7 @@ function renderGlance(t, currentPrice) {
     const rocColor = returnOnCapital != null ? (returnOnCapital >= 0 ? "text-green-600" : "text-red-600") : "";
 
     el.innerHTML = `
-    <p class="text-sm text-gray-500 mb-3">${obligation}</p>
+    <p class="text-base text-gray-900 mb-3">${obligation}</p>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div>
         <div class="text-xs text-gray-500 uppercase">Premium Collected</div>
@@ -283,17 +284,16 @@ function renderMarket(t, currentPrice) {
         </div>`);
     }
 
-    // IV Rank / Percentile
+    // IV Rank
     const ivData = t.iv_rank_data;
-    if (ivData && (ivData.iv_rank != null || ivData.iv_percentile != null)) {
+    if (ivData && ivData.iv_rank != null) {
         const rank = ivData.iv_rank;
-        const pctile = ivData.iv_percentile;
-        const rankColor = rank != null ? (rank >= 50 ? "text-orange-600" : "text-blue-600") : "";
-        const rankLabel = rank != null ? (rank >= 80 ? "Very High" : rank >= 50 ? "Elevated" : rank >= 20 ? "Normal" : "Low") : "";
+        const rankColor = rank >= 50 ? "text-orange-600" : "text-blue-600";
+        const rankLabel = rank >= 80 ? "Very High" : rank >= 50 ? "Elevated" : rank >= 20 ? "Normal" : "Low";
         items.push(`
         <div>
-          <div class="text-xs text-gray-500 uppercase">IV Rank / Percentile</div>
-          <div class="text-lg font-semibold ${rankColor}">${rank != null ? fmt(rank, 0) + "%" : "—"} / ${pctile != null ? fmt(pctile, 0) + "%" : "—"}</div>
+          <div class="text-xs text-gray-500 uppercase">IV Rank</div>
+          <div class="text-lg font-semibold ${rankColor}">${fmt(rank, 0)}%</div>
           <div class="text-xs text-gray-500">${rankLabel}${ivData.current_iv != null ? ` · 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
         </div>`);
     }
