@@ -25,12 +25,12 @@ async function initSpots() {
             costBySymbol[sym] = (costBySymbol[sym] || 0) + qty * Number(lot.cost_per_share);
         }
 
-        // Fetch live prices for all symbols that have shares
-        const symbolsWithShares = Object.keys(sharesBySymbol).filter(s => sharesBySymbol[s] > 0);
+        // Fetch live prices for all spot symbols
+        const allSymbols = spots.map(s => s.symbol);
         let priceMap = {};
-        if (symbolsWithShares.length > 0) {
+        if (allSymbols.length > 0) {
             try {
-                const pRes = await fetch(`/api/prices?symbols=${symbolsWithShares.join(",")}`);
+                const pRes = await fetch(`/api/prices?symbols=${allSymbols.join(",")}`);
                 const pData = await pRes.json();
                 priceMap = pData.prices || pData;
             } catch { /* ignore price errors */ }
@@ -55,7 +55,7 @@ async function initSpots() {
         wireSpotsSearch();
     } catch (e) {
         console.error("initSpots failed:", e);
-        $("#spots-body").innerHTML = `<tr><td colspan="9" class="px-3 py-4 text-red-500 text-sm">Failed to load spots.</td></tr>`;
+        $("#spots-body").innerHTML = `<tr><td colspan="10" class="px-3 py-4 text-red-500 text-sm">Failed to load spots.</td></tr>`;
     }
 }
 
@@ -85,7 +85,7 @@ function renderSpots() {
     });
 
     if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="px-3 py-4 text-gray-400 dark:text-gray-500 text-sm">No spots found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="px-3 py-4 text-gray-400 dark:text-gray-500 text-sm">No spots found.</td></tr>`;
         return;
     }
 
@@ -104,6 +104,7 @@ function renderSpots() {
       <td class="px-3 py-2 text-right">${s.pe_ratio != null ? fmt(s.pe_ratio, 1) : "—"}</td>
       <td class="px-3 py-2 text-right">${s.beta != null ? fmt(s.beta, 2) : "—"}</td>
       <td class="px-3 py-2 text-right">${s.expense_ratio != null ? fmt(s.expense_ratio * 100, 2) + "%" : "—"}</td>
+      <td class="px-3 py-2 text-right">${s.price != null ? fmtMoney(s.price) : "—"}</td>
       <td class="px-3 py-2 text-right">${s.shares > 0 ? s.shares : "—"}</td>
       <td class="px-3 py-2 text-right">${s.market_value != null ? fmtMoney(s.market_value) : "—"}</td>
     </tr>`;
