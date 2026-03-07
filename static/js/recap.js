@@ -13,9 +13,9 @@ var initRecap = (function () {
     function card(label, value, sub, colorClass) {
         return `
         <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
-          <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">${label}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">${label}</div>
           <div class="text-xl font-semibold ${colorClass || ''}">${value}</div>
-          ${sub ? `<div class="text-xs text-gray-500 dark:text-gray-400">${sub}</div>` : ""}
+          ${sub ? `<div class="text-xs text-gray-600 dark:text-gray-400">${sub}</div>` : ""}
         </div>`;
     }
 
@@ -50,7 +50,7 @@ var initRecap = (function () {
             if (!final) {
                 el.innerHTML = `
                 <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
-                  <span class="text-gray-500 dark:text-gray-400">Fetching live prices…</span>
+                  <span class="text-gray-600 dark:text-gray-400">Fetching live prices…</span>
                 </div>`;
             } else {
                 el.innerHTML = `
@@ -84,7 +84,7 @@ var initRecap = (function () {
                 <div class="flex items-center gap-2">
                   ${badge}
                   <span class="font-semibold">${t.symbol}</span>
-                  <span class="text-gray-500 dark:text-gray-400 text-sm">$${t.strike} exp ${t.expiry_date}</span>
+                  <span class="text-gray-600 dark:text-gray-400 text-sm">$${t.strike} exp ${t.expiry_date}</span>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">${tags}</div>
               </div>
@@ -114,7 +114,7 @@ var initRecap = (function () {
                     <div class="flex items-center gap-2">
                       ${badge}
                       <span class="font-semibold">${t.symbol}</span>
-                      <span class="text-gray-500 dark:text-gray-400 text-sm">$${t.strike}</span>
+                      <span class="text-gray-600 dark:text-gray-400 text-sm">$${t.strike}</span>
                     </div>
                     <div class="flex items-center gap-3">
                       <span class="text-sm">${fmtMoney(t.total_premium)} premium</span>
@@ -161,7 +161,7 @@ var initRecap = (function () {
         el.innerHTML = `
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
+            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-600 dark:text-gray-400 uppercase">
               <th class="px-4 py-2">Type</th>
               <th class="px-4 py-2">Symbol</th>
               <th class="px-4 py-2 text-right">Strike</th>

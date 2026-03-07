@@ -130,17 +130,17 @@ function renderGlance(t, currentPrice) {
     <p class="text-base text-gray-900 dark:text-gray-100 mb-3">${obligation}</p>
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Premium Collected</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Premium Collected</div>
         <div class="text-lg font-semibold">${fmtMoney(premiumCollected)}</div>
       </div>
       <div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Unrealized P/L</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Unrealized P/L</div>
         <div class="text-lg font-semibold ${plColor}">${isOpen && t.live ? fmtMoney(unrealPL) : '<span class="text-gray-400 text-sm">Fetching…</span>'}</div>
         ${unrealPLPct != null ? `<div class="text-xs ${plColor}">${fmtPct(unrealPLPct)} of premium</div>` : ""}
-        ${unrealPL != null ? `<div class="text-xs text-gray-500 dark:text-gray-400">Cost to close: ${fmtMoney(premiumCollected - unrealPL)}</div>` : ""}
+        ${unrealPL != null ? `<div class="text-xs text-gray-600 dark:text-gray-400">Cost to close: ${fmtMoney(premiumCollected - unrealPL)}</div>` : ""}
       </div>
       <div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Return on Capital</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Return on Capital</div>
         <div class="text-lg font-semibold ${rocColor}">${returnOnCapital != null ? fmtPct(returnOnCapital) : '<span class="text-gray-400 text-sm">—</span>'}</div>
       </div>
       <div>
@@ -156,7 +156,7 @@ function renderGlance(t, currentPrice) {
         : { thin: 0.5, decent: 1.5, strong: 3 }; // CC: <0.5% thin, 0.5-1.5% decent, 1.5-3% strong, 3%+ fat
       let tier, tierColor, tierDesc;
       if (rawYield == null) { tier = ""; tierColor = ""; tierDesc = ""; }
-      else if (rawYield < thresholds.thin) { tier = "Thin"; tierColor = "text-gray-500"; tierDesc = "low IV, slim pickings"; }
+      else if (rawYield < thresholds.thin) { tier = "Thin"; tierColor = "text-gray-600"; tierDesc = "low IV, slim pickings"; }
       else if (rawYield < thresholds.decent) { tier = "Decent"; tierColor = "text-blue-600"; tierDesc = "standard wheel income"; }
       else if (rawYield < thresholds.strong) { tier = "Strong"; tierColor = "text-green-600"; tierDesc = "elevated IV, sweet spot"; }
       else { tier = "Fat"; tierColor = "text-emerald-600 font-bold"; tierDesc = "rich premium, high risk priced in"; }
@@ -174,27 +174,27 @@ function renderGlance(t, currentPrice) {
 3%+ → Fat`;
 
       return `
-            <div class="text-xs text-gray-500 uppercase flex items-center gap-1">
+            <div class="text-xs text-gray-600 uppercase flex items-center gap-1">
               Premium Yield
               <span class="relative group cursor-help">
-                <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+                <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
                 <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-pre-line w-52 z-50 normal-case font-normal">${guide}</span>
               </span>
             </div>
             <div class="text-lg font-semibold ${tierColor}">${rawYield != null ? fmtPct(rawYield) : '—'}</div>
-            ${annYield != null ? `<div class="text-xs text-gray-500">${fmtPct(annYield)} annualized</div>` : ""}
+            ${annYield != null ? `<div class="text-xs text-gray-600">${fmtPct(annYield)} annualized</div>` : ""}
             ${tier ? `<div class="text-xs ${tierColor}">${tier} — ${tierDesc}</div>` : ""}`;
     })()}
       </div>
       <div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Time Elapsed</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Time Elapsed</div>
         <div class="text-lg font-semibold">${elapsed}d / ${totalDte}d</div>
-        <div class="text-xs ${remaining <= 14 ? 'text-red-600 font-semibold' : remaining <= 21 ? 'text-amber-600 font-medium' : 'text-gray-500 dark:text-gray-400'}">${remaining}d remaining${remaining <= 14 ? ' \u26a0\ufe0f' : remaining <= 21 ? ' \u23f3' : ''}</div>
+        <div class="text-xs ${remaining <= 14 ? 'text-red-600 font-semibold' : remaining <= 21 ? 'text-amber-600 font-medium' : 'text-gray-600 dark:text-gray-400'}">${remaining}d remaining${remaining <= 14 ? ' \u26a0\ufe0f' : remaining <= 21 ? ' \u23f3' : ''}</div>
       </div>
     </div>
     <!-- Theta progress bar -->
     <div class="mt-4">
-      <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+      <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
         <span>Opened ${t.opened_at}</span>
         <span>Expires ${t.expiry_date}</span>
       </div>
@@ -252,16 +252,16 @@ function renderRisk(t, currentPrice) {
   el.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Status</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Status</div>
         <div class="text-lg font-semibold ${statusColor}">${statusIcon} ${status}</div>
       </div>
       <div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Distance to Strike</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Distance to Strike</div>
         <div class="text-lg font-semibold">${fmtMoney(Math.abs(distToStrike))}</div>
-        <div class="text-xs text-gray-500 dark:text-gray-400">${distPct >= 0 ? "+" : ""}${fmtPct(distPct)} ${isCSP ? "above" : (distToStrike < 0 ? "below" : "above")}</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400">${distPct >= 0 ? "+" : ""}${fmtPct(distPct)} ${isCSP ? "above" : (distToStrike < 0 ? "below" : "above")}</div>
       </div>
       <div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Break-Even</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Break-Even</div>
         <div class="text-lg font-semibold">${fmtMoney(breakEven)}</div>
         <div class="text-xs ${beColor}">${fmtMoney(Math.abs(distToBreakEven))} ${isCSP ? (distToBreakEven > 0 ? "above" : "below") : (distToBreakEven < 0 ? "below" : "above")} current</div>
       </div>
@@ -319,10 +319,10 @@ function renderMarket(t, currentPrice) {
 
   // Tooltip helper: label with hover info icon
   const tip = (label, desc) => `
-      <div class="text-xs text-gray-500 uppercase flex items-center gap-1">
+      <div class="text-xs text-gray-600 uppercase flex items-center gap-1">
         ${label}
         <span class="relative group cursor-help">
-          <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+          <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
           <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-normal w-48 z-50 normal-case font-normal">${desc}</span>
         </span>
       </div>`;
@@ -349,7 +349,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Option Mid Price", "Midpoint between bid and ask. This is what it would roughly cost to buy-to-close.")}
           <div class="text-lg font-semibold">${live.mid != null ? fmtMoney(live.mid) : "—"}</div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">per share</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">per share</div>
         </div>`);
 
     // IV with change since open
@@ -361,9 +361,9 @@ function renderMarket(t, currentPrice) {
       const ivChColor = ivChange <= 0 ? "text-green-600" : "text-red-600";
       ivSub = `<div class="text-xs ${ivChColor}">${ivChange >= 0 ? "+" : ""}${fmt(ivChange, 1)}% since open (was ${fmtPct(ivAtOpen)})</div>`;
     } else if (ivAtOpen != null) {
-      ivSub = `<div class="text-xs text-gray-500 dark:text-gray-400">IV at open: ${fmtPct(ivAtOpen)}</div>`;
+      ivSub = `<div class="text-xs text-gray-600 dark:text-gray-400">IV at open: ${fmtPct(ivAtOpen)}</div>`;
     } else {
-      ivSub = spotIV ? `<div class="text-xs text-gray-500 dark:text-gray-400">ATM IV: ${fmtPct(spotIV * 100)}</div>` : "";
+      ivSub = spotIV ? `<div class="text-xs text-gray-600 dark:text-gray-400">ATM IV: ${fmtPct(spotIV * 100)}</div>` : "";
     }
     items.push(`
         <div>
@@ -380,8 +380,8 @@ function renderMarket(t, currentPrice) {
     items.push(`
         <div>
           ${tip("Theta", `This position earns ~$${fmt(dailyIncome, 2)}/day from time decay. The option loses $${fmt(Math.abs(th), 4)}/share daily, which is income for you as the seller.`)}
-          <div class="text-lg font-semibold text-green-600">$${fmt(dailyIncome, 2)}<span class="text-sm text-gray-500 dark:text-gray-400">/day</span></div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">${fmt(th, 4)} per share</div>
+          <div class="text-lg font-semibold text-green-600">$${fmt(dailyIncome, 2)}<span class="text-sm text-gray-600 dark:text-gray-400">/day</span></div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">${fmt(th, 4)} per share</div>
         </div>`);
   }
 
@@ -393,7 +393,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Prob OTM", `${fmt(p, 1)}% chance the option expires worthless — meaning you keep the full premium. ${p >= 70 ? "Odds are in your favor." : p >= 50 ? "Roughly a coin flip." : "Assignment is likely — consider rolling or closing."}`)}
           <div class="text-lg font-semibold ${pColor}">${fmt(p, 1)}%</div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">${p >= 70 ? "Favorable" : p >= 50 ? "Coin flip" : "At risk"}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">${p >= 70 ? "Favorable" : p >= 50 ? "Coin flip" : "At risk"}</div>
         </div>`);
   }
 
@@ -404,7 +404,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Gamma", `For every $1 the stock moves, delta changes by ${fmt(live.gamma, 4)}. ${gRisk}`)}
           <div class="text-lg font-semibold">${fmt(live.gamma, 4)}</div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">delta change per $1</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">delta change per $1</div>
         </div>`);
   }
 
@@ -419,7 +419,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Bid-Ask Spread", spreadTip)}
           <div class="text-lg font-semibold ${spreadColor}">${fmtMoney(spread)}</div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">${spreadLabel}${spreadPct != null ? ` \u00b7 ${fmt(spreadPct, 1)}% of mid` : ""}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">${spreadLabel}${spreadPct != null ? ` \u00b7 ${fmt(spreadPct, 1)}% of mid` : ""}</div>
         </div>`);
   }
 
@@ -434,7 +434,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Volume / OI", volOiTip)}
           <div class="text-lg font-semibold">${vol != null ? vol.toLocaleString() : "—"} / ${oi != null ? oi.toLocaleString() : "—"}</div>
-          <div class="text-xs text-gray-500">${liqLabel}${ratio != null ? ` · Vol/OI: ${fmt(ratio, 2)}` : ""}</div>
+          <div class="text-xs text-gray-600">${liqLabel}${ratio != null ? ` · Vol/OI: ${fmt(ratio, 2)}` : ""}</div>
         </div>`);
   }
 
@@ -448,7 +448,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("IV Rank", `IV is at the ${fmt(rank, 0)}th percentile of its 52-week range. ${rank >= 50 ? "Elevated — good time to sell premium." : "Below average — less premium available."}`)}
           <div class="text-lg font-semibold ${rankColor}">${fmt(rank, 0)}%</div>
-          <div class="text-xs text-gray-500 dark:text-gray-400">${rankLabel}${ivData.current_iv != null ? ` \u00b7 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">${rankLabel}${ivData.current_iv != null ? ` \u00b7 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
         </div>`);
   }
 
@@ -556,7 +556,7 @@ async function fetchRecommendation() {
     return;
   }
 
-  el.innerHTML = `<p class="text-gray-500 text-sm animate-pulse">Analyzing trade data…</p>`;
+  el.innerHTML = `<p class="text-gray-600 text-sm animate-pulse">Analyzing trade data…</p>`;
 
   try {
     const res = await fetch("/api/trades/recommendation", {
@@ -609,21 +609,21 @@ function renderRecommendation(text, tokens) {
 
   if (reasoning) {
     html += `<div class="mb-2">
-      <span class="text-xs font-semibold text-gray-500 uppercase">Reasoning:</span>
+      <span class="text-xs font-semibold text-gray-600 uppercase">Reasoning:</span>
       <span class="text-sm text-gray-700 ml-1">${reasoning}</span>
     </div>`;
   }
 
   if (risk) {
     html += `<div class="mb-2">
-      <span class="text-xs font-semibold text-gray-500 uppercase">Key Risk:</span>
+      <span class="text-xs font-semibold text-gray-600 uppercase">Key Risk:</span>
       <span class="text-sm text-gray-700 ml-1">${risk}</span>
     </div>`;
   }
 
   if (rollDir) {
     html += `<div class="mb-2">
-      <span class="text-xs font-semibold text-gray-500 uppercase">Roll Direction:</span>
+      <span class="text-xs font-semibold text-gray-600 uppercase">Roll Direction:</span>
       <span class="text-sm text-gray-700 ml-1">${rollDir}</span>
     </div>`;
   }

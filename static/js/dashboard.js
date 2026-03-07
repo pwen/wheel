@@ -8,14 +8,14 @@ var initDashboard = (function () {
     function card(label, value, sub, colorClass, tooltip) {
         const tipHtml = tooltip
             ? `<span class="relative group cursor-help inline-flex ml-1 align-middle">
-                 <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+                 <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
                  <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-normal w-48 z-50 normal-case font-normal">${tooltip}</span>
                </span>` : "";
         return `
         <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
-          <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">${label}${tipHtml}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">${label}${tipHtml}</div>
           <div class="text-xl font-semibold ${colorClass || ''}">${value}</div>
-          ${sub ? `<div class="text-xs text-gray-500 dark:text-gray-400">${sub}</div>` : ""}
+          ${sub ? `<div class="text-xs text-gray-600 dark:text-gray-400">${sub}</div>` : ""}
         </div>`;
     }
 
@@ -128,7 +128,7 @@ var initDashboard = (function () {
             return `<div class="flex items-center gap-2 text-sm">
                 <div class="w-3 h-3 rounded ${meta.color}"></div>
                 <span class="${meta.text} font-medium">${meta.label}</span>
-                <span class="text-gray-500">${count} (${pct}%)</span>
+                <span class="text-gray-600">${count} (${pct}%)</span>
             </div>`;
         }).join("");
 
@@ -146,19 +146,19 @@ var initDashboard = (function () {
             <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
               <div class="flex items-center gap-2 mb-3">
                 <span class="px-2 py-0.5 rounded text-xs font-semibold ${badgeColor}">${name}</span>
-                <span class="text-sm text-gray-500 dark:text-gray-400">${s.count} trades (${s.open} open)</span>
+                <span class="text-sm text-gray-600 dark:text-gray-400">${s.count} trades (${s.open} open)</span>
               </div>
               <div class="grid grid-cols-3 gap-3 text-sm">
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Premium</div>
+                  <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Premium</div>
                   <div class="font-semibold">${fmtMoney(s.premium)}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Realized P/L</div>
+                  <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Realized P/L</div>
                   <div class="font-semibold ${plColor(s.realized_pl)}">${fmtMoney(s.realized_pl)}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Win Rate</div>
+                  <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Win Rate</div>
                   <div class="font-semibold">${s.win_rate != null ? fmtPct(s.win_rate) : "—"}</div>
                 </div>
               </div>
@@ -187,7 +187,7 @@ var initDashboard = (function () {
         el.innerHTML = `
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
+            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-600 dark:text-gray-400 uppercase">
               <th class="px-4 py-2">Symbol</th>
               <th class="px-4 py-2 text-right">Trades</th>
               <th class="px-4 py-2 text-right">Premium</th>
@@ -242,7 +242,7 @@ var initDashboard = (function () {
         return `
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
+            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-600 dark:text-gray-400 uppercase">
               <th class="px-4 py-2">${periodLabel}</th>
               <th class="px-4 py-2 text-right">Opened</th>
               <th class="px-4 py-2 text-right">Closed</th>
@@ -266,7 +266,7 @@ var initDashboard = (function () {
             const isPos = d.realized_pl >= 0;
             return `
             <div class="flex items-center gap-2 group">
-              <div class="w-20 text-xs text-gray-500 dark:text-gray-400 text-right shrink-0">${d.period}</div>
+              <div class="w-20 text-xs text-gray-600 dark:text-gray-400 text-right shrink-0">${d.period}</div>
               <div class="flex-1 flex items-center h-7">
                 <div class="${isPos ? 'bg-green-400' : 'bg-red-400'} h-5 rounded" style="width:${Math.max(pct, 2)}%"></div>
               </div>
@@ -302,7 +302,7 @@ var initDashboard = (function () {
                 document.querySelectorAll("#period-toggle button").forEach(b => {
                     b.className = b === btn
                         ? "px-2 py-1 rounded font-medium bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-gray-100"
-                        : "px-2 py-1 rounded font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200";
+                        : "px-2 py-1 rounded font-medium text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200";
                 });
                 renderPLTime();
             });
@@ -313,7 +313,7 @@ var initDashboard = (function () {
                 document.querySelectorAll("#view-toggle button").forEach(b => {
                     b.className = b === btn
                         ? "px-2 py-1 rounded font-medium bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-gray-100"
-                        : "px-2 py-1 rounded font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200";
+                        : "px-2 py-1 rounded font-medium text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200";
                 });
                 renderPLTime();
             });

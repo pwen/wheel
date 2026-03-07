@@ -64,7 +64,7 @@ function renderVixBanner(el, prefetchedData) {
         }
         const r = REGIMES[data.regime] || REGIMES.sideways;
         const trendArrow = data.trend === "rising" ? "↑" : data.trend === "falling" ? "↓" : "→";
-        const trendColor = data.trend === "rising" ? "text-red-600" : data.trend === "falling" ? "text-green-600" : "text-gray-500";
+        const trendColor = data.trend === "rising" ? "text-red-600" : data.trend === "falling" ? "text-green-600" : "text-gray-600";
         const avg5d = data.avg5d != null ? data.avg5d.toFixed(2) : "—";
         el.innerHTML = `
           <div class="relative group cursor-help">
@@ -82,21 +82,21 @@ function renderVixBanner(el, prefetchedData) {
                 <span class="text-xs text-gray-400">${r.range}</span>
               </div>
               <p class="text-sm mb-2 italic text-gray-600 dark:text-gray-400">${r.strategy}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Regime based on 5-day avg (${avg5d}) — VIX is ${data.trend === "rising" ? "rising ↑ (getting fearful)" : data.trend === "falling" ? "falling ↓ (calming down)" : "stable →"}.</p>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Regime based on 5-day avg (${avg5d}) — VIX is ${data.trend === "rising" ? "rising ↑ (getting fearful)" : data.trend === "falling" ? "falling ↓ (calming down)" : "stable →"}.</p>
               <div class="grid grid-cols-2 gap-3 text-xs">
                 <div class="bg-purple-50 dark:bg-purple-900/30 rounded p-2">
                   <div class="font-semibold text-purple-700 dark:text-purple-400 mb-1">CSP Rules</div>
                   <div>Delta: ${r.csp.delta}</div>
                   <div>Distance: ${r.csp.distance}</div>
                   <div>DTE: ${r.csp.dte}</div>
-                  <div class="mt-1 text-gray-500 dark:text-gray-400">${r.csp.goal}</div>
+                  <div class="mt-1 text-gray-600 dark:text-gray-400">${r.csp.goal}</div>
                 </div>
                 <div class="bg-sky-50 dark:bg-sky-900/30 rounded p-2">
                   <div class="font-semibold text-sky-700 dark:text-sky-400 mb-1">CC Rules</div>
                   <div>Delta: ${r.cc.delta}</div>
                   <div>Distance: ${r.cc.distance}</div>
                   <div>DTE: ${r.cc.dte}</div>
-                  <div class="mt-1 text-gray-500 dark:text-gray-400">${r.cc.goal}</div>
+                  <div class="mt-1 text-gray-600 dark:text-gray-400">${r.cc.goal}</div>
                 </div>
               </div>
               <div class="mt-3 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded p-2">

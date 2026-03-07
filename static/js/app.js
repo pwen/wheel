@@ -73,7 +73,7 @@ function switchTab(tab) {
         b.classList.toggle("border-indigo-600", active);
         b.classList.toggle("text-indigo-600", active);
         b.classList.toggle("border-transparent", !active);
-        b.classList.toggle("text-gray-500", !active);
+        b.classList.toggle("text-gray-600", !active);
         b.classList.toggle("dark:text-gray-400", !active);
     });
     ALL_TABS.forEach(t => {
