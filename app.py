@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from routes import trades, spots, prices, lots, pages, dashboard, market
+from routes import trades, spots, prices, lots, pages, dashboard
 
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
 _SECRET = os.environ.get("SECRET_KEY", "wheel-dev-secret")
@@ -93,7 +93,6 @@ app.include_router(spots.router, prefix="/api")
 app.include_router(prices.router, prefix="/api")
 app.include_router(lots.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
-app.include_router(market.router, prefix="/api")
 
 # Page routes (HTML)
 app.include_router(pages.router)

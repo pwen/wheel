@@ -16,58 +16,6 @@ function card(label, value, sub, colorClass) {
     </div>`;
 }
 
-/* ---------- Market Flash ---------- */
-async function loadMarketFlash() {
-    const el = $("#market-flash");
-    try {
-        const res = await fetch("/api/market-flash");
-        if (!res.ok) throw new Error("Failed to load");
-        const data = await res.json();
-        if (data.markdown) {
-            el.innerHTML = marked.parse(data.markdown) + regenButton("Regenerate");
-            $("#gen-flash-btn").addEventListener("click", () => generateMarketFlash(true));
-        } else {
-            el.innerHTML = `
-            <div class="text-center py-4">
-              <p class="text-gray-500 text-sm mb-3">No market flash generated for today yet.</p>
-              ${regenButton("Generate Market Flash")}
-            </div>`;
-            $("#gen-flash-btn").addEventListener("click", () => generateMarketFlash(false));
-        }
-    } catch {
-        el.innerHTML = `<p class="text-gray-400 text-sm">Market flash unavailable.</p>`;
-    }
-}
-
-function regenButton(label) {
-    return `<div class="text-right mt-3">
-      <button id="gen-flash-btn"
-        class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 transition-colors">
-        ${label}
-      </button>
-    </div>`;
-}
-
-async function generateMarketFlash(force = false) {
-    const el = $("#market-flash");
-    const btn = $("#gen-flash-btn");
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = "Generating…";
-        btn.classList.add("opacity-50", "cursor-not-allowed");
-    }
-    try {
-        const url = force ? "/api/market-flash?force=true" : "/api/market-flash";
-        const res = await fetch(url, { method: "POST" });
-        if (!res.ok) throw new Error("Generation failed");
-        const data = await res.json();
-        el.innerHTML = marked.parse(data.markdown) + regenButton("Regenerate");
-        $("#gen-flash-btn").addEventListener("click", () => generateMarketFlash(true));
-    } catch {
-        el.innerHTML = `<p class="text-red-500 text-sm">Failed to generate market flash. Check API key.</p>`;
-    }
-}
-
 /* ---------- Summary cards ---------- */
 function renderSummary(attention, vixData) {
     const el = $("#summary-cards");
@@ -306,9 +254,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderExpiring(data.attention);
         renderRecentlyClosed(data.recently_closed || []);
 
-        // Async: enrich with live prices + load market flash (don't block page)
+        // Async: enrich with live prices (don't block page)
         enrichWithPrices(data.attention);
-        loadMarketFlash();
     } catch (e) {
         $("#summary-cards").innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
     }

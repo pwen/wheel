@@ -27,13 +27,14 @@
 
     <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- Market Flash -->
-        <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Market Flash</h3>
-            <div id="market-flash" class="bg-white border rounded-lg p-5 prose prose-sm max-w-none">
-                <p class="text-gray-400 text-sm">Loading market summary…</p>
-            </div>
-        </section>
+        <a href="https://sruth.app" target="_blank" rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium text-sm">
+            View today's market recap on sruth.app
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+        </a>
 
         <!-- Summary Cards -->
         <section>
@@ -64,7 +65,6 @@
 
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/static/js/helpers.js"></script>
     <script src="/static/js/vix.js"></script>
     <script src="/static/js/recap.js"></script>
