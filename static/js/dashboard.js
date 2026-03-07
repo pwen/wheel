@@ -3,10 +3,12 @@
 const fmtPct = (v) => v != null ? `${Number(v).toFixed(1)}%` : "—";
 
 function card(label, value, sub, colorClass, tooltip) {
-    const tipAttr = tooltip ? ` title="${tooltip}" style="cursor:help; text-decoration:underline dotted"` : "";
+    const tipAttr = tooltip ? ` title="${tooltip}"` : "";
+    const tipStyle = tooltip ? ' style="cursor:help"' : "";
+    const labelStyle = tooltip ? ' style="text-decoration:underline dotted; text-underline-offset:2px"' : "";
     return `
-    <div class="bg-white border rounded-lg p-4">
-      <div class="text-xs text-gray-500 uppercase"${tipAttr}>${label}</div>
+    <div class="bg-white border rounded-lg p-4"${tipAttr}${tipStyle}>
+      <div class="text-xs text-gray-500 uppercase"${labelStyle}>${label}</div>
       <div class="text-xl font-semibold ${colorClass || ''}">${value}</div>
       ${sub ? `<div class="text-xs text-gray-500">${sub}</div>` : ""}
     </div>`;
@@ -113,8 +115,9 @@ async function enrichAttentionWithPrices(attention) {
         if (quote && quote.mid != null) {
             const upl = (t.premium_per_share - quote.mid) * t.contracts * t.multiplier;
             const uplPct = t.total_premium > 0 ? (upl / t.total_premium) * 100 : 0;
-            if (uplPct >= 50) {
-                t.reasons.push({ type: "profit_target", label: `${uplPct.toFixed(0)}% profit — consider BTC` });
+            const inFirstHalf = t.days_in_trade <= t.dte / 2;
+            if (inFirstHalf && uplPct >= 50) {
+                t.reasons.push({ type: "profit_target", label: `${uplPct.toFixed(0)}% profit in first half — consider BTC` });
                 changed = true;
             }
         }
@@ -124,9 +127,9 @@ async function enrichAttentionWithPrices(attention) {
 
 const OUTCOME_META = {
     expired: { label: "Expired", color: "bg-green-500", text: "text-green-700" },
-    btc:     { label: "Bought to Close", color: "bg-blue-500", text: "text-blue-700" },
-    assigned:{ label: "Assigned", color: "bg-amber-500", text: "text-amber-700" },
-    rolled:  { label: "Rolled", color: "bg-purple-500", text: "text-purple-700" },
+    btc: { label: "Bought to Close", color: "bg-blue-500", text: "text-blue-700" },
+    assigned: { label: "Assigned", color: "bg-amber-500", text: "text-amber-700" },
+    rolled: { label: "Rolled", color: "bg-purple-500", text: "text-purple-700" },
 };
 
 function renderOutcomeDistribution(dist) {

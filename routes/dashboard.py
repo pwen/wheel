@@ -115,6 +115,8 @@ def dashboard_stats(session: Session = Depends(get_session)):
                 "id": t.id, "symbol": sym, "strategy_type": t.strategy_type.value,
                 "strike": float(t.strike), "expiry_date": t.expiry_date.isoformat(),
                 "remaining_dte": remaining,
+                "dte": t.dte,
+                "days_in_trade": t.days_in_trade,
                 "premium_per_share": float(t.premium_per_share),
                 "contracts": t.contracts, "multiplier": t.multiplier,
                 "total_premium": float(t.total_premium),

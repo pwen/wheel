@@ -3,104 +3,104 @@
 const $ = (sel) => document.querySelector(sel);
 const fmt = (v, d = 2) => v != null ? Number(v).toFixed(d) : "—";
 const fmtMoney = (v) => {
-    if (v == null) return "—";
-    const n = Number(v);
-    return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
+  if (v == null) return "—";
+  const n = Number(v);
+  return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
 };
 const fmtPct = (v) => v != null ? `${Number(v).toFixed(1)}%` : "—";
 
 const STATUS_COLORS = {
-    open: "bg-green-100 text-green-700",
-    expired: "bg-gray-100 text-gray-600",
-    btc: "bg-yellow-100 text-yellow-700",
-    assigned: "bg-red-100 text-red-700",
-    rolled: "bg-blue-100 text-blue-700",
+  open: "bg-green-100 text-green-700",
+  expired: "bg-gray-100 text-gray-600",
+  btc: "bg-yellow-100 text-yellow-700",
+  assigned: "bg-red-100 text-red-700",
+  rolled: "bg-blue-100 text-blue-700",
 };
 
 const STRAT_COLORS = {
-    CSP: "bg-purple-100 text-purple-700",
-    CC: "bg-sky-100 text-sky-700",
+  CSP: "bg-purple-100 text-purple-700",
+  CC: "bg-sky-100 text-sky-700",
 };
 
 function badge(text, colorClass) {
-    return `<span class="px-2 py-0.5 rounded text-xs font-semibold ${colorClass}">${text}</span>`;
+  return `<span class="px-2 py-0.5 rounded text-xs font-semibold ${colorClass}">${text}</span>`;
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const parts = window.location.pathname.split("/");
-    const tradeId = parts[parts.length - 1];
+  const parts = window.location.pathname.split("/");
+  const tradeId = parts[parts.length - 1];
 
-    try {
-        const res = await fetch(`/api/trades/${tradeId}/detail`);
-        if (!res.ok) throw new Error("Failed to load trade");
-        const t = await res.json();
+  try {
+    const res = await fetch(`/api/trades/${tradeId}/detail`);
+    if (!res.ok) throw new Error("Failed to load trade");
+    const t = await res.json();
 
-        // Also fetch current spot price + VIX
-        const [priceRes, vixRes] = await Promise.all([
-            fetch(`/api/prices?symbols=${encodeURIComponent(t.symbol)}`),
-            fetch("/api/vix"),
-        ]);
-        const prices = priceRes.ok ? await priceRes.json() : {};
-        const currentPrice = prices[t.symbol] || null;
-        const vixData = vixRes.ok ? await vixRes.json() : null;
+    // Also fetch current spot price
+    const priceRes = await fetch(`/api/prices?symbols=${encodeURIComponent(t.symbol)}`);
+    const prices = priceRes.ok ? await priceRes.json() : {};
+    const currentPrice = prices[t.symbol] || null;
 
-        renderHeader(t);
-        renderGlance(t, currentPrice);
-        renderRisk(t, currentPrice);
-        renderMarket(t, currentPrice, vixData);
-        renderEvents(t);
-    } catch (e) {
-        $("#td-glance").innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
-    }
+    renderHeader(t);
+    renderGlance(t, currentPrice);
+    renderRisk(t, currentPrice);
+    renderMarket(t, currentPrice);
+    renderEvents(t);
+
+    // VIX banner in header
+    const vixEl = document.getElementById("vix-banner");
+    if (vixEl) renderVixBanner(vixEl);
+  } catch (e) {
+    $("#td-glance").innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
+  }
 });
 
 
 function renderHeader(t) {
-    const stratBadge = badge(t.strategy_type, STRAT_COLORS[t.strategy_type] || "");
-    const statusBadge = badge(t.status.toUpperCase(), STATUS_COLORS[t.status] || "bg-gray-100 text-gray-600");
-    const symbolLink = `<a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a>`;
-    $("#td-header").innerHTML = `${symbolLink} ${fmt(t.strike, 0)}${t.strategy_type === "CSP" ? "P" : "C"} ${t.expiry_date} ${stratBadge} ${statusBadge}`;
+  const stratBadge = badge(t.strategy_type, STRAT_COLORS[t.strategy_type] || "");
+  const statusBadge = badge(t.status.toUpperCase(), STATUS_COLORS[t.status] || "bg-gray-100 text-gray-600");
+  const symbolLink = `<a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a>`;
+  $("#td-header").innerHTML = `${symbolLink} ${fmt(t.strike, 0)}${t.strategy_type === "CSP" ? "P" : "C"} ${t.expiry_date} ${stratBadge} ${statusBadge}`;
 }
 
 
 function renderGlance(t, currentPrice) {
-    const el = $("#td-glance");
-    const premiumCollected = Number(t.total_premium);
-    const isOpen = t.status === "open";
+  const el = $("#td-glance");
+  const premiumCollected = Number(t.total_premium);
+  const isOpen = t.status === "open";
 
-    const shares = t.contracts * t.multiplier;
-    const obligation = t.strategy_type === "CSP"
-        ? `Obligated to buy <span class="font-bold">${shares}</span> shares of ${t.symbol} at <span class="font-bold">$${fmt(t.strike, 2)}</span> if assigned by <span class="font-bold">${t.expiry_date}</span>.`
-        : `Obligated to sell <span class="font-bold">${shares}</span> shares of ${t.symbol} at <span class="font-bold">$${fmt(t.strike, 2)}</span> if assigned by <span class="font-bold">${t.expiry_date}</span>.`;
+  const shares = t.contracts * t.multiplier;
+  const obligation = t.strategy_type === "CSP"
+    ? `Obligated to buy <span class="font-bold">${shares}</span> shares of ${t.symbol} at <span class="font-bold">$${fmt(t.strike, 2)}</span> if assigned by <span class="font-bold">${t.expiry_date}</span>.`
+    : `Obligated to sell <span class="font-bold">${shares}</span> shares of ${t.symbol} at <span class="font-bold">$${fmt(t.strike, 2)}</span> if assigned by <span class="font-bold">${t.expiry_date}</span>.`;
 
-    // Unrealized P/L = premium collected - (mid * contracts * multiplier)
-    let unrealPL = null;
-    let unrealPLPct = null;
-    let returnOnCapital = null;
+  // Unrealized P/L = premium collected - (mid * contracts * multiplier)
+  let unrealPL = null;
+  let unrealPLPct = null;
+  let returnOnCapital = null;
 
-    if (isOpen && t.live && t.live.mid != null) {
-        const currentCost = t.live.mid * t.contracts * t.multiplier;
-        unrealPL = premiumCollected - currentCost;
-        unrealPLPct = premiumCollected > 0 ? (unrealPL / premiumCollected) * 100 : 0;
-        const cashAtRisk = Number(t.strike) * t.contracts * t.multiplier;
-        returnOnCapital = cashAtRisk > 0 ? (unrealPL / cashAtRisk) * 100 : 0;
-    }
+  if (isOpen && t.live && t.live.mid != null) {
+    const currentCost = t.live.mid * t.contracts * t.multiplier;
+    unrealPL = premiumCollected - currentCost;
+    unrealPLPct = premiumCollected > 0 ? (unrealPL / premiumCollected) * 100 : 0;
+    const cashAtRisk = Number(t.strike) * t.contracts * t.multiplier;
+    returnOnCapital = cashAtRisk > 0 ? (unrealPL / cashAtRisk) * 100 : 0;
+  }
 
-    // DTE progress
-    const totalDte = t.dte;
-    const elapsed = t.days_in_trade;
-    const remaining = Math.max(0, totalDte - elapsed);
-    const pctElapsed = totalDte > 0 ? Math.min(100, (elapsed / totalDte) * 100) : 100;
+  // DTE progress
+  const totalDte = t.dte;
+  const elapsed = t.days_in_trade;
+  const remaining = Math.max(0, totalDte - elapsed);
+  const pctElapsed = totalDte > 0 ? Math.min(100, (elapsed / totalDte) * 100) : 100;
 
-    const plColor = unrealPL != null ? (unrealPL >= 0 ? "text-green-600" : "text-red-600") : "";
-    const rocColor = returnOnCapital != null ? (returnOnCapital >= 0 ? "text-green-600" : "text-red-600") : "";
+  const plColor = unrealPL != null ? (unrealPL >= 0 ? "text-green-600" : "text-red-600") : "";
+  const rocColor = returnOnCapital != null ? (returnOnCapital >= 0 ? "text-green-600" : "text-red-600") : "";
 
-    el.innerHTML = `
-    ${unrealPLPct != null && unrealPLPct >= 50 ? `
+  el.innerHTML = `
+    ${unrealPLPct != null && elapsed <= totalDte / 2 && unrealPLPct >= 50 ? `
     <div class="mb-3 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
       <span class="text-emerald-600 text-lg">💰</span>
       <div>
-        <span class="font-semibold text-emerald-800">50%+ Profit reached!</span>
+        <span class="font-semibold text-emerald-800">50%+ Profit in first half!</span>
         <span class="text-sm text-emerald-700 ml-1">Consider buying to close at ${fmtPct(unrealPLPct)} profit and redeploying capital.</span>
       </div>
     </div>` : ''}
@@ -145,49 +145,49 @@ function renderGlance(t, currentPrice) {
 
 
 function renderRisk(t, currentPrice) {
-    const el = $("#td-risk");
-    const strike = Number(t.strike);
-    const breakEven = Number(t.break_even);
-    const isCSP = t.strategy_type === "CSP";
+  const el = $("#td-risk");
+  const strike = Number(t.strike);
+  const breakEven = Number(t.break_even);
+  const isCSP = t.strategy_type === "CSP";
 
-    if (!currentPrice) {
-        el.innerHTML = `<p class="text-gray-400 text-sm">Current price unavailable.</p>`;
-        return;
-    }
+  if (!currentPrice) {
+    el.innerHTML = `<p class="text-gray-400 text-sm">Current price unavailable.</p>`;
+    return;
+  }
 
-    // Moneyness
-    const distToStrike = currentPrice - strike;
-    const distPct = (distToStrike / strike) * 100;
+  // Moneyness
+  const distToStrike = currentPrice - strike;
+  const distPct = (distToStrike / strike) * 100;
 
-    // For CSP: safe if price > strike, at risk if near, ITM if price < strike
-    // For CC: safe if price < strike, at risk if near, ITM if price > strike
-    let status, statusColor, statusIcon;
-    const absPct = Math.abs(distPct);
+  // For CSP: safe if price > strike, at risk if near, ITM if price < strike
+  // For CC: safe if price < strike, at risk if near, ITM if price > strike
+  let status, statusColor, statusIcon;
+  const absPct = Math.abs(distPct);
 
-    if (isCSP) {
-        if (currentPrice > strike * 1.03) {
-            status = "OTM — Safe"; statusColor = "text-green-600"; statusIcon = "✓";
-        } else if (currentPrice > strike) {
-            status = "Near the money"; statusColor = "text-yellow-600"; statusIcon = "⚠";
-        } else {
-            status = "ITM — At risk"; statusColor = "text-red-600"; statusIcon = "✗";
-        }
+  if (isCSP) {
+    if (currentPrice > strike * 1.03) {
+      status = "OTM — Safe"; statusColor = "text-green-600"; statusIcon = "✓";
+    } else if (currentPrice > strike) {
+      status = "Near the money"; statusColor = "text-yellow-600"; statusIcon = "⚠";
     } else {
-        if (currentPrice < strike * 0.97) {
-            status = "OTM — Safe"; statusColor = "text-green-600"; statusIcon = "✓";
-        } else if (currentPrice < strike) {
-            status = "Near the money"; statusColor = "text-yellow-600"; statusIcon = "⚠";
-        } else {
-            status = "ITM — At risk"; statusColor = "text-red-600"; statusIcon = "✗";
-        }
+      status = "ITM — At risk"; statusColor = "text-red-600"; statusIcon = "✗";
     }
+  } else {
+    if (currentPrice < strike * 0.97) {
+      status = "OTM — Safe"; statusColor = "text-green-600"; statusIcon = "✓";
+    } else if (currentPrice < strike) {
+      status = "Near the money"; statusColor = "text-yellow-600"; statusIcon = "⚠";
+    } else {
+      status = "ITM — At risk"; statusColor = "text-red-600"; statusIcon = "✗";
+    }
+  }
 
-    // Break-even distance
-    const distToBreakEven = currentPrice - breakEven;
-    const distBEPct = (distToBreakEven / breakEven) * 100;
-    const beColor = (isCSP ? distToBreakEven > 0 : distToBreakEven < 0) ? "text-green-600" : "text-red-600";
+  // Break-even distance
+  const distToBreakEven = currentPrice - breakEven;
+  const distBEPct = (distToBreakEven / breakEven) * 100;
+  const beColor = (isCSP ? distToBreakEven > 0 : distToBreakEven < 0) ? "text-green-600" : "text-red-600";
 
-    el.innerHTML = `
+  el.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <div class="text-xs text-gray-500 uppercase">Status</div>
@@ -213,24 +213,24 @@ function renderRisk(t, currentPrice) {
 
 
 function renderGauge(strike, breakEven, currentPrice, isCSP) {
-    // Simple visual showing relative positions of break-even, strike, and current price
-    const allPts = [strike, breakEven, currentPrice];
-    const lo = Math.min(...allPts) * 0.98;
-    const hi = Math.max(...allPts) * 1.02;
-    const range = hi - lo;
-    if (range === 0) return "";
+  // Simple visual showing relative positions of break-even, strike, and current price
+  const allPts = [strike, breakEven, currentPrice];
+  const lo = Math.min(...allPts) * 0.98;
+  const hi = Math.max(...allPts) * 1.02;
+  const range = hi - lo;
+  if (range === 0) return "";
 
-    const toPos = (v) => ((v - lo) / range) * 100;
+  const toPos = (v) => ((v - lo) / range) * 100;
 
-    const strikePx = toPos(strike);
-    const bePx = toPos(breakEven);
-    const pricePx = toPos(currentPrice);
+  const strikePx = toPos(strike);
+  const bePx = toPos(breakEven);
+  const pricePx = toPos(currentPrice);
 
-    // Danger zone: for CSP, below break-even; for CC, above break-even+premium area
-    const dangerLeft = isCSP ? 0 : bePx;
-    const dangerWidth = isCSP ? bePx : 100 - bePx;
+  // Danger zone: for CSP, below break-even; for CC, above break-even+premium area
+  const dangerLeft = isCSP ? 0 : bePx;
+  const dangerWidth = isCSP ? bePx : 100 - bePx;
 
-    return `
+  return `
     <div class="absolute inset-0">
       <!-- Danger zone -->
       <div class="absolute top-0 bottom-0 bg-red-50" style="left:${dangerLeft}%;width:${dangerWidth}%"></div>
@@ -250,13 +250,13 @@ function renderGauge(strike, breakEven, currentPrice, isCSP) {
 }
 
 
-function renderMarket(t, currentPrice, vixData) {
-    const el = $("#td-market");
-    const live = t.live;
-    const spotIV = t.spot?.implied_volatility;
+function renderMarket(t, currentPrice) {
+  const el = $("#td-market");
+  const live = t.live;
+  const spotIV = t.spot?.implied_volatility;
 
-    // Tooltip helper: label with hover info icon
-    const tip = (label, desc) => `
+  // Tooltip helper: label with hover info icon
+  const tip = (label, desc) => `
       <div class="text-xs text-gray-500 uppercase flex items-center gap-1">
         ${label}
         <span class="relative group cursor-help">
@@ -265,166 +265,138 @@ function renderMarket(t, currentPrice, vixData) {
         </span>
       </div>`;
 
-    const items = [];
+  const items = [];
 
-    // Current price
-    if (currentPrice) {
-        const opened = Number(t.spot_price_at_open);
-        const change = opened ? currentPrice - opened : null;
-        const changePct = opened ? ((currentPrice - opened) / opened) * 100 : null;
-        const chColor = change != null ? (change >= 0 ? "text-green-600" : "text-red-600") : "";
-        items.push(`
+  // Current price
+  if (currentPrice) {
+    const opened = Number(t.spot_price_at_open);
+    const change = opened ? currentPrice - opened : null;
+    const changePct = opened ? ((currentPrice - opened) / opened) * 100 : null;
+    const chColor = change != null ? (change >= 0 ? "text-green-600" : "text-red-600") : "";
+    items.push(`
         <div>
           ${tip("Spot Price", "Current price of the underlying stock or ETF.")}
           <div class="text-lg font-semibold">${fmtMoney(currentPrice)}</div>
           ${change != null ? `<div class="text-xs ${chColor}">${change >= 0 ? "+" : ""}${fmtMoney(change)} (${fmtPct(changePct)}) since open</div>` : ""}
         </div>`);
-    }
+  }
 
-    // Live option data
-    if (live) {
-        items.push(`
+  // Live option data
+  if (live) {
+    items.push(`
         <div>
           ${tip("Option Mid Price", "Midpoint between bid and ask. This is what it would roughly cost to buy-to-close.")}
           <div class="text-lg font-semibold">${live.mid != null ? fmtMoney(live.mid) : "—"}</div>
           <div class="text-xs text-gray-500">per share</div>
         </div>`);
 
-        // IV with change since open
-        const ivAtOpen = t.iv_at_open != null ? Number(t.iv_at_open) : null;
-        const currentIV = live.iv;
-        let ivSub = "";
-        if (ivAtOpen != null && currentIV != null) {
-            const ivChange = currentIV - ivAtOpen;
-            const ivChColor = ivChange <= 0 ? "text-green-600" : "text-red-600";
-            ivSub = `<div class="text-xs ${ivChColor}">${ivChange >= 0 ? "+" : ""}${fmt(ivChange, 1)}% since open (was ${fmtPct(ivAtOpen)})</div>`;
-        } else if (ivAtOpen != null) {
-            ivSub = `<div class="text-xs text-gray-500">IV at open: ${fmtPct(ivAtOpen)}</div>`;
-        } else {
-            ivSub = spotIV ? `<div class="text-xs text-gray-500">ATM IV: ${fmtPct(spotIV * 100)}</div>` : "";
-        }
-        items.push(`
+    // IV with change since open
+    const ivAtOpen = t.iv_at_open != null ? Number(t.iv_at_open) : null;
+    const currentIV = live.iv;
+    let ivSub = "";
+    if (ivAtOpen != null && currentIV != null) {
+      const ivChange = currentIV - ivAtOpen;
+      const ivChColor = ivChange <= 0 ? "text-green-600" : "text-red-600";
+      ivSub = `<div class="text-xs ${ivChColor}">${ivChange >= 0 ? "+" : ""}${fmt(ivChange, 1)}% since open (was ${fmtPct(ivAtOpen)})</div>`;
+    } else if (ivAtOpen != null) {
+      ivSub = `<div class="text-xs text-gray-500">IV at open: ${fmtPct(ivAtOpen)}</div>`;
+    } else {
+      ivSub = spotIV ? `<div class="text-xs text-gray-500">ATM IV: ${fmtPct(spotIV * 100)}</div>` : "";
+    }
+    items.push(`
         <div>
           ${tip("Option IV", "Implied volatility of this specific contract. Higher IV = more premium but more risk.")}
           <div class="text-lg font-semibold">${currentIV != null ? fmtPct(currentIV) : "—"}</div>
           ${ivSub}
         </div>`);
-    }
+  }
 
-    // Theta
-    if (live && live.theta != null) {
-        const th = live.theta;
-        const dailyIncome = Math.abs(th) * t.contracts * t.multiplier;
-        items.push(`
+  // Theta
+  if (live && live.theta != null) {
+    const th = live.theta;
+    const dailyIncome = Math.abs(th) * t.contracts * t.multiplier;
+    items.push(`
         <div>
           ${tip("Theta", `This position earns ~$${fmt(dailyIncome, 2)}/day from time decay. The option loses $${fmt(Math.abs(th), 4)}/share daily, which is income for you as the seller.`)}
           <div class="text-lg font-semibold text-green-600">$${fmt(dailyIncome, 2)}<span class="text-sm text-gray-500">/day</span></div>
           <div class="text-xs text-gray-500">${fmt(th, 4)} per share</div>
         </div>`);
-    }
+  }
 
-    // Probability OTM
-    if (live && live.prob_otm != null) {
-        const p = live.prob_otm;
-        const pColor = p >= 70 ? "text-green-600" : p >= 50 ? "text-yellow-600" : "text-red-600";
-        items.push(`
+  // Probability OTM
+  if (live && live.prob_otm != null) {
+    const p = live.prob_otm;
+    const pColor = p >= 70 ? "text-green-600" : p >= 50 ? "text-yellow-600" : "text-red-600";
+    items.push(`
         <div>
           ${tip("Prob OTM", `${fmt(p, 1)}% chance the option expires worthless — meaning you keep the full premium. ${p >= 70 ? "Odds are in your favor." : p >= 50 ? "Roughly a coin flip." : "Assignment is likely — consider rolling or closing."}`)}
           <div class="text-lg font-semibold ${pColor}">${fmt(p, 1)}%</div>
           <div class="text-xs text-gray-500">${p >= 70 ? "Favorable" : p >= 50 ? "Coin flip" : "At risk"}</div>
         </div>`);
-    }
+  }
 
-    // Gamma
-    if (live && live.gamma != null) {
-        const gRisk = live.gamma >= 0.05 ? "High gamma — delta can shift fast." : live.gamma >= 0.02 ? "Moderate gamma." : "Low gamma — position is stable.";
-        items.push(`
+  // Gamma
+  if (live && live.gamma != null) {
+    const gRisk = live.gamma >= 0.05 ? "High gamma — delta can shift fast." : live.gamma >= 0.02 ? "Moderate gamma." : "Low gamma — position is stable.";
+    items.push(`
         <div>
           ${tip("Gamma", `For every $1 the stock moves, delta changes by ${fmt(live.gamma, 4)}. ${gRisk}`)}
           <div class="text-lg font-semibold">${fmt(live.gamma, 4)}</div>
           <div class="text-xs text-gray-500">delta change per $1</div>
         </div>`);
-    }
+  }
 
-    // Bid-Ask Spread
-    if (live && live.bid != null && live.ask != null) {
-        const spread = live.ask - live.bid;
-        const spreadPct = live.mid ? (spread / live.mid) * 100 : null;
-        const spreadColor = spreadPct != null ? (spreadPct <= 10 ? "text-green-600" : spreadPct <= 25 ? "text-yellow-600" : "text-red-600") : "";
-        const spreadLabel = spreadPct != null ? (spreadPct <= 10 ? "Tight" : spreadPct <= 25 ? "Moderate" : "Wide") : "";
-        const spreadTip = `Bid $${fmt(live.bid, 2)} / Ask $${fmt(live.ask, 2)} — you'd lose ~$${fmt(spread / 2, 2)}/share to slippage. ${spreadPct != null && spreadPct > 25 ? "Wide spread — consider limit orders." : "Spread looks reasonable."}`;
-        items.push(`
+  // Bid-Ask Spread
+  if (live && live.bid != null && live.ask != null) {
+    const spread = live.ask - live.bid;
+    const spreadPct = live.mid ? (spread / live.mid) * 100 : null;
+    const spreadColor = spreadPct != null ? (spreadPct <= 10 ? "text-green-600" : spreadPct <= 25 ? "text-yellow-600" : "text-red-600") : "";
+    const spreadLabel = spreadPct != null ? (spreadPct <= 10 ? "Tight" : spreadPct <= 25 ? "Moderate" : "Wide") : "";
+    const spreadTip = `Bid $${fmt(live.bid, 2)} / Ask $${fmt(live.ask, 2)} — you'd lose ~$${fmt(spread / 2, 2)}/share to slippage. ${spreadPct != null && spreadPct > 25 ? "Wide spread — consider limit orders." : "Spread looks reasonable."}`;
+    items.push(`
         <div>
           ${tip("Bid-Ask Spread", spreadTip)}
           <div class="text-lg font-semibold ${spreadColor}">${fmtMoney(spread)}</div>
           <div class="text-xs text-gray-500">${spreadLabel}${spreadPct != null ? ` · ${fmt(spreadPct, 1)}% of mid` : ""}</div>
         </div>`);
-    }
+  }
 
-    // Volume / Open Interest
-    if (live && (live.volume != null || live.open_interest != null)) {
-        const vol = live.volume;
-        const oi = live.open_interest;
-        const ratio = vol != null && oi ? (vol / oi) : null;
-        const liqLabel = oi != null ? (oi >= 1000 ? "Liquid" : oi >= 100 ? "Moderate" : "Thin") : "";
-        const volOiTip = `${vol != null ? vol.toLocaleString() : "N/A"} contracts traded today out of ${oi != null ? oi.toLocaleString() : "N/A"} open. ${oi != null && oi < 100 ? "Low liquidity — may be hard to get good fills." : "Decent liquidity."}${ratio != null && ratio > 1 ? " Vol/OI > 1 suggests unusual activity." : ""}`;
-        items.push(`
+  // Volume / Open Interest
+  if (live && (live.volume != null || live.open_interest != null)) {
+    const vol = live.volume;
+    const oi = live.open_interest;
+    const ratio = vol != null && oi ? (vol / oi) : null;
+    const liqLabel = oi != null ? (oi >= 1000 ? "Liquid" : oi >= 100 ? "Moderate" : "Thin") : "";
+    const volOiTip = `${vol != null ? vol.toLocaleString() : "N/A"} contracts traded today out of ${oi != null ? oi.toLocaleString() : "N/A"} open. ${oi != null && oi < 100 ? "Low liquidity — may be hard to get good fills." : "Decent liquidity."}${ratio != null && ratio > 1 ? " Vol/OI > 1 suggests unusual activity." : ""}`;
+    items.push(`
         <div>
           ${tip("Volume / OI", volOiTip)}
           <div class="text-lg font-semibold">${vol != null ? vol.toLocaleString() : "—"} / ${oi != null ? oi.toLocaleString() : "—"}</div>
           <div class="text-xs text-gray-500">${liqLabel}${ratio != null ? ` · Vol/OI: ${fmt(ratio, 2)}` : ""}</div>
         </div>`);
-    }
+  }
 
-    // IV Rank
-    const ivData = t.iv_rank_data;
-    if (ivData && ivData.iv_rank != null) {
-        const rank = ivData.iv_rank;
-        const rankColor = rank >= 50 ? "text-orange-600" : "text-blue-600";
-        const rankLabel = rank >= 80 ? "Very High" : rank >= 50 ? "Elevated" : rank >= 20 ? "Normal" : "Low";
-        items.push(`
+  // IV Rank
+  const ivData = t.iv_rank_data;
+  if (ivData && ivData.iv_rank != null) {
+    const rank = ivData.iv_rank;
+    const rankColor = rank >= 50 ? "text-orange-600" : "text-blue-600";
+    const rankLabel = rank >= 80 ? "Very High" : rank >= 50 ? "Elevated" : rank >= 20 ? "Normal" : "Low";
+    items.push(`
         <div>
           ${tip("IV Rank", `IV is at the ${fmt(rank, 0)}th percentile of its 52-week range. ${rank >= 50 ? "Elevated — good time to sell premium." : "Below average — less premium available."}`)}
           <div class="text-lg font-semibold ${rankColor}">${fmt(rank, 0)}%</div>
           <div class="text-xs text-gray-500">${rankLabel}${ivData.current_iv != null ? ` · 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
         </div>`);
-    }
+  }
 
-    // VIX / Market Regime
-    if (vixData && vixData.vix != null) {
-        const regimeMap = {
-            bull: { label: "Bull", color: "text-green-600" },
-            sideways: { label: "Sideways", color: "text-yellow-600" },
-            bear: { label: "Bear", color: "text-orange-600" },
-            crisis: { label: "Crisis", color: "text-red-600" },
-        };
-        const rm = regimeMap[vixData.regime] || regimeMap.sideways;
-        const v = vixData.vix;
-        const avg = vixData.avg5d;
-        const trendArrow = vixData.trend === "rising" ? "↑" : vixData.trend === "falling" ? "↓" : "→";
-        const trendWord = vixData.trend === "rising" ? "rising" : vixData.trend === "falling" ? "falling" : "stable";
-        const vixTip = v >= 40
-            ? `VIX at ${v} (5d avg: ${avg}) and ${trendWord}. Extreme fear — sell far OTM with long DTE. Deploy only 20–30% of cash.`
-            : v >= 25
-                ? `VIX at ${v} (5d avg: ${avg}) and ${trendWord}. Elevated fear — go defensive: wide strikes, stagger entries. Deploy 30–40%.`
-                : v >= 16
-                    ? `VIX at ${v} (5d avg: ${avg}) and ${trendWord}. Sweet spot for selling premium. Standard wheel mechanics, deploy 80–100%.`
-                    : `VIX at ${v} (5d avg: ${avg}) and ${trendWord}. Low vol, calm market. Premiums are thin — keep 50% in reserve.`;
-        items.push(`
-        <div>
-          ${tip("VIX", vixTip)}
-          <div class="text-lg font-semibold ${rm.color}">${v.toFixed(2)} <span class="text-sm">${trendArrow}</span></div>
-          <div class="text-xs text-gray-500">${rm.label} · 5d avg: ${avg != null ? avg.toFixed(2) : "—"}</div>
-        </div>`);
-    }
+  if (items.length === 0) {
+    el.innerHTML = `<p class="text-gray-400 text-sm">Market data unavailable (market may be closed).</p>`;
+    return;
+  }
 
-    if (items.length === 0) {
-        el.innerHTML = `<p class="text-gray-400 text-sm">Market data unavailable (market may be closed).</p>`;
-        return;
-    }
-
-    const yahooUrl = `https://finance.yahoo.com/quote/${encodeURIComponent(t.symbol)}/options/`;
-    el.innerHTML = `
+  const yahooUrl = `https://finance.yahoo.com/quote/${encodeURIComponent(t.symbol)}/options/`;
+  el.innerHTML = `
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">${items.join("")}</div>
     <div class="mt-3 pt-3 border-t text-right">
       <a href="${yahooUrl}" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-400 hover:text-indigo-600 inline-flex items-center gap-1">
@@ -436,20 +408,20 @@ function renderMarket(t, currentPrice, vixData) {
 
 
 function renderEvents(t) {
-    const el = $("#td-events");
-    const events = t.events || [];
+  const el = $("#td-events");
+  const events = t.events || [];
 
-    if (events.length === 0) {
-        el.innerHTML = `<p class="text-gray-400 text-sm">No events recorded.</p>`;
-        return;
-    }
+  if (events.length === 0) {
+    el.innerHTML = `<p class="text-gray-400 text-sm">No events recorded.</p>`;
+    return;
+  }
 
-    const eventLabels = {
-        open: "Opened", close: "Closed", assignment: "Assigned",
-        exercise: "Exercised", roll_open: "Roll (new)", roll_close: "Roll (closed)", adjustment: "Adjusted",
-    };
+  const eventLabels = {
+    open: "Opened", close: "Closed", assignment: "Assigned",
+    exercise: "Exercised", roll_open: "Roll (new)", roll_close: "Roll (closed)", adjustment: "Adjusted",
+  };
 
-    const rows = events.map(e => `
+  const rows = events.map(e => `
         <div class="flex items-center gap-3 py-2 border-b last:border-0">
             <div class="w-2 h-2 rounded-full ${e.event_type === 'open' ? 'bg-green-500' : e.event_type === 'close' ? 'bg-gray-400' : e.event_type === 'assignment' ? 'bg-red-500' : 'bg-blue-500'}"></div>
             <div class="text-sm font-medium w-24">${eventLabels[e.event_type] || e.event_type}</div>
@@ -458,5 +430,5 @@ function renderEvents(t) {
         </div>
     `).join("");
 
-    el.innerHTML = rows;
+  el.innerHTML = rows;
 }

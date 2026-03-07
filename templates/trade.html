@@ -12,9 +12,12 @@
 
     <!-- Header -->
     <header class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
-            <a href="/" class="text-gray-400 hover:text-gray-600">&larr; Back</a>
-            <h1 id="td-header" class="text-xl font-bold tracking-tight">Trade #{{ trade_id }}</h1>
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="/" class="text-gray-400 hover:text-gray-600">&larr; Back</a>
+                <h1 id="td-header" class="text-xl font-bold tracking-tight">Trade #{{ trade_id }}</h1>
+            </div>
+            <div id="vix-banner" class="text-sm"></div>
         </div>
     </header>
 
@@ -54,6 +57,7 @@
 
     </main>
 
+    <script src="/static/js/vix.js"></script>
     <script src="/static/js/trade_detail.js"></script>
 </body>
 
