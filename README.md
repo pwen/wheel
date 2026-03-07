@@ -42,4 +42,9 @@ Set these env vars on Railway:
 - `DATABASE_URL` — reference from a Railway Postgres service
 - `APP_PASSWORD` — single password for access control
 - `SECRET_KEY` — random string for cookie signing
-- `PERPLEXITY_API_KEY` -  key for communicating with perlexity api
+- `PERPLEXITY_API_KEY` — key for communicating with Perplexity API
+- `CRON_SECRET` — shared secret for GitHub Actions scheduled refresh jobs
+
+Also set these as **GitHub repo secrets** (for the scheduled workflows):
+- `APP_URL` — your Railway deployment URL (e.g. `https://wheel-xxx.up.railway.app`)
+- `CRON_SECRET` — must match the Railway env var above

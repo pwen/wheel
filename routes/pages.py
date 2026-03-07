@@ -8,7 +8,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).resolve().parent.parent / "templates")
 
 # Tab name → URL path mapping
-_TAB_PATHS = {"/": "trades", "/trades": "trades", "/recap": "recap",
+_TAB_PATHS = {"/": "dashboard", "/trades": "trades", "/recap": "recap",
               "/dashboard": "dashboard", "/lots": "lots", "/spots": "spots"}
 
 

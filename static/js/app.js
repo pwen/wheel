@@ -23,7 +23,7 @@ window._sharedVixData = null;
 // URL state management
 const TAB_PATHS = { recap: "/recap", dashboard: "/dashboard", trades: "/trades", holdings: "/lots", spots: "/spots" };
 const PATH_TO_TAB = Object.fromEntries(Object.entries(TAB_PATHS).map(([k, v]) => [v, k]));
-PATH_TO_TAB["/"] = "trades";
+PATH_TO_TAB["/"] = "dashboard";
 
 function currentTab() {
     return PATH_TO_TAB[location.pathname] || "trades";

@@ -47,5 +47,21 @@
 - `routes/` — trades, spots, lots, prices (API), pages (HTML)
 - `services/` — yfinance integration (prices, option quotes, spot metadata)
 - `templates/` — Jinja2 (index.html, symbol.html, partials/)
-- `static/js/` — modular JS (trades, lots, close, prices, symbol_detail, etc.)
+- `static/js/` — modular JS (trades, lots, close, prices, symbol_detail, spots, etc.)
 - `scripts/` — utility scripts (explore_yf.py)
+
+## Environment Variables
+- `DATABASE_URL` — Postgres connection string (Railway injects this)
+- `APP_PASSWORD` — single password for access control
+- `SECRET_KEY` — random string for cookie signing
+- `PERPLEXITY_API_KEY` — Perplexity API key for AI recommendations
+- `CRON_SECRET` — Bearer token for GitHub Actions scheduled refresh endpoints
+
+## GitHub Actions Secrets
+- `APP_URL` — Railway deployment URL (e.g. `https://wheel-xxx.up.railway.app`)
+- `CRON_SECRET` — must match the Railway env var
+
+## Scheduled Refresh
+- Weekly (Sunday 10pm UTC): `.github/workflows/refresh-spots-weekly.yml` — refreshes avg volume, option volume, OI, IV, bid-ask spread
+- Monthly (1st of month 8am UTC): `.github/workflows/refresh-spots-monthly.yml` — refreshes PE, beta, market cap, AUM, expense ratio
+- Both call `POST /api/spots/refresh-all?tier=weekly|monthly` with Bearer token auth
