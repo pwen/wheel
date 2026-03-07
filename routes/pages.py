@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Request
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
@@ -13,13 +14,13 @@ async def index(request: Request):
 
 
 @router.get("/dashboard")
-async def dashboard_page(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+async def dashboard_page():
+    return RedirectResponse(url="/?tab=dashboard", status_code=302)
 
 
 @router.get("/recap")
-async def recap_page(request: Request):
-    return templates.TemplateResponse("recap.html", {"request": request})
+async def recap_page():
+    return RedirectResponse(url="/?tab=recap", status_code=302)
 
 
 @router.get("/symbol/{symbol}")

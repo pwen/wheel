@@ -1,5 +1,8 @@
 // ---- Wire up event listeners & init ----
 
+// Shared VIX data (fetched once, consumed by recap + dashboard)
+window._sharedVixData = null;
+
 // URL state management
 function updateURL() {
     const params = new URLSearchParams();
@@ -43,6 +46,9 @@ function restoreFromURL() {
     }
 }
 
+// All tab names
+const ALL_TABS = ["recap", "dashboard", "trades", "holdings"];
+
 // Tabs
 function switchTab(tab) {
     $$(".tab-btn").forEach(b => {
@@ -52,8 +58,14 @@ function switchTab(tab) {
         b.classList.toggle("border-transparent", !active);
         b.classList.toggle("text-gray-500", !active);
     });
-    $("#tab-trades").classList.toggle("hidden", tab !== "trades");
-    $("#tab-holdings").classList.toggle("hidden", tab !== "holdings");
+    ALL_TABS.forEach(t => {
+        const el = document.getElementById("tab-" + t);
+        if (el) el.classList.toggle("hidden", t !== tab);
+    });
+
+    // Lazy-load tab content
+    if (tab === "recap") initRecap();
+    if (tab === "dashboard") initDashboard();
 }
 
 $$(".tab-btn").forEach(btn => {
@@ -119,7 +131,16 @@ loadTrades().then(() => {
 });
 loadLots();
 
-// VIX banner
+// VIX banner — fetch once, share globally
 const vixEl = document.getElementById("vix-banner");
-if (vixEl) renderVixBanner(vixEl);
+if (vixEl) {
+    fetch("/api/vix").then(r => r.ok ? r.json() : null).then(data => {
+        window._sharedVixData = data;
+        if (data) renderVixBanner(vixEl, data);
+    }).catch(() => {});
+}
+
+// Market status
+const mktEl = document.getElementById("market-status");
+if (mktEl) renderMarketStatus(mktEl);
 

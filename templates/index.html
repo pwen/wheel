@@ -13,8 +13,11 @@
     <!-- Header -->
     <header class="bg-white shadow">
         <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 class="text-xl font-bold tracking-tight">Wheel Strategy Tracker</h1>
-            <div id="vix-banner" class="text-sm"></div>
+            <h1 class="text-3xl font-bold tracking-tight">Wheel of Time</h1>
+            <div class="flex items-center gap-4">
+                <div id="market-status"></div>
+                <div id="vix-banner" class="text-sm"></div>
+            </div>
         </div>
     </header>
 
@@ -22,15 +25,106 @@
     <main class="max-w-[95vw] mx-auto px-4 py-6">
         <!-- Tabs -->
         <div class="flex border-b border-gray-200 mb-4">
-            <a href="/recap"
-                class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Recap</a>
-            <a href="/dashboard"
-                class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Dashboard</a>
-            <button class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600"
+            <button
+                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                data-tab="recap">Recap</button>
+            <button
+                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-indigo-600 text-indigo-600"
                 data-tab="trades">Trades</button>
             <button
-                class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
                 data-tab="holdings">Lots</button>
+        </div>
+
+        <!-- Recap tab -->
+        <div id="tab-recap" class="hidden">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="flex items-center gap-3">
+                    <span id="recap-datetime" class="text-sm text-gray-400"></span>
+                    <a href="https://sruth.app" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium text-sm">
+                        Market recap on sruth.app
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                    </a>
+                </div>
+                <section>
+                    <div id="recap-summary-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <p class="text-gray-400 text-sm col-span-full">Loading…</p>
+                    </div>
+                </section>
+                <section id="action-section">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Action Items</h3>
+                    <div id="action-list" class="space-y-2">
+                        <p class="text-gray-400 text-sm">Scanning positions…</p>
+                    </div>
+                </section>
+                <section id="expiring-section" class="hidden">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Expiring This Week</h3>
+                    <div id="expiring-list" class="space-y-2"></div>
+                </section>
+                <section id="recent-section" class="hidden">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Recently Closed</h3>
+                    <div id="recent-list" class="bg-white border rounded-lg overflow-hidden"></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Dashboard tab -->
+        <div id="tab-dashboard" class="hidden">
+            <div class="max-w-6xl mx-auto space-y-6">
+                <section>
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Performance</h3>
+                    <div id="perf-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <p class="text-gray-400 text-sm col-span-full">Loading…</p>
+                    </div>
+                </section>
+                <section id="outcome-section" class="hidden">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Outcome Distribution
+                    </h3>
+                    <div id="outcome-dist" class="bg-white border rounded-lg p-4"></div>
+                </section>
+                <section>
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">By Strategy</h3>
+                    <div id="strat-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <p class="text-gray-400 text-sm col-span-full">Loading…</p>
+                    </div>
+                </section>
+                <section>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">P/L Over Time</h3>
+                        <div class="flex gap-2">
+                            <div id="period-toggle" class="flex bg-gray-100 rounded text-xs">
+                                <button data-period="month"
+                                    class="px-2 py-1 rounded font-medium bg-white shadow text-gray-900">Month</button>
+                                <button data-period="quarter"
+                                    class="px-2 py-1 rounded font-medium text-gray-500 hover:text-gray-700">Quarter</button>
+                                <button data-period="year"
+                                    class="px-2 py-1 rounded font-medium text-gray-500 hover:text-gray-700">Year</button>
+                            </div>
+                            <div id="view-toggle" class="flex bg-gray-100 rounded text-xs">
+                                <button data-view="table"
+                                    class="px-2 py-1 rounded font-medium bg-white shadow text-gray-900">Table</button>
+                                <button data-view="chart"
+                                    class="px-2 py-1 rounded font-medium text-gray-500 hover:text-gray-700">Chart</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="pl-time" class="bg-white border rounded-lg overflow-hidden">
+                        <p class="text-gray-400 text-sm p-4">Loading…</p>
+                    </div>
+                </section>
+                <section>
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">P/L by Symbol</h3>
+                    <div id="symbol-table" class="bg-white border rounded-lg overflow-hidden">
+                        <p class="text-gray-400 text-sm p-4">Loading…</p>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <!-- Trades tab -->
@@ -57,6 +151,9 @@
     <script src="/static/js/lots.js"></script>
     <script src="/static/js/prices.js"></script>
     <script src="/static/js/vix.js"></script>
+    <script src="/static/js/market_status.js"></script>
+    <script src="/static/js/recap.js"></script>
+    <script src="/static/js/dashboard.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 

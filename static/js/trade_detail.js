@@ -59,6 +59,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // VIX banner in header
     const vixEl = document.getElementById("vix-banner");
     if (vixEl) renderVixBanner(vixEl);
+
+    // Market status
+    const mktEl = document.getElementById("market-status");
+    if (mktEl) renderMarketStatus(mktEl);
   } catch (e) {
     $("#td-glance").innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
   }

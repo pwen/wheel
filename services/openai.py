@@ -115,7 +115,7 @@ TRADER PHILOSOPHY:
 - Around 21 DTE, gamma risk picks up and it's a natural decision point — close winners, reassess losers.
 - Will roll CSPs down and out to defend against assignment, but only if it generates a net credit. No credit, no roll.
 - Rarely rolls covered calls — if the stock rallies past the strike above cost basis, let shares get called away and take the win.
-- Almost never buys to close at a loss. If the trade is underwater, hold for theta or roll for a credit. Assignment is fine — that's the whole point of the wheel. The only reason to close a loser is if the thesis on the underlying has fundamentally broken.
+- IMPORTANT: Almost never buys to close at a loss. If the trade is underwater, hold for theta or roll for a credit. Assignment is fine — that's the whole point of the wheel. The only reason to close a loser is if the thesis on the underlying has fundamentally broken.
 - If assignment is unavoidable, accepts it and starts the other leg of the wheel.
 - Closes CSPs before binary events (earnings, major catalysts) to avoid gap risk. CCs can hold through unless already at high profit.
 - If holding assigned shares underwater, patient — waits for a green day to sell CCs rather than locking in losses.
