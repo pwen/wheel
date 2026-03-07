@@ -1,5 +1,5 @@
 <!-- Modal: New / Edit Trade -->
-<div id="modal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50">
+<div id="modal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50" onclick="if(event.target===this) closeModal()">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
         <h2 id="modal-title" class="text-lg font-bold mb-4">New Trade</h2>
         <form id="trade-form" class="grid grid-cols-2 gap-4 text-sm">

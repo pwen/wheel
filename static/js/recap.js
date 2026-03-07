@@ -38,17 +38,32 @@ function renderSummary(attention, vixData) {
 }
 
 /* ---------- Action items (flagged trades) ---------- */
-function renderActions(attention) {
+const REASON_PRIORITY = { dte_critical: 0, itm: 1, profit_target: 2, dte_warning: 3 };
+
+function renderActions(attention, { final = false } = {}) {
     const el = $("#action-list");
     const flagged = attention.filter(t => t.reasons.length > 0);
 
     if (!flagged.length) {
-        el.innerHTML = `
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-          <span class="text-green-700 font-medium">✓ No action items today — all positions look good!</span>
-        </div>`;
+        if (!final) {
+            el.innerHTML = `
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+              <span class="text-gray-500">Fetching live prices…</span>
+            </div>`;
+        } else {
+            el.innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <span class="text-green-700 font-medium">✓ No action items today — all positions look good!</span>
+            </div>`;
+        }
         return;
     }
+
+    flagged.sort((a, b) => {
+        const aMin = Math.min(...a.reasons.map(r => REASON_PRIORITY[r.type] ?? 99));
+        const bMin = Math.min(...b.reasons.map(r => REASON_PRIORITY[r.type] ?? 99));
+        return aMin - bMin;
+    });
 
     el.innerHTML = flagged.map(t => {
         const tags = t.reasons.map(r => {
@@ -222,7 +237,7 @@ async function enrichWithPrices(attention) {
         }
     }
 
-    if (changed) renderActions(attention);
+    renderActions(attention, { final: true });
 }
 
 /* ---------- Init ---------- */
@@ -250,7 +265,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const data = await statsRes.json();
 
         renderSummary(data.attention, vixData);
-        renderActions(data.attention);
+        renderActions(data.attention, { final: false });
         renderExpiring(data.attention);
         renderRecentlyClosed(data.recently_closed || []);
 
