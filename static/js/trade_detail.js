@@ -64,6 +64,10 @@ function renderGlance(t, currentPrice) {
     const premiumCollected = Number(t.total_premium);
     const isOpen = t.status === "open";
 
+    const obligation = t.strategy_type === "CSP"
+        ? `Obligated to buy ${t.contracts * t.multiplier} shares of ${t.symbol} at $${fmt(t.strike, 2)} if assigned by ${t.expiry_date}.`
+        : `Obligated to sell ${t.contracts * t.multiplier} shares of ${t.symbol} at $${fmt(t.strike, 2)} if assigned by ${t.expiry_date}.`;
+
     // Unrealized P/L = premium collected - (mid * contracts * multiplier)
     let unrealPL = null;
     let unrealPLPct = null;
@@ -87,6 +91,7 @@ function renderGlance(t, currentPrice) {
     const rocColor = returnOnCapital != null ? (returnOnCapital >= 0 ? "text-green-600" : "text-red-600") : "";
 
     el.innerHTML = `
+    <p class="text-sm text-gray-500 mb-3">${obligation}</p>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div>
         <div class="text-xs text-gray-500 uppercase">Premium Collected</div>
@@ -182,7 +187,8 @@ function renderRisk(t, currentPrice) {
       </div>
     </div>
     <!-- Visual strike/price gauge -->
-    <div class="mt-4 relative h-8 bg-gray-100 rounded-lg overflow-hidden">
+    <div class="mt-6 mb-2 relative h-8 mx-8">
+      <div class="absolute inset-0 bg-gray-100 rounded-lg"></div>
       ${renderGauge(strike, breakEven, currentPrice, isCSP)}
     </div>`;
 }
