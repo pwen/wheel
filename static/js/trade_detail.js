@@ -96,6 +96,14 @@ function renderGlance(t, currentPrice) {
     const rocColor = returnOnCapital != null ? (returnOnCapital >= 0 ? "text-green-600" : "text-red-600") : "";
 
     el.innerHTML = `
+    ${unrealPLPct != null && unrealPLPct >= 50 ? `
+    <div class="mb-3 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
+      <span class="text-emerald-600 text-lg">💰</span>
+      <div>
+        <span class="font-semibold text-emerald-800">50%+ Profit reached!</span>
+        <span class="text-sm text-emerald-700 ml-1">Consider buying to close at ${fmtPct(unrealPLPct)} profit and redeploying capital.</span>
+      </div>
+    </div>` : ''}
     <p class="text-base text-gray-900 mb-3">${obligation}</p>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div>
