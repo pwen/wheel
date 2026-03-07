@@ -30,6 +30,7 @@ function applySorting(trades) {
 function updateSortArrows() {
     $$("th[data-sort]").forEach(th => {
         const arrow = th.querySelector(".sort-arrow");
+        if (!arrow) return;
         if (th.dataset.sort === sortCol) {
             arrow.textContent = sortAsc ? " ▲" : " ▼";
             arrow.classList.remove("text-gray-400");

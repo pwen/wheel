@@ -118,9 +118,9 @@ function renderSpots() {
 }
 
 function wireSpotsSorting() {
-    $$("#spots-table thead th[data-sort]").forEach(th => {
+    $$("#spots-table thead th[data-spot-sort]").forEach(th => {
         th.addEventListener("click", () => {
-            const col = th.dataset.sort;
+            const col = th.dataset.spotSort;
             if (_spotsSortCol === col) {
                 _spotsSortAsc = !_spotsSortAsc;
             } else {
@@ -128,7 +128,7 @@ function wireSpotsSorting() {
                 _spotsSortAsc = true;
             }
             // Update header indicators
-            $$("#spots-table thead th[data-sort]").forEach(h => {
+            $$("#spots-table thead th[data-spot-sort]").forEach(h => {
                 h.textContent = h.textContent.replace(/ [▲▼]$/, "");
             });
             th.textContent += _spotsSortAsc ? " ▲" : " ▼";
