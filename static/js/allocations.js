@@ -72,22 +72,50 @@ function renderAllocations(data, priceMap) {
     const sharesPct = totalWheelValue > 0 ? (totalSharesValue / totalWheelValue * 100).toFixed(0) : 0;
     const cspPct = totalWheelValue > 0 ? (totalCspCommitted / totalWheelValue * 100).toFixed(0) : 0;
 
+    // Regime guidance for core (shares) vs proxy (CSP) split
+    const regimeGuidance = {
+        bull: { core: 40, proxy: 60, label: "Bull", color: "text-green-600 dark:text-green-400" },
+        sideways: { core: 60, proxy: 40, label: "Sideways", color: "text-yellow-600 dark:text-yellow-400" },
+        bear: { core: 75, proxy: 25, label: "Bear", color: "text-orange-600 dark:text-orange-400" },
+        crisis: { core: 90, proxy: 10, label: "Crisis", color: "text-red-600 dark:text-red-400" },
+    };
+    const vix = window._sharedVixData;
+    const rg = vix && vix.regime ? regimeGuidance[vix.regime] : null;
+
+    let regimeHtml = "";
+    if (rg) {
+        regimeHtml = `
+                <div class="text-xs">
+                    <span class="${rg.color} font-bold">${rg.label}</span>
+                    <span class="text-gray-400 dark:text-gray-500 ml-1">VIX ${vix.vix}</span>
+                    <span class="text-gray-400 dark:text-gray-500 ml-1">→ Target</span>
+                    <span class="font-bold text-gray-700 dark:text-gray-300 ml-1">${rg.core}%</span>
+                    <span class="text-gray-400 dark:text-gray-500">core /</span>
+                    <span class="font-bold text-gray-700 dark:text-gray-300">${rg.proxy}%</span>
+                    <span class="text-gray-400 dark:text-gray-500">proxy</span>
+                </div>`;
+    }
+
     // Summary bar
     summaryEl.innerHTML = `
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 px-4 py-3 flex items-center justify-between">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 px-4 py-3">
             <div class="flex items-center gap-4">
                 <div>
                     <span class="text-sm text-gray-500 dark:text-gray-400">Total Wheel Capital</span>
                     <span class="ml-2 text-lg font-bold text-gray-900 dark:text-gray-100">${fmtMoney(totalWheelValue)}</span>
                 </div>
-                <span class="text-gray-300 dark:text-gray-600">|</span>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                    Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span> <span class="text-gray-400 dark:text-gray-500">(${sharesPct}%)</span>
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                    CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span> <span class="text-gray-400 dark:text-gray-500">(${cspPct}%)</span>
-                </div>
             </div>
+            <div class="flex items-center gap-6 mt-2">
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                    <span class="w-16 inline-block">Actual</span>
+                    Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${sharesPct}%)</span>
+                    <span class="mx-2 text-gray-300 dark:text-gray-600">|</span>
+                    CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${cspPct}%)</span>
+                </div>
+            </div>${rg ? `
+            <div class="flex items-center gap-6 mt-1">
+                ${regimeHtml}
+            </div>` : ""}
         </div>`;
 
     // Group by group name for visual sections
