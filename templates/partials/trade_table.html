@@ -2,15 +2,16 @@
 <div class="flex gap-2 mb-4">
     <button class="trade-view-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white"
         data-view="open">Open Trades</button>
-    <button class="trade-view-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-700 border"
+    <button
+        class="trade-view-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border dark:border-gray-600"
         data-view="closed">Closed Trades</button>
 </div>
 
 <!-- Open Trades Table -->
 <div id="view-open">
-    <div class="bg-white shadow rounded-lg overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-100">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+            <thead class="bg-gray-100 dark:bg-gray-700">
                 <tr>
                     <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none group" data-sort="symbol">
                         Spot <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
@@ -38,7 +39,7 @@
                     <th class="px-3 py-2 text-center font-semibold">Actions</th>
                 </tr>
             </thead>
-            <tbody id="open-trades-body" class="divide-y divide-gray-100">
+            <tbody id="open-trades-body" class="divide-y divide-gray-100 dark:divide-gray-700">
             </tbody>
         </table>
         <p id="open-empty-msg" class="text-center text-gray-400 py-8 hidden">No open trades.</p>
@@ -47,9 +48,9 @@
 
 <!-- Closed Trades Table -->
 <div id="view-closed" class="hidden">
-    <div class="bg-white shadow rounded-lg overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-100">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+            <thead class="bg-gray-100 dark:bg-gray-700">
                 <tr>
                     <th class="px-3 py-2 text-left font-semibold cursor-pointer select-none group" data-sort="symbol">
                         Spot <span class="sort-arrow text-xs text-gray-400 group-hover:text-indigo-600">⇅</span>
@@ -81,7 +82,7 @@
                     <th class="px-3 py-2 text-center font-semibold">Actions</th>
                 </tr>
             </thead>
-            <tbody id="closed-trades-body" class="divide-y divide-gray-100">
+            <tbody id="closed-trades-body" class="divide-y divide-gray-100 dark:divide-gray-700">
             </tbody>
         </table>
         <p id="closed-empty-msg" class="text-center text-gray-400 py-8 hidden">No closed trades yet.</p>

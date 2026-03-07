@@ -8,17 +8,52 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>
+        .dark input,
+        .dark select,
+        .dark textarea {
+            background-color: rgb(31 41 55);
+            border-color: rgb(75 85 99);
+            color: rgb(243 244 246);
+        }
+
+        .dark input::placeholder {
+            color: rgb(156 163 175);
+        }
+    </style>
+    <script>
+        if (localStorage.theme === 'dark' || (!'theme' in localStorage && matchMedia('(prefers-color-scheme:dark)').matches))
+            document.documentElement.classList.add('dark');
+    </script>
 </head>
 
-<body class="bg-gray-50 text-gray-900 min-h-screen" style="font-family: 'Space Mono', 'IBM Plex Mono', Roboto, Helvetica, Arial, sans-serif;">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors"
+    style="font-family: 'Courier New', monospace, Roboto, Helvetica, sans-serif;">
 
     <!-- Header -->
-    <header class="bg-white shadow">
+    <header class="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50">
         <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <h1 class="text-3xl font-bold tracking-tight">Wheel of Time</h1>
             <div class="flex items-center gap-4">
+                <button id="theme-toggle" onclick="toggleTheme()"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    title="Toggle dark mode">
+                    <svg id="theme-icon-sun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="5" />
+                        <path
+                            d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                    </svg>
+                    <svg id="theme-icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                    </svg>
+                </button>
                 <div id="market-status"></div>
                 <div id="vix-banner" class="text-sm"></div>
             </div>
@@ -27,17 +62,17 @@
 
     <!-- Tabs -->
     <div class="max-w-7xl mx-auto px-4 pt-4">
-        <div class="flex border-b border-gray-200">
+        <div class="flex border-b border-gray-200 dark:border-gray-700">
             <button
-                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 data-tab="recap">Recap</button>
             <button
-                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 data-tab="dashboard">Dashboard</button>
             <button class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-indigo-600 text-indigo-600"
                 data-tab="trades">Trades</button>
             <button
-                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 data-tab="holdings">Lots</button>
         </div>
     </div>
@@ -60,22 +95,26 @@
                 </div>
                 <section>
                     <div id="recap-summary-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <p class="text-gray-400 text-sm col-span-full">Loading…</p>
+                        <p class="text-gray-400 dark:text-gray-500 text-sm col-span-full">Loading…</p>
                     </div>
                 </section>
                 <section id="action-section">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Action Items</h3>
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        Action Items</h3>
                     <div id="action-list" class="space-y-2">
                         <p class="text-gray-400 text-sm">Scanning positions…</p>
                     </div>
                 </section>
                 <section id="expiring-section" class="hidden">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Expiring This Week</h3>
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        Expiring This Week</h3>
                     <div id="expiring-list" class="space-y-2"></div>
                 </section>
                 <section id="recent-section" class="hidden">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Recently Closed</h3>
-                    <div id="recent-list" class="bg-white border rounded-lg overflow-hidden"></div>
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        Recently Closed</h3>
+                    <div id="recent-list"
+                        class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-hidden"></div>
                 </section>
             </div>
         </div>
@@ -84,27 +123,32 @@
         <div id="tab-dashboard" class="hidden">
             <div class="max-w-6xl mx-auto space-y-6">
                 <section>
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Performance</h3>
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        Performance</h3>
                     <div id="perf-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        <p class="text-gray-400 text-sm col-span-full">Loading…</p>
+                        <p class="text-gray-400 dark:text-gray-500 text-sm col-span-full">Loading…</p>
                     </div>
                 </section>
                 <section id="outcome-section" class="hidden">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Outcome Distribution
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        Outcome Distribution
                     </h3>
-                    <div id="outcome-dist" class="bg-white border rounded-lg p-4"></div>
+                    <div id="outcome-dist" class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
+                    </div>
                 </section>
                 <section>
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">By Strategy</h3>
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">By
+                        Strategy</h3>
                     <div id="strat-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <p class="text-gray-400 text-sm col-span-full">Loading…</p>
+                        <p class="text-gray-400 dark:text-gray-500 text-sm col-span-full">Loading…</p>
                     </div>
                 </section>
                 <section>
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">P/L Over Time</h3>
+                        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">P/L
+                            Over Time</h3>
                         <div class="flex gap-2">
-                            <div id="period-toggle" class="flex bg-gray-100 rounded text-xs">
+                            <div id="period-toggle" class="flex bg-gray-100 dark:bg-gray-700 rounded text-xs">
                                 <button data-period="month"
                                     class="px-2 py-1 rounded font-medium bg-white shadow text-gray-900">Month</button>
                                 <button data-period="quarter"
@@ -112,7 +156,7 @@
                                 <button data-period="year"
                                     class="px-2 py-1 rounded font-medium text-gray-500 hover:text-gray-700">Year</button>
                             </div>
-                            <div id="view-toggle" class="flex bg-gray-100 rounded text-xs">
+                            <div id="view-toggle" class="flex bg-gray-100 dark:bg-gray-700 rounded text-xs">
                                 <button data-view="table"
                                     class="px-2 py-1 rounded font-medium bg-white shadow text-gray-900">Table</button>
                                 <button data-view="chart"
@@ -120,14 +164,17 @@
                             </div>
                         </div>
                     </div>
-                    <div id="pl-time" class="bg-white border rounded-lg overflow-hidden">
-                        <p class="text-gray-400 text-sm p-4">Loading…</p>
+                    <div id="pl-time"
+                        class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-hidden">
+                        <p class="text-gray-400 dark:text-gray-500 text-sm p-4">Loading…</p>
                     </div>
                 </section>
                 <section>
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">P/L by Symbol</h3>
-                    <div id="symbol-table" class="bg-white border rounded-lg overflow-hidden">
-                        <p class="text-gray-400 text-sm p-4">Loading…</p>
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">P/L
+                        by Symbol</h3>
+                    <div id="symbol-table"
+                        class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-hidden">
+                        <p class="text-gray-400 dark:text-gray-500 text-sm p-4">Loading…</p>
                     </div>
                 </section>
             </div>

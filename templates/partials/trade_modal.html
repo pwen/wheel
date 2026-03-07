@@ -1,6 +1,7 @@
 <!-- Modal: New / Edit Trade -->
-<div id="modal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50" onclick="if(event.target===this) closeModal()">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
+<div id="modal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50"
+    onclick="if(event.target===this) closeModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
         <h2 id="modal-title" class="text-lg font-bold mb-4">New Trade</h2>
         <form id="trade-form" class="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -39,11 +40,15 @@
             <div>
                 <label class="block font-medium mb-1">Spot Price at Open</label>
                 <div class="relative">
-                    <input name="spot_price_at_open" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2 pr-8" placeholder="Auto-fills from market data" />
+                    <input name="spot_price_at_open" type="number" step="0.01"
+                        class="w-full border rounded-lg px-3 py-2 pr-8" placeholder="Auto-fills from market data" />
                     <div id="spot-price-spinner" class="hidden absolute right-2 top-1/2 -translate-y-1/2">
-                        <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                         </svg>
                     </div>
                 </div>
@@ -51,11 +56,15 @@
             <div>
                 <label class="block font-medium mb-1">IV at Open (%)</label>
                 <div class="relative">
-                    <input name="iv_at_open" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2 pr-8" placeholder="Auto-fills when fields set" />
+                    <input name="iv_at_open" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2 pr-8"
+                        placeholder="Auto-fills when fields set" />
                     <div id="iv-at-open-spinner" class="hidden absolute right-2 top-1/2 -translate-y-1/2">
-                        <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                         </svg>
                     </div>
                 </div>
@@ -71,15 +80,18 @@
                     </div>
                     <div>
                         <label class="block font-medium mb-1">Status</label>
-                        <p id="edit-status-display" class="w-full border rounded-lg px-3 py-2 bg-gray-50 text-gray-600 capitalize"></p>
+                        <p id="edit-status-display"
+                            class="w-full border rounded-lg px-3 py-2 bg-gray-50 text-gray-600 capitalize"></p>
                     </div>
                     <div>
                         <label class="block font-medium mb-1">Closing Cost ($)</label>
-                        <input name="closing_cost" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" />
+                        <input name="closing_cost" type="number" step="0.01"
+                            class="w-full border rounded-lg px-3 py-2" />
                     </div>
                     <div>
                         <label class="block font-medium mb-1">Spot at Close</label>
-                        <input name="closing_spot" type="number" step="0.01" class="w-full border rounded-lg px-3 py-2" />
+                        <input name="closing_spot" type="number" step="0.01"
+                            class="w-full border rounded-lg px-3 py-2" />
                     </div>
                 </div>
             </div>

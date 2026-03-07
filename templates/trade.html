@@ -8,17 +8,25 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script>
+        if (localStorage.theme === 'dark' || (!'theme' in localStorage && matchMedia('(prefers-color-scheme:dark)').matches))
+            document.documentElement.classList.add('dark');
+    </script>
 </head>
 
-<body class="bg-gray-50 text-gray-900 min-h-screen" style="font-family: 'Space Mono', 'IBM Plex Mono', Roboto, Helvetica, Arial, sans-serif;">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors"
+    style="font-family: 'Courier New', monospace, Roboto, Helvetica, sans-serif;">
 
     <!-- Header -->
-    <header class="bg-white shadow">
+    <header class="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50">
         <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <a href="/" class="text-gray-400 hover:text-gray-600">&larr; Back</a>
+                <a href="/" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">&larr; Back</a>
                 <h1 id="td-header" class="text-2xl font-bold tracking-tight">Trade #{{ trade_id }}</h1>
             </div>
             <div class="flex items-center gap-4">
@@ -32,9 +40,10 @@
 
         <!-- AI Recommendation -->
         <section id="recommendation-section">
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Recommendations</h3>
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                Recommendations</h3>
             <div id="rec-alert" class="mb-2"></div>
-            <div id="td-recommendation" class="bg-white border rounded-lg p-4">
+            <div id="td-recommendation" class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
                 <button onclick="fetchRecommendation()"
                     class="w-full py-3 text-sm text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors font-medium">
                     Ask Your Therapist →
@@ -44,32 +53,35 @@
 
         <!-- At a Glance -->
         <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">At a Glance</h3>
-            <div id="td-glance" class="bg-white border rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">At a Glance
+            </h3>
+            <div id="td-glance" class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
                 <p class="text-gray-400 text-sm">Loading…</p>
             </div>
         </section>
 
         <!-- Risk Assessment -->
         <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Risk Assessment</h3>
-            <div id="td-risk" class="bg-white border rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Risk
+                Assessment</h3>
+            <div id="td-risk" class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
                 <p class="text-gray-400 text-sm">Loading…</p>
             </div>
         </section>
 
         <!-- Market Context -->
         <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Market Context</h3>
-            <div id="td-market" class="bg-white border rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Market
+                Context</h3>
+            <div id="td-market" class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
                 <p class="text-gray-400 text-sm">Loading…</p>
             </div>
         </section>
 
         <!-- Events Timeline -->
         <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Events</h3>
-            <div id="td-events" class="bg-white border rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Events</h3>
+            <div id="td-events" class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
                 <p class="text-gray-400 text-sm">Loading…</p>
             </div>
         </section>

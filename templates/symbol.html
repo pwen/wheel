@@ -8,16 +8,24 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script>
+        if (localStorage.theme === 'dark' || (!'theme' in localStorage && matchMedia('(prefers-color-scheme:dark)').matches))
+            document.documentElement.classList.add('dark');
+    </script>
 </head>
 
-<body class="bg-gray-50 text-gray-900 min-h-screen" style="font-family: 'Space Mono', 'IBM Plex Mono', Roboto, Helvetica, Arial, sans-serif;">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors"
+    style="font-family: 'Courier New', monospace, Roboto, Helvetica, sans-serif;">
 
     <!-- Header -->
-    <header class="bg-white shadow">
+    <header class="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50">
         <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
-            <a href="/" class="text-gray-400 hover:text-gray-600">&larr; Back</a>
+            <a href="/" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">&larr; Back</a>
             <h1 class="text-xl font-bold tracking-tight">{{ symbol }}</h1>
         </div>
     </header>
@@ -27,27 +35,28 @@
         <!-- Spot Info -->
         <section>
             <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">About</h3>
+                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">About</h3>
                 <button onclick="refreshSpotInfo()" id="sd-refresh-btn"
                     class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Refresh</button>
             </div>
-            <div id="sd-spot-info" class="bg-white border rounded-lg p-4">
+            <div id="sd-spot-info" class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
                 <p class="text-gray-400 text-sm">Loading…</p>
             </div>
         </section>
 
         <!-- Totals -->
         <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Totals</h3>
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Totals</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="sd-totals"></div>
         </section>
 
         <!-- Open Options -->
         <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Open Options</h3>
-            <div class="bg-white border rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50">
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Open Options
+            </h3>
+            <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th class="px-3 py-2 text-left font-semibold">Type</th>
                             <th class="px-3 py-2 text-right font-semibold">Strike</th>
@@ -60,7 +69,7 @@
                             <th class="px-3 py-2 text-right font-semibold">DTE</th>
                         </tr>
                     </thead>
-                    <tbody id="sd-open-body" class="divide-y divide-gray-100"></tbody>
+                    <tbody id="sd-open-body" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
                 </table>
                 <p id="sd-open-empty" class="text-center text-gray-400 py-4 hidden text-sm">No open options.</p>
             </div>
@@ -68,10 +77,11 @@
 
         <!-- Share Lots -->
         <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Share Lots</h3>
-            <div class="bg-white border rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50">
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Share Lots
+            </h3>
+            <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th class="px-3 py-2 text-right font-semibold">Qty</th>
                             <th class="px-3 py-2 text-right font-semibold">Remaining</th>
@@ -83,7 +93,7 @@
                             <th class="px-3 py-2 text-left font-semibold">Source</th>
                         </tr>
                     </thead>
-                    <tbody id="sd-lots-body" class="divide-y divide-gray-100"></tbody>
+                    <tbody id="sd-lots-body" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
                 </table>
                 <p id="sd-lots-empty" class="text-center text-gray-400 py-4 hidden text-sm">No share lots.</p>
             </div>
@@ -91,10 +101,11 @@
 
         <!-- Trade History -->
         <section>
-            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Trade History</h3>
-            <div class="bg-white border rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50">
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Trade
+                History</h3>
+            <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th class="px-3 py-2 text-left font-semibold">Type</th>
                             <th class="px-3 py-2 text-right font-semibold">Strike</th>
@@ -109,7 +120,7 @@
                             <th class="px-3 py-2 text-left font-semibold">Closed</th>
                         </tr>
                     </thead>
-                    <tbody id="sd-closed-body" class="divide-y divide-gray-100"></tbody>
+                    <tbody id="sd-closed-body" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
                 </table>
                 <p id="sd-closed-empty" class="text-center text-gray-400 py-4 hidden text-sm">No closed trades.</p>
             </div>
