@@ -39,6 +39,8 @@ function openModal(trade) {
         closeFields.classList.add("hidden");
     }
     $("#modal").classList.remove("hidden");
+    // Auto-fetch IV if editing and iv_at_open is empty
+    if (trade && !trade.iv_at_open) fetchIVAtOpen();
 }
 function closeModal() { $("#modal").classList.add("hidden"); editingTradeId = null; }
 

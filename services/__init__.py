@@ -198,3 +198,47 @@ def get_option_quotes(contracts: list[dict]) -> dict[int, dict]:
             results.update(future.result())
 
     return results
+
+
+def get_iv_rank(symbol: str) -> dict:
+    """Calculate IV Rank and IV Percentile for a symbol using 1-year historical close data.
+
+    IV Rank = (current_iv - 52w_low) / (52w_high - 52w_low) * 100
+    IV Percentile = % of days in past year where IV was below current IV
+
+    Uses HV (historical volatility from daily returns) as a proxy since yfinance
+    doesn't provide historical IV. Current IV comes from ATM option chain.
+    """
+    try:
+        ticker = yf.Ticker(symbol)
+        # Get 1 year of daily prices for historical volatility
+        hist = ticker.history(period="1y")
+        if hist.empty or len(hist) < 30:
+            return {"iv_rank": None, "iv_percentile": None, "current_iv": None}
+
+        # Calculate rolling 30-day HV (annualized) as IV proxy
+        import numpy as np
+        returns = np.log(hist["Close"] / hist["Close"].shift(1)).dropna()
+        rolling_hv = returns.rolling(window=21).std() * np.sqrt(252) * 100  # annualized %
+
+        rolling_hv = rolling_hv.dropna()
+        if len(rolling_hv) < 10:
+            return {"iv_rank": None, "iv_percentile": None, "current_iv": None}
+
+        current_hv = float(rolling_hv.iloc[-1])
+        hv_min = float(rolling_hv.min())
+        hv_max = float(rolling_hv.max())
+
+        iv_rank = None
+        if hv_max > hv_min:
+            iv_rank = round((current_hv - hv_min) / (hv_max - hv_min) * 100, 1)
+
+        iv_percentile = round(float((rolling_hv < current_hv).sum()) / len(rolling_hv) * 100, 1)
+
+        return {
+            "iv_rank": iv_rank,
+            "iv_percentile": iv_percentile,
+            "current_iv": round(current_hv, 1),
+        }
+    except Exception:
+        return {"iv_rank": None, "iv_percentile": None, "current_iv": None}

@@ -262,11 +262,39 @@ function renderMarket(t, currentPrice) {
           <div class="text-xs text-gray-500">per share</div>
         </div>`);
 
+        // IV with change since open
+        const ivAtOpen = t.iv_at_open != null ? Number(t.iv_at_open) : null;
+        const currentIV = live.iv;
+        let ivSub = "";
+        if (ivAtOpen != null && currentIV != null) {
+            const ivChange = currentIV - ivAtOpen;
+            const ivChColor = ivChange <= 0 ? "text-green-600" : "text-red-600";
+            ivSub = `<div class="text-xs ${ivChColor}">${ivChange >= 0 ? "+" : ""}${fmt(ivChange, 1)}% since open (was ${fmtPct(ivAtOpen)})</div>`;
+        } else if (ivAtOpen != null) {
+            ivSub = `<div class="text-xs text-gray-500">IV at open: ${fmtPct(ivAtOpen)}</div>`;
+        } else {
+            ivSub = spotIV ? `<div class="text-xs text-gray-500">ATM IV: ${fmtPct(spotIV * 100)}</div>` : "";
+        }
         items.push(`
         <div>
           <div class="text-xs text-gray-500 uppercase">Option IV</div>
-          <div class="text-lg font-semibold">${live.iv != null ? fmtPct(live.iv) : "—"}</div>
-          ${spotIV ? `<div class="text-xs text-gray-500">ATM IV: ${fmtPct(spotIV * 100)}</div>` : ""}
+          <div class="text-lg font-semibold">${currentIV != null ? fmtPct(currentIV) : "—"}</div>
+          ${ivSub}
+        </div>`);
+    }
+
+    // IV Rank / Percentile
+    const ivData = t.iv_rank_data;
+    if (ivData && (ivData.iv_rank != null || ivData.iv_percentile != null)) {
+        const rank = ivData.iv_rank;
+        const pctile = ivData.iv_percentile;
+        const rankColor = rank != null ? (rank >= 50 ? "text-orange-600" : "text-blue-600") : "";
+        const rankLabel = rank != null ? (rank >= 80 ? "Very High" : rank >= 50 ? "Elevated" : rank >= 20 ? "Normal" : "Low") : "";
+        items.push(`
+        <div>
+          <div class="text-xs text-gray-500 uppercase">IV Rank / Percentile</div>
+          <div class="text-lg font-semibold ${rankColor}">${rank != null ? fmt(rank, 0) + "%" : "—"} / ${pctile != null ? fmt(pctile, 0) + "%" : "—"}</div>
+          <div class="text-xs text-gray-500">${rankLabel}${ivData.current_iv != null ? ` · 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
         </div>`);
     }
 

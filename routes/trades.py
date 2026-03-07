@@ -408,7 +408,7 @@ def get_trade(trade_id: int, session: Session = Depends(get_session)):
 @router.get("/trades/{trade_id}/detail")
 def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
     """Enriched trade view with live market data for decision-making."""
-    from services import get_option_quotes
+    from services import get_option_quotes, get_iv_rank
 
     trade = session.get(Trade, trade_id)
     if not trade:
@@ -447,5 +447,8 @@ def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
         q = quotes.get(trade.id)
         if q:
             d["live"] = q
+
+    # IV Rank / Percentile
+    d["iv_rank_data"] = get_iv_rank(symbol)
 
     return d
