@@ -21,10 +21,9 @@
         </div>
     </header>
 
-    <!-- Main -->
-    <main class="max-w-[95vw] mx-auto px-4 py-6">
-        <!-- Tabs -->
-        <div class="flex border-b border-gray-200 mb-4">
+    <!-- Tabs -->
+    <div class="max-w-7xl mx-auto px-4 pt-4">
+        <div class="flex border-b border-gray-200">
             <button
                 class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
                 data-tab="recap">Recap</button>
@@ -37,12 +36,15 @@
                 class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
                 data-tab="holdings">Lots</button>
         </div>
+    </div>
+
+    <!-- Main -->
+    <main class="max-w-[95vw] mx-auto px-4 py-6">
 
         <!-- Recap tab -->
         <div id="tab-recap" class="hidden">
             <div class="max-w-4xl mx-auto space-y-6">
                 <div class="flex items-center gap-3">
-                    <span id="recap-datetime" class="text-sm text-gray-400"></span>
                     <a href="https://sruth.app" target="_blank" rel="noopener noreferrer"
                         class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium text-sm">
                         Market recap on sruth.app

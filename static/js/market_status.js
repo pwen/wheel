@@ -20,47 +20,28 @@ function renderMarketStatus(el) {
     const preOpen = 4 * 60;          // 4:00 AM ET pre-market
     const afterClose = 20 * 60;      // 8:00 PM ET after-hours end
 
-    let status, statusColor, detail;
+    let label, dotColor;
 
-    if (day === 0 || day === 6) {
-      // Weekend
-      status = "Closed";
-      statusColor = "text-gray-400";
-      detail = "Weekend";
-    } else if (mins >= openMins && mins < closeMins) {
-      // Market open
-      status = "Market Open";
-      statusColor = "text-green-600";
-      const left = closeMins - mins;
-      const hrsLeft = Math.floor(left / 60);
-      const minsLeft = left % 60;
-      detail = hrsLeft > 0 ? `${hrsLeft}h ${minsLeft}m to close` : `${minsLeft}m to close`;
-    } else if (mins >= closeMins && mins < afterClose) {
-      // After hours
-      status = "After Hours";
-      statusColor = "text-amber-600";
-      detail = "Closes 8:00 PM ET";
-    } else if (mins >= preOpen && mins < openMins) {
-      // Pre-market
-      status = "Pre-Market";
-      statusColor = "text-blue-500";
-      const left = openMins - mins;
-      const hrsLeft = Math.floor(left / 60);
-      const minsLeft = left % 60;
-      detail = hrsLeft > 0 ? `${hrsLeft}h ${minsLeft}m to open` : `${minsLeft}m to open`;
+    if (day >= 1 && day <= 5 && mins >= openMins && mins < closeMins) {
+      label = "MKT OPEN";
+      dotColor = "bg-green-500";
     } else {
-      // Overnight
-      status = "Closed";
-      statusColor = "text-gray-400";
-      detail = "Pre-market at 4:00 AM ET";
+      label = "MKT CLOSED";
+      dotColor = "bg-red-500";
     }
 
+    // Format local date/time: e.g. "Sat Mar 7 2026 9:48 MST"
+    const localStr = now.toLocaleDateString("en-US", {
+      weekday: "short", month: "short", day: "numeric", year: "numeric"
+    }) + " " + now.toLocaleTimeString("en-US", {
+      hour: "numeric", minute: "2-digit", timeZoneName: "short"
+    });
+
     el.innerHTML = `
-      <div class="flex items-center gap-2 text-xs">
-        <span class="text-gray-500 font-medium">${dateStr}</span>
-        <span class="text-gray-300">·</span>
-        <span class="font-semibold ${statusColor}">${status}</span>
-        <span class="text-gray-400">${detail}</span>
+      <div class="flex items-center gap-2 text-xs font-mono tracking-wide">
+        <span class="text-gray-400">${localStr}</span>
+        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+        <span class="font-semibold text-gray-400">${label}</span>
       </div>`;
   }
 

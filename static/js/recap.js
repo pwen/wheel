@@ -243,15 +243,6 @@ var initRecap = (function () {
         if (_loaded) return;
         _loaded = true;
 
-        // Show current date & time with timezone
-        const dtEl = document.getElementById("recap-datetime");
-        if (dtEl) {
-            dtEl.textContent = new Date().toLocaleString("en-US", {
-                weekday: "short", month: "short", day: "numeric", year: "numeric",
-                hour: "numeric", minute: "2-digit", timeZoneName: "short",
-            });
-        }
-
         try {
             const statsRes = await fetch("/api/dashboard/stats");
             if (!statsRes.ok) throw new Error("Failed to load data");
