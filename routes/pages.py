@@ -7,20 +7,20 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).resolve().parent.parent / "templates")
 
+# Tab name → URL path mapping
+_TAB_PATHS = {"/": "trades", "/trades": "trades", "/recap": "recap",
+              "/dashboard": "dashboard", "/lots": "lots", "/spots": "spots"}
+
 
 @router.get("/")
-async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
-@router.get("/dashboard")
-async def dashboard_page():
-    return RedirectResponse(url="/?tab=dashboard", status_code=302)
-
-
+@router.get("/trades")
 @router.get("/recap")
-async def recap_page():
-    return RedirectResponse(url="/?tab=recap", status_code=302)
+@router.get("/dashboard")
+@router.get("/lots")
+@router.get("/spots")
+async def tab_page(request: Request):
+    tab = _TAB_PATHS.get(request.url.path, "trades")
+    return templates.TemplateResponse("index.html", {"request": request, "active_tab": tab})
 
 
 @router.get("/symbol/{symbol}")

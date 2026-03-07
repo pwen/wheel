@@ -21,32 +21,51 @@ function toggleTheme() {
 window._sharedVixData = null;
 
 // URL state management
-function updateURL() {
-    const params = new URLSearchParams();
-    // Tab
-    const activeTab = document.querySelector(".tab-btn.text-indigo-600");
-    if (activeTab) params.set("tab", activeTab.dataset.tab);
-    // Trade view (open / closed)
-    params.set("view", tradeView);
-    // Filters
-    const spot = $("#filter-spot").value;
-    const type = $("#filter-type").value;
-    const status = $("#filter-status").value;
-    if (spot) params.set("spot", spot);
-    if (type) params.set("type", type);
-    if (status) params.set("status", status);
-    // Sort
-    if (sortCol) {
-        params.set("sort", sortCol);
-        params.set("dir", sortAsc ? "asc" : "desc");
-    }
-    history.replaceState(null, "", "?" + params.toString());
+const TAB_PATHS = { recap: "/recap", dashboard: "/dashboard", trades: "/trades", holdings: "/lots", spots: "/spots" };
+const PATH_TO_TAB = Object.fromEntries(Object.entries(TAB_PATHS).map(([k, v]) => [v, k]));
+PATH_TO_TAB["/"] = "trades";
+
+function currentTab() {
+    return PATH_TO_TAB[location.pathname] || "trades";
 }
+
+function updateURL(push = false) {
+    const activeTab = document.querySelector(".tab-btn.text-indigo-600");
+    const tab = activeTab ? activeTab.dataset.tab : "trades";
+    const basePath = TAB_PATHS[tab] || "/trades";
+
+    const params = new URLSearchParams();
+    // Trade view (open / closed)
+    if (tab === "trades") {
+        params.set("view", tradeView);
+        // Filters
+        const spot = $("#filter-spot").value;
+        const type = $("#filter-type").value;
+        const status = $("#filter-status").value;
+        if (spot) params.set("spot", spot);
+        if (type) params.set("type", type);
+        if (status) params.set("status", status);
+        // Sort
+        if (sortCol) {
+            params.set("sort", sortCol);
+            params.set("dir", sortAsc ? "asc" : "desc");
+        }
+    }
+    const qs = params.toString();
+    const url = basePath + (qs ? "?" + qs : "");
+    if (push) history.pushState(null, "", url);
+    else history.replaceState(null, "", url);
+}
+
+// Handle browser back/forward
+window.addEventListener("popstate", () => {
+    switchTab(currentTab());
+});
 
 function restoreFromURL() {
     const p = new URLSearchParams(location.search);
-    // Tab
-    switchTab(p.get("tab") || "trades");
+    // Tab from pathname
+    switchTab(currentTab());
     // Trade view
     switchTradeView(p.get("view") || "open");
     // Filters (spot filter is populated after trades load, so set it later)
@@ -90,7 +109,7 @@ function switchTab(tab) {
 $$(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         switchTab(btn.dataset.tab);
-        updateURL();
+        updateURL(true);
     });
 });
 
