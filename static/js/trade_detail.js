@@ -121,7 +121,17 @@ function renderGlance(t, currentPrice) {
         <div class="text-lg font-semibold ${rocColor}">${returnOnCapital != null ? fmtPct(returnOnCapital) : '<span class="text-gray-400 text-sm">—</span>'}</div>
       </div>
       <div>
-        <div class="text-xs text-gray-500 uppercase" title="Premium collected as a % of cash secured (strike × shares). Measures income earned relative to capital committed." style="cursor:help; text-decoration:underline dotted">Premium Yield</div>
+        ${(() => {
+          const tipFn = (label, desc) => `
+            <div class="text-xs text-gray-500 uppercase flex items-center gap-1">
+              ${label}
+              <span class="relative group cursor-help">
+                <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+                <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-normal w-48 z-50 normal-case font-normal">${desc}</span>
+              </span>
+            </div>`;
+          return tipFn("Premium Yield", "Premium collected as a % of cash secured (strike × shares). Measures income earned relative to capital committed.");
+        })()}
         <div class="text-lg font-semibold">${(() => { const cash = Number(t.strike) * t.contracts * t.multiplier; return cash > 0 ? fmtPct(premiumCollected / cash * 100) : '—'; })()}</div>
       </div>
       <div>

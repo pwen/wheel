@@ -3,12 +3,14 @@
 const fmtPct = (v) => v != null ? `${Number(v).toFixed(1)}%` : "—";
 
 function card(label, value, sub, colorClass, tooltip) {
-    const tipAttr = tooltip ? ` title="${tooltip}"` : "";
-    const tipStyle = tooltip ? ' style="cursor:help"' : "";
-    const labelStyle = tooltip ? ' style="text-decoration:underline dotted; text-underline-offset:2px"' : "";
+    const tipHtml = tooltip
+        ? `<span class="relative group cursor-help inline-flex ml-1 align-middle">
+             <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+             <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-normal w-48 z-50 normal-case font-normal">${tooltip}</span>
+           </span>` : "";
     return `
-    <div class="bg-white border rounded-lg p-4"${tipAttr}${tipStyle}>
-      <div class="text-xs text-gray-500 uppercase"${labelStyle}>${label}</div>
+    <div class="bg-white border rounded-lg p-4">
+      <div class="text-xs text-gray-500 uppercase">${label}${tipHtml}</div>
       <div class="text-xl font-semibold ${colorClass || ''}">${value}</div>
       ${sub ? `<div class="text-xs text-gray-500">${sub}</div>` : ""}
     </div>`;
@@ -224,30 +226,49 @@ function renderSymbolTable(symbols) {
     </table>`;
 }
 
-function renderMonthTable(months) {
-    const el = $("#month-table");
-    if (!months.length) { el.innerHTML = `<p class="text-gray-400 text-sm p-4">No trades yet.</p>`; return; }
+// --- P/L Over Time ---
+let _monthData = [];
+let _currentPeriod = "month";
+let _currentView = "table";
 
-    // Running total for cumulative P/L
+function toQuarter(m) { const [y, mo] = m.split("-"); return `${y}-Q${Math.ceil(Number(mo) / 3)}`; }
+function toYear(m) { return m.split("-")[0]; }
+
+function aggregateByPeriod(months, period) {
+    if (period === "month") return months;
+    const map = {};
+    const keyFn = period === "quarter" ? toQuarter : toYear;
+    for (const m of months) {
+        const k = keyFn(m.month);
+        if (!map[k]) map[k] = { period: k, premium: 0, realized_pl: 0, opened: 0, closed: 0 };
+        map[k].premium += m.premium;
+        map[k].realized_pl += m.realized_pl;
+        map[k].opened += m.opened;
+        map[k].closed += m.closed;
+    }
+    return Object.values(map).sort((a, b) => a.period.localeCompare(b.period));
+}
+
+function renderPLTable(data, periodLabel) {
     let cumPL = 0;
-    const rows = months.map(m => {
-        cumPL += m.realized_pl;
+    const rows = data.map(d => {
+        cumPL += d.realized_pl;
         return `
         <tr class="border-t hover:bg-gray-50">
-          <td class="px-4 py-2 font-medium">${m.month}</td>
-          <td class="px-4 py-2 text-right">${m.opened}</td>
-          <td class="px-4 py-2 text-right">${m.closed}</td>
-          <td class="px-4 py-2 text-right">${fmtMoney(m.premium)}</td>
-          <td class="px-4 py-2 text-right ${plColor(m.realized_pl)}">${fmtMoney(m.realized_pl)}</td>
+          <td class="px-4 py-2 font-medium">${d.period}</td>
+          <td class="px-4 py-2 text-right">${d.opened}</td>
+          <td class="px-4 py-2 text-right">${d.closed}</td>
+          <td class="px-4 py-2 text-right">${fmtMoney(d.premium)}</td>
+          <td class="px-4 py-2 text-right ${plColor(d.realized_pl)}">${fmtMoney(d.realized_pl)}</td>
           <td class="px-4 py-2 text-right ${plColor(cumPL)}">${fmtMoney(cumPL)}</td>
         </tr>`;
     }).join("");
 
-    el.innerHTML = `
+    return `
     <table class="w-full text-sm">
       <thead>
         <tr class="bg-gray-50 text-left text-xs text-gray-500 uppercase">
-          <th class="px-4 py-2">Month</th>
+          <th class="px-4 py-2">${periodLabel}</th>
           <th class="px-4 py-2 text-right">Opened</th>
           <th class="px-4 py-2 text-right">Closed</th>
           <th class="px-4 py-2 text-right">Premium</th>
@@ -257,6 +278,71 @@ function renderMonthTable(months) {
       </thead>
       <tbody>${rows}</tbody>
     </table>`;
+}
+
+function renderPLChart(data) {
+    if (!data.length) return `<p class="text-gray-400 text-sm p-4">No data.</p>`;
+    const maxAbs = Math.max(...data.map(d => Math.abs(d.realized_pl)), 1);
+
+    let cumPL = 0;
+    const bars = data.map(d => {
+        cumPL += d.realized_pl;
+        const pct = Math.abs(d.realized_pl) / maxAbs * 100;
+        const isPos = d.realized_pl >= 0;
+        return `
+        <div class="flex items-center gap-2 group">
+          <div class="w-20 text-xs text-gray-500 text-right shrink-0">${d.period}</div>
+          <div class="flex-1 flex items-center h-7">
+            <div class="${isPos ? 'bg-green-400' : 'bg-red-400'} h-5 rounded" style="width:${Math.max(pct, 2)}%"></div>
+          </div>
+          <div class="w-20 text-xs text-right shrink-0 ${plColor(d.realized_pl)}">${fmtMoney(d.realized_pl)}</div>
+          <div class="w-20 text-xs text-right shrink-0 ${plColor(cumPL)}">${fmtMoney(cumPL)}</div>
+        </div>`;
+    }).join("");
+
+    return `
+    <div class="p-4 space-y-1">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-20"></div>
+        <div class="flex-1 text-xs text-gray-400 uppercase">Realized P/L</div>
+        <div class="w-20 text-xs text-gray-400 uppercase text-right">P/L</div>
+        <div class="w-20 text-xs text-gray-400 uppercase text-right">Cum.</div>
+      </div>
+      ${bars}
+    </div>`;
+}
+
+function renderPLTime() {
+    const el = $("#pl-time");
+    if (!_monthData.length) { el.innerHTML = `<p class="text-gray-400 text-sm p-4">No trades yet.</p>`; return; }
+    const data = aggregateByPeriod(_monthData, _currentPeriod);
+    const periodLabel = _currentPeriod === "month" ? "Month" : _currentPeriod === "quarter" ? "Quarter" : "Year";
+    el.innerHTML = _currentView === "table" ? renderPLTable(data, periodLabel) : renderPLChart(data);
+}
+
+function initPLToggles() {
+    document.querySelectorAll("#period-toggle button").forEach(btn => {
+        btn.addEventListener("click", () => {
+            _currentPeriod = btn.dataset.period;
+            document.querySelectorAll("#period-toggle button").forEach(b => {
+                b.className = b === btn
+                    ? "px-2 py-1 rounded font-medium bg-white shadow text-gray-900"
+                    : "px-2 py-1 rounded font-medium text-gray-500 hover:text-gray-700";
+            });
+            renderPLTime();
+        });
+    });
+    document.querySelectorAll("#view-toggle button").forEach(btn => {
+        btn.addEventListener("click", () => {
+            _currentView = btn.dataset.view;
+            document.querySelectorAll("#view-toggle button").forEach(b => {
+                b.className = b === btn
+                    ? "px-2 py-1 rounded font-medium bg-white shadow text-gray-900"
+                    : "px-2 py-1 rounded font-medium text-gray-500 hover:text-gray-700";
+            });
+            renderPLTime();
+        });
+    });
 }
 
 // Init
@@ -275,7 +361,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderOutcomeDistribution(data.outcome_distribution);
         renderStrategy(data.by_strategy);
         renderSymbolTable(data.by_symbol);
-        renderMonthTable(data.by_month);
+
+        // P/L over time with toggles
+        _monthData = data.by_month.map(m => ({ period: m.month, ...m }));
+        initPLToggles();
+        renderPLTime();
 
         // Async: enrich attention list with live prices (ITM + profit check)
         enrichAttentionWithPrices(data.attention);
