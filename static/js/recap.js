@@ -24,24 +24,31 @@ async function loadMarketFlash() {
         if (!res.ok) throw new Error("Failed to load");
         const data = await res.json();
         if (data.markdown) {
-            el.innerHTML = marked.parse(data.markdown);
+            el.innerHTML = marked.parse(data.markdown) + regenButton("Regenerate");
+            $("#gen-flash-btn").addEventListener("click", () => generateMarketFlash(true));
         } else {
             el.innerHTML = `
             <div class="text-center py-4">
               <p class="text-gray-500 text-sm mb-3">No market flash generated for today yet.</p>
-              <button id="gen-flash-btn"
-                class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-                Generate Market Flash
-              </button>
+              ${regenButton("Generate Market Flash")}
             </div>`;
-            $("#gen-flash-btn").addEventListener("click", generateMarketFlash);
+            $("#gen-flash-btn").addEventListener("click", () => generateMarketFlash(false));
         }
     } catch {
         el.innerHTML = `<p class="text-gray-400 text-sm">Market flash unavailable.</p>`;
     }
 }
 
-async function generateMarketFlash() {
+function regenButton(label) {
+    return `<div class="text-right mt-3">
+      <button id="gen-flash-btn"
+        class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 transition-colors">
+        ${label}
+      </button>
+    </div>`;
+}
+
+async function generateMarketFlash(force = false) {
     const el = $("#market-flash");
     const btn = $("#gen-flash-btn");
     if (btn) {
@@ -50,10 +57,12 @@ async function generateMarketFlash() {
         btn.classList.add("opacity-50", "cursor-not-allowed");
     }
     try {
-        const res = await fetch("/api/market-flash", { method: "POST" });
+        const url = force ? "/api/market-flash?force=true" : "/api/market-flash";
+        const res = await fetch(url, { method: "POST" });
         if (!res.ok) throw new Error("Generation failed");
         const data = await res.json();
-        el.innerHTML = marked.parse(data.markdown);
+        el.innerHTML = marked.parse(data.markdown) + regenButton("Regenerate");
+        $("#gen-flash-btn").addEventListener("click", () => generateMarketFlash(true));
     } catch {
         el.innerHTML = `<p class="text-red-500 text-sm">Failed to generate market flash. Check API key.</p>`;
     }
@@ -270,6 +279,15 @@ async function enrichWithPrices(attention) {
 
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", async () => {
+    // Show current date & time with timezone
+    const dtEl = document.getElementById("recap-datetime");
+    if (dtEl) {
+        dtEl.textContent = new Date().toLocaleString("en-US", {
+            weekday: "short", month: "short", day: "numeric", year: "numeric",
+            hour: "numeric", minute: "2-digit", timeZoneName: "short",
+        });
+    }
+
     try {
         const [statsRes, vixRes] = await Promise.all([
             fetch("/api/dashboard/stats"),
