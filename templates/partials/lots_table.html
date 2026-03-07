@@ -1,6 +1,10 @@
 <!-- Share Lots -->
 <div>
-    <div class="flex justify-end mb-4">
+    <div class="flex items-center justify-between mb-4">
+        <input id="lots-search" type="text" placeholder="Filter by symbol…"
+            class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md
+                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                   focus:ring-indigo-500 focus:border-indigo-500 w-64">
         <button id="btn-add-shares" onclick="openLotModal()"
             class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
             + Add Shares
@@ -10,17 +14,17 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
             <thead class="bg-gray-100 dark:bg-gray-700">
                 <tr>
-                    <th class="px-3 py-2 text-left font-semibold">Symbol</th>
-                    <th class="px-3 py-2 text-right font-semibold">Qty</th>
-                    <th class="px-3 py-2 text-right font-semibold">Remaining</th>
-                    <th class="px-3 py-2 text-right font-semibold">Cost Basis</th>
+                    <th class="px-3 py-2 text-left font-semibold cursor-pointer hover:text-gray-900 dark:hover:text-gray-200" data-lot-sort="symbol">Symbol<span class="lot-sort-arrow text-xs ml-0.5"></span></th>
+                    <th class="px-3 py-2 text-right font-semibold cursor-pointer hover:text-gray-900 dark:hover:text-gray-200" data-lot-sort="qty">Qty<span class="lot-sort-arrow text-xs ml-0.5"></span></th>
+                    <th class="px-3 py-2 text-right font-semibold cursor-pointer hover:text-gray-900 dark:hover:text-gray-200" data-lot-sort="remaining_qty">Remaining<span class="lot-sort-arrow text-xs ml-0.5"></span></th>
+                    <th class="px-3 py-2 text-right font-semibold cursor-pointer hover:text-gray-900 dark:hover:text-gray-200" data-lot-sort="cost_per_share">Cost Basis<span class="lot-sort-arrow text-xs ml-0.5"></span></th>
                     <th class="px-3 py-2 text-right font-semibold">Total Cost</th>
                     <th class="px-3 py-2 text-right font-semibold">Current Price</th>
                     <th class="px-3 py-2 text-right font-semibold">Market Value</th>
                     <th class="px-3 py-2 text-right font-semibold">Unreal. P/L</th>
                     <th class="px-3 py-2 text-right font-semibold">Unreal. P/L %</th>
-                    <th class="px-3 py-2 text-left font-semibold">Acquired</th>
-                    <th class="px-3 py-2 text-left font-semibold">Source</th>
+                    <th class="px-3 py-2 text-left font-semibold cursor-pointer hover:text-gray-900 dark:hover:text-gray-200" data-lot-sort="acquired_at">Acquired<span class="lot-sort-arrow text-xs ml-0.5"></span></th>
+                    <th class="px-3 py-2 text-left font-semibold cursor-pointer hover:text-gray-900 dark:hover:text-gray-200" data-lot-sort="source">Source<span class="lot-sort-arrow text-xs ml-0.5"></span></th>
                     <th class="px-3 py-2 text-center font-semibold">Actions</th>
                 </tr>
             </thead>

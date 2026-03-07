@@ -46,13 +46,19 @@ function renderPairingsView(data) {
             </button>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 overflow-hidden">
-        <table class="min-w-full text-sm">
+        <table class="text-sm table-fixed w-full">
+            <colgroup>
+                <col style="width: 180px">
+                <col style="width: 180px">
+                <col>
+                <col style="width: 240px">
+            </colgroup>
             <thead>
                 <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-600 dark:text-gray-400 uppercase">
-                    <th class="px-3 py-2 w-36">Group</th>
-                    <th class="px-3 py-2 w-40">Asset Class</th>
+                    <th class="px-3 py-2">Group</th>
+                    <th class="px-3 py-2">Asset Class</th>
                     <th class="px-3 py-2">Core</th>
-                    <th class="px-3 py-2 w-56">Proxy</th>
+                    <th class="px-3 py-2">Proxy</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">`;
@@ -61,17 +67,17 @@ function renderPairingsView(data) {
         const acs = byGroup[groupName];
         for (let i = 0; i < acs.length; i++) {
             const ac = acs[i];
-            const coreSymbols = ac.core.map(e => symbolPill(e, "core")).join(" ");
-            const proxySymbols = ac.proxy.map(e => symbolPill(e, "proxy")).join(" ");
+            const coreSymbols = ac.core.map(e => symbolPill(e, "core")).join("");
+            const proxySymbols = ac.proxy.map(e => symbolPill(e, "proxy")).join("");
             const groupCell = i === 0
-                ? `<td class="px-3 py-2 font-semibold text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 align-top" rowspan="${acs.length}">${groupName}</td>`
+                ? `<td class="px-3 py-2 font-semibold text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 align-top whitespace-nowrap" rowspan="${acs.length}">${groupName}</td>`
                 : "";
             html += `
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50${i === 0 ? " border-t-2 border-gray-200 dark:border-gray-600" : ""}">
                     ${groupCell}
-                    <td class="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">${ac.asset_class}</td>
-                    <td class="px-3 py-2">${coreSymbols || '<span class="text-gray-400">—</span>'}</td>
-                    <td class="px-3 py-2">${proxySymbols || '<span class="text-gray-400">—</span>'}</td>
+                    <td class="px-3 py-2 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">${ac.asset_class}</td>
+                    <td class="px-3 py-2 whitespace-nowrap">${coreSymbols || '<span class="text-gray-400">—</span>'}</td>
+                    <td class="px-3 py-2 whitespace-nowrap">${proxySymbols || '<span class="text-gray-400">—</span>'}</td>
                 </tr>`;
         }
     }
