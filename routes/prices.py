@@ -6,6 +6,8 @@ from pydantic import BaseModel
 
 from services import get_current_prices, get_option_quotes, get_spot_price_on_date
 
+import yfinance as yf
+
 router = APIRouter(tags=["prices"])
 
 
@@ -57,3 +59,25 @@ def get_option_iv(
     quotes = get_option_quotes(contracts)
     q = quotes.get(0)
     return {"iv": q["iv"] if q else None}
+
+
+@router.get("/vix")
+def get_vix():
+    """Fetch current VIX level and determine market regime."""
+    try:
+        ticker = yf.Ticker("^VIX")
+        info = ticker.fast_info
+        vix = float(info.last_price)
+    except Exception:
+        return {"vix": None, "regime": None}
+
+    if vix >= 40:
+        regime = "crisis"
+    elif vix >= 25:
+        regime = "bear"
+    elif vix >= 16:
+        regime = "sideways"
+    else:
+        regime = "bull"
+
+    return {"vix": round(vix, 2), "regime": regime}

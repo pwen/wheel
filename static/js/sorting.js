@@ -5,7 +5,14 @@ function applySorting(trades) {
     if (!sortCol) return trades;
     const sorted = [...trades];
     sorted.sort((a, b) => {
-        let va = a[sortCol], vb = b[sortCol];
+        let va, vb;
+        if (sortCol === "dte") {
+            va = a.dte - a.days_in_trade;
+            vb = b.dte - b.days_in_trade;
+        } else {
+            va = a[sortCol];
+            vb = b[sortCol];
+        }
         if (va == null && vb == null) return 0;
         if (va == null) return 1;
         if (vb == null) return -1;

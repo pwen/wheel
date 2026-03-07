@@ -35,15 +35,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!res.ok) throw new Error("Failed to load trade");
         const t = await res.json();
 
-        // Also fetch current spot price
-        const priceRes = await fetch(`/api/prices?symbols=${encodeURIComponent(t.symbol)}`);
+        // Also fetch current spot price + VIX
+        const [priceRes, vixRes] = await Promise.all([
+            fetch(`/api/prices?symbols=${encodeURIComponent(t.symbol)}`),
+            fetch("/api/vix"),
+        ]);
         const prices = priceRes.ok ? await priceRes.json() : {};
         const currentPrice = prices[t.symbol] || null;
+        const vixData = vixRes.ok ? await vixRes.json() : null;
 
         renderHeader(t);
         renderGlance(t, currentPrice);
         renderRisk(t, currentPrice);
-        renderMarket(t, currentPrice);
+        renderMarket(t, currentPrice, vixData);
         renderEvents(t);
     } catch (e) {
         $("#td-glance").innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
@@ -111,7 +115,7 @@ function renderGlance(t, currentPrice) {
       <div>
         <div class="text-xs text-gray-500 uppercase">Time Elapsed</div>
         <div class="text-lg font-semibold">${elapsed}d / ${totalDte}d</div>
-        <div class="text-xs text-gray-500">${remaining}d remaining</div>
+        <div class="text-xs ${remaining <= 14 ? 'text-red-600 font-semibold' : remaining <= 21 ? 'text-amber-600 font-medium' : 'text-gray-500'}">${remaining}d remaining${remaining <= 14 ? ' ⚠️' : remaining <= 21 ? ' ⏳' : ''}</div>
       </div>
     </div>
     <!-- Theta progress bar -->
@@ -121,7 +125,7 @@ function renderGlance(t, currentPrice) {
         <span>Expires ${t.expiry_date}</span>
       </div>
       <div class="w-full bg-gray-200 rounded-full h-2">
-        <div class="h-2 rounded-full ${pctElapsed >= 80 ? 'bg-green-500' : pctElapsed >= 50 ? 'bg-yellow-400' : 'bg-blue-500'}"
+        <div class="h-2 rounded-full ${remaining <= 14 ? 'bg-red-500' : remaining <= 21 ? 'bg-amber-400' : pctElapsed >= 80 ? 'bg-green-500' : pctElapsed >= 50 ? 'bg-yellow-400' : 'bg-blue-500'}"
              style="width: ${pctElapsed}%"></div>
       </div>
     </div>`;
@@ -234,7 +238,7 @@ function renderGauge(strike, breakEven, currentPrice, isCSP) {
 }
 
 
-function renderMarket(t, currentPrice) {
+function renderMarket(t, currentPrice, vixData) {
     const el = $("#td-market");
     const live = t.live;
     const spotIV = t.spot?.implied_volatility;
@@ -371,6 +375,31 @@ function renderMarket(t, currentPrice) {
           ${tip("IV Rank", `IV is at the ${fmt(rank, 0)}th percentile of its 52-week range. ${rank >= 50 ? "Elevated — good time to sell premium." : "Below average — less premium available."}`)}
           <div class="text-lg font-semibold ${rankColor}">${fmt(rank, 0)}%</div>
           <div class="text-xs text-gray-500">${rankLabel}${ivData.current_iv != null ? ` · 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
+        </div>`);
+    }
+
+    // VIX / Market Regime
+    if (vixData && vixData.vix != null) {
+        const regimeMap = {
+            bull: { label: "Bull", color: "text-green-600" },
+            sideways: { label: "Sideways", color: "text-yellow-600" },
+            bear: { label: "Bear", color: "text-orange-600" },
+            crisis: { label: "Crisis", color: "text-red-600" },
+        };
+        const rm = regimeMap[vixData.regime] || regimeMap.sideways;
+        const v = vixData.vix;
+        const vixTip = v >= 40
+            ? `VIX at ${v} — extreme fear. Sell far OTM with long DTE. Deploy only 20–30% of cash.`
+            : v >= 25
+                ? `VIX at ${v} — elevated fear. Go defensive: wide strikes, stagger entries. Deploy 30–40% of cash.`
+                : v >= 16
+                    ? `VIX at ${v} — sweet spot for selling premium. Standard wheel mechanics, deploy 80–100%.`
+                    : `VIX at ${v} — low vol, calm market. Premiums are thin — keep 50% in reserve.`;
+        items.push(`
+        <div>
+          ${tip("VIX", vixTip)}
+          <div class="text-lg font-semibold ${rm.color}">${v.toFixed(2)}</div>
+          <div class="text-xs text-gray-500">${rm.label} Market</div>
         </div>`);
     }
 

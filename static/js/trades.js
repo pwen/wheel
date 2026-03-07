@@ -55,7 +55,7 @@ function renderOpenTrades(trades) {
       <td class="px-3 py-2 text-right" data-opt-upl-pct="${t.id}">…</td>
       <td class="px-3 py-2 text-right" data-opt-iv="${t.id}">…</td>
       <td class="px-3 py-2 whitespace-nowrap">${t.opened_at}</td>
-      <td class="px-3 py-2 text-right">${t.dte}</td>
+      <td class="px-3 py-2 text-right ${(() => { const rem = t.dte - t.days_in_trade; return rem <= 14 ? 'text-red-600 font-semibold' : rem <= 21 ? 'text-amber-600 font-medium' : ''; })()}">${t.dte - t.days_in_trade}</td>
       <td class="px-3 py-2 text-right">${t.days_in_trade}</td>
       <td class="px-3 py-2 text-center whitespace-nowrap">
         <button onclick='editTrade(${JSON.stringify(t.id)})' title="Edit" class="text-gray-400 hover:text-indigo-600"><svg class="w-4 h-4 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4L16.862 4.487z"/></svg></button>

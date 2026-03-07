@@ -115,3 +115,7 @@ loadTrades().then(() => {
 });
 loadLots();
 
+// VIX banner
+const vixEl = document.getElementById("vix-banner");
+if (vixEl) renderVixBanner(vixEl);
+
