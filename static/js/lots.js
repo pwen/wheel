@@ -131,7 +131,11 @@ function editLot(id) {
 }
 
 async function deleteLot(id) {
-    if (!confirm("Delete this share lot?")) return;
+    const lot = allLots.find(l => l.id === id);
+    const msg = lot && lot.linked_trade_id
+        ? "This lot was created from a trade assignment. Delete it anyway?"
+        : "Delete this share lot?";
+    if (!confirm(msg)) return;
     const res = await fetch(`/api/lots/${id}`, { method: "DELETE" });
     if (res.ok) loadLots();
     else alert("Failed to delete lot");

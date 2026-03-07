@@ -60,6 +60,7 @@ function renderOpenTrades(trades) {
       <td class="px-3 py-2 text-center whitespace-nowrap">
         <button onclick='editTrade(${JSON.stringify(t.id)})' class="text-indigo-600 hover:text-indigo-800 text-xs font-medium">Edit</button>
         <button onclick='openCloseModal(${JSON.stringify(t.id)})' class="ml-2 text-red-600 hover:text-red-800 text-xs font-medium">Close</button>
+        <button onclick='deleteTrade(${JSON.stringify(t.id)})' class="ml-2 text-gray-400 hover:text-red-600 text-xs font-medium">Delete</button>
       </td>
     </tr>
   `).join("");
@@ -110,6 +111,7 @@ function renderClosedTrades(trades) {
       </td>
       <td class="px-3 py-2 text-center whitespace-nowrap">
         <button onclick='editTrade(${JSON.stringify(t.id)})' class="text-indigo-600 hover:text-indigo-800 text-xs font-medium">Edit</button>
+        <button onclick='deleteTrade(${JSON.stringify(t.id)})' class="ml-2 text-gray-400 hover:text-red-600 text-xs font-medium">Delete</button>
       </td>
     </tr>
   `).join("");
@@ -150,6 +152,21 @@ async function loadTrades() {
 function editTrade(id) {
     const trade = allTrades.find(t => t.id === id);
     if (trade) openModal(trade);
+}
+
+async function deleteTrade(id) {
+    if (!confirm("Delete this trade and all its events / linked lots? This cannot be undone.")) return;
+    try {
+        const res = await fetch(`/api/trades/${id}`, { method: "DELETE" });
+        if (res.ok) {
+            await loadTrades();
+        } else {
+            const err = await res.json();
+            alert("Error: " + JSON.stringify(err.detail || err));
+        }
+    } catch (e) {
+        console.error("deleteTrade failed:", e);
+    }
 }
 
 function handleTradeFormSubmit(e) {

@@ -405,6 +405,16 @@ def get_trade(trade_id: int, session: Session = Depends(get_session)):
     return d
 
 
+@router.delete("/trades/{trade_id}", status_code=204)
+def delete_trade(trade_id: int, session: Session = Depends(get_session)):
+    """Delete a trade and all related events and share lots (via DB CASCADE)."""
+    trade = session.get(Trade, trade_id)
+    if not trade:
+        raise HTTPException(404, "Trade not found")
+    session.delete(trade)
+    session.commit()
+
+
 @router.get("/trades/{trade_id}/detail")
 def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
     """Enriched trade view with live market data for decision-making."""
