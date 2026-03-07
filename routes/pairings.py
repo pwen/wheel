@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 
 from db import get_session
-from models import Pairing, PairingRole, Spot, ShareLot, Trade, TradeStatus
+from models import Pairing, PairingRole, Spot, ShareLot, Trade, TradeStatus, StrategyType
 
 router = APIRouter(tags=["pairings"])
 
@@ -133,25 +133,49 @@ def allocations(session: Session = Depends(get_session)):
         shares_by_symbol[sym] = shares_by_symbol.get(sym, 0) + qty
         cost_by_symbol[sym] = cost_by_symbol.get(sym, 0) + qty * float(lot.cost_per_share)
 
-    # 3. Check for active wheel trades on proxy symbols
+    # 3. Check for active wheel trades and compute CSP committed capital
     active_proxy_symbols = set()
-    all_proxy_syms = {sym for info in ac_map.values() for sym in info["proxy_symbols"]}
-    proxy_spot_ids = {sid for sid, sym in id_to_symbol.items() if sym in all_proxy_syms}
-    if proxy_spot_ids:
+    csp_committed_by_symbol: dict[str, float] = {}
+    if spot_ids:
         open_trades = session.exec(
             select(Trade).where(
-                Trade.underlying_id.in_(proxy_spot_ids),
+                Trade.underlying_id.in_(spot_ids),
                 Trade.status == TradeStatus.OPEN,
             )
         ).all()
         for t in open_trades:
             sym = id_to_symbol.get(t.underlying_id)
-            if sym:
+            if not sym:
+                continue
+            if sym in {s for info in ac_map.values() for s in info["proxy_symbols"]}:
                 active_proxy_symbols.add(sym)
+            if t.strategy_type == StrategyType.CSP:
+                committed = float(t.strike * t.contracts * t.multiplier)
+                csp_committed_by_symbol[sym] = csp_committed_by_symbol.get(sym, 0) + committed
 
     # 4. Build response (prices will be fetched client-side to keep this fast)
+    #    Skip asset classes where user has no holdings and no active trades.
+    #    Sort by preferred group order, then alphabetically within each group.
+    GROUP_ORDER = [
+        "US Equity",
+        "International Equity",
+        "Commodities",
+        "Single Country",
+        "Digital Assets",
+        "Thematic / Sector",
+    ]
+    _group_rank = {g: i for i, g in enumerate(GROUP_ORDER)}
+    _default_rank = len(GROUP_ORDER)
+
+    def _sort_key(item):
+        ac_name, info = item
+        return (_group_rank.get(info["group"], _default_rank), ac_name)
+
     asset_classes = []
-    for ac_name, info in sorted(ac_map.items()):
+    for ac_name, info in sorted(ac_map.items(), key=_sort_key):
+        # Symbols in both core and proxy: attribute shares to core only
+        dual_symbols = info["core_symbols"] & info["proxy_symbols"]
+
         core_entries = []
         for sym in sorted(info["core_symbols"]):
             core_entries.append({
@@ -162,19 +186,37 @@ def allocations(session: Session = Depends(get_session)):
 
         proxy_entries = []
         for sym in sorted(info["proxy_symbols"]):
+            # If symbol is also core, don't duplicate shares here
+            if sym in dual_symbols:
+                shares = 0
+                cost = 0.0
+            else:
+                shares = shares_by_symbol.get(sym, 0)
+                cost = cost_by_symbol.get(sym, 0)
             proxy_entries.append({
                 "symbol": sym,
-                "shares": shares_by_symbol.get(sym, 0),
-                "cost_basis": round(cost_by_symbol.get(sym, 0), 2),
+                "shares": shares,
+                "cost_basis": round(cost, 2),
                 "has_active_trades": sym in active_proxy_symbols,
+                "csp_committed": round(csp_committed_by_symbol.get(sym, 0), 2),
             })
+
+        has_holdings = any(e["shares"] > 0 for e in core_entries) or any(
+            e["shares"] > 0 or e["has_active_trades"] or e["csp_committed"] > 0
+            for e in proxy_entries
+        )
+        if not has_holdings:
+            continue
 
         asset_classes.append({
             "asset_class": ac_name,
             "group": info["group"],
             "target_pct": info["target_pct"],
-            "core": core_entries,
-            "proxy": proxy_entries,
+            "core": [e for e in core_entries if e["shares"] > 0],
+            "proxy": [
+                e for e in proxy_entries
+                if e["shares"] > 0 or e["has_active_trades"] or e["csp_committed"] > 0
+            ],
         })
 
     return {"asset_classes": asset_classes}

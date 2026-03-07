@@ -24,7 +24,8 @@ async function initAllocations() {
         let priceMap = {};
         if (allSymbols.size > 0) {
             try {
-                const pRes = await fetch(`/api/prices?symbols=${[...allSymbols].join(",")}`);
+                const params = [...allSymbols].map(s => `symbols=${encodeURIComponent(s)}`).join("&");
+                const pRes = await fetch(`/api/prices?${params}`);
                 const pData = await pRes.json();
                 priceMap = pData.prices || pData;
             } catch { /* ignore */ }
@@ -42,9 +43,10 @@ function renderAllocations(data, priceMap) {
     const groupsEl = $("#alloc-groups");
 
     // Calculate market values per asset class
-    let totalWheelValue = 0;
+    let totalSharesValue = 0;
+    let totalCspCommitted = 0;
     const acValues = data.asset_classes.map(ac => {
-        let coreValue = 0, proxyValue = 0;
+        let coreValue = 0, proxyValue = 0, cspValue = 0;
         const coreDetails = ac.core.map(e => {
             const price = priceMap[e.symbol] || 0;
             const mv = e.shares * price;
@@ -55,20 +57,33 @@ function renderAllocations(data, priceMap) {
             const price = priceMap[e.symbol] || 0;
             const mv = e.shares * price;
             proxyValue += mv;
+            cspValue += e.csp_committed || 0;
             return { ...e, price, market_value: mv };
         });
-        const total = coreValue + proxyValue;
-        totalWheelValue += total;
-        return { ...ac, core: coreDetails, proxy: proxyDetails, core_value: coreValue, proxy_value: proxyValue, total_value: total };
+        const sharesTotal = coreValue + proxyValue;
+        const total = sharesTotal + cspValue;
+        totalSharesValue += sharesTotal;
+        totalCspCommitted += cspValue;
+        return { ...ac, core: coreDetails, proxy: proxyDetails, core_value: coreValue, proxy_value: proxyValue, csp_committed: cspValue, total_value: total };
     });
 
+    const totalWheelValue = totalSharesValue + totalCspCommitted;
+
     // Summary bar
-    const totalFmt = fmtMoney(totalWheelValue);
     summaryEl.innerHTML = `
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 px-4 py-3 flex items-center justify-between">
-            <div>
-                <span class="text-sm text-gray-500 dark:text-gray-400">Total Wheel Value</span>
-                <span class="ml-2 text-lg font-bold text-gray-900 dark:text-gray-100">${totalFmt}</span>
+            <div class="flex items-center gap-4">
+                <div>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Total Wheel Capital</span>
+                    <span class="ml-2 text-lg font-bold text-gray-900 dark:text-gray-100">${fmtMoney(totalWheelValue)}</span>
+                </div>
+                <span class="text-gray-300 dark:text-gray-600">|</span>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                    Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span>
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                    CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span>
+                </div>
             </div>
         </div>`;
 
@@ -86,24 +101,24 @@ function renderAllocations(data, priceMap) {
             <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">${esc(groupName)}</h3>`;
 
         for (const ac of acs) {
+            const allEntries = [
+                ...ac.core.map(e => ({ ...e, role: "core" })),
+                ...ac.proxy.map(e => ({ ...e, role: "proxy" })),
+            ];
+
             const actualPct = totalWheelValue > 0 ? (ac.total_value / totalWheelValue * 100) : 0;
-            const targetPct = ac.target_pct != null ? ac.target_pct * 100 : null;
-            const drift = targetPct != null ? actualPct - targetPct : null;
+            const coreVal = ac.core_value;
+            const proxyVal = ac.proxy_value + ac.csp_committed;
+            const corePct = ac.total_value > 0 ? (coreVal / ac.total_value * 100) : 0;
+            const proxyPct = ac.total_value > 0 ? (proxyVal / ac.total_value * 100) : 0;
 
-            const driftBadge = drift != null
-                ? `<span class="ml-2 text-xs px-1.5 py-0.5 rounded font-medium ${Math.abs(drift) > 3 ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" : Math.abs(drift) > 1 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300" : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"}">${drift >= 0 ? "+" : ""}${drift.toFixed(1)}%</span>`
-                : "";
-
-            const targetLabel = targetPct != null ? `Target: ${targetPct.toFixed(0)}%` : "";
-            const actualLabel = `Actual: ${actualPct.toFixed(1)}%`;
+            const splitLabel = `Core ${corePct.toFixed(0)}% / Proxy ${proxyPct.toFixed(0)}%`;
 
             html += `<div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 mb-2 overflow-hidden">
                 <div class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 flex items-center justify-between cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
                     <div class="flex items-center gap-3">
                         <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">${esc(ac.asset_class)}</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">${targetLabel}</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">${actualLabel}</span>
-                        ${driftBadge}
+                        <span class="text-xs text-gray-500 dark:text-gray-400">${splitLabel}</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="text-sm font-medium text-gray-900 dark:text-gray-100">${fmtMoney(ac.total_value)}</span>
@@ -119,16 +134,13 @@ function renderAllocations(data, priceMap) {
                                 <th class="px-4 py-1.5 text-right">Price</th>
                                 <th class="px-4 py-1.5 text-right">Shares</th>
                                 <th class="px-4 py-1.5 text-right">Value</th>
+                                <th class="px-4 py-1.5 text-right">CSP Reserved</th>
+                                <th class="px-4 py-1.5 text-right">%</th>
                                 <th class="px-4 py-1.5 text-right">Cost Basis</th>
                                 <th class="px-4 py-1.5 text-center">Wheel</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-700">`;
-
-            const allEntries = [
-                ...ac.core.map(e => ({ ...e, role: "core" })),
-                ...ac.proxy.map(e => ({ ...e, role: "proxy" })),
-            ].filter(e => e.shares > 0 || e.has_active_trades);
 
             for (const e of allEntries) {
                 const roleBadge = e.role === "core"
@@ -141,12 +153,19 @@ function renderAllocations(data, priceMap) {
                         : `<span class="text-gray-300 dark:text-gray-600" title="No active trades">○</span>`)
                     : "";
 
+                const csp = e.csp_committed || 0;
+                const cspCell = e.role === "proxy" && csp > 0 ? fmtMoney(csp) : "—";
+                const entryValue = e.market_value > 0 ? e.market_value : csp;
+                const pctOfClass = ac.total_value > 0 ? (entryValue / ac.total_value * 100) : 0;
+
                 html += `<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td class="px-4 py-1.5 font-semibold text-indigo-600 dark:text-indigo-400">${esc(e.symbol)}</td>
                     <td class="px-4 py-1.5">${roleBadge}</td>
                     <td class="px-4 py-1.5 text-right">${e.price ? fmtMoney(e.price) : "—"}</td>
                     <td class="px-4 py-1.5 text-right">${e.shares > 0 ? e.shares : "—"}</td>
                     <td class="px-4 py-1.5 text-right">${e.market_value > 0 ? fmtMoney(e.market_value) : "—"}</td>
+                    <td class="px-4 py-1.5 text-right">${cspCell}</td>
+                    <td class="px-4 py-1.5 text-right text-gray-500 dark:text-gray-400">${entryValue > 0 ? pctOfClass.toFixed(1) + "%" : "—"}</td>
                     <td class="px-4 py-1.5 text-right">${e.cost_basis > 0 ? fmtMoney(e.cost_basis) : "—"}</td>
                     <td class="px-4 py-1.5 text-center">${wheelIcon}</td>
                 </tr>`;
@@ -156,8 +175,10 @@ function renderAllocations(data, priceMap) {
                         <tfoot>
                             <tr class="border-t dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 font-medium text-xs">
                                 <td class="px-4 py-1.5" colspan="4">Subtotal</td>
-                                <td class="px-4 py-1.5 text-right">${fmtMoney(ac.total_value)}</td>
-                                <td class="px-4 py-1.5 text-right">${fmtMoney(ac.core.reduce((s, e) => s + e.cost_basis, 0) + ac.proxy.reduce((s, e) => s + e.cost_basis, 0))}</td>
+                                <td class="px-4 py-1.5 text-right">${fmtMoney(ac.core_value + ac.proxy_value)}</td>
+                                <td class="px-4 py-1.5 text-right">${ac.csp_committed > 0 ? fmtMoney(ac.csp_committed) : "—"}</td>
+                                <td class="px-4 py-1.5 text-right">100%</td>
+                                <td class="px-4 py-1.5 text-right">${fmtMoney(ac.core.reduce((s, e) => s + e.cost_basis, 0) + ac.proxy.reduce((s, e) => s + (e.cost_basis || 0), 0))}</td></td>
                                 <td></td>
                             </tr>
                         </tfoot>
