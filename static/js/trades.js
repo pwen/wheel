@@ -35,10 +35,10 @@ function renderOpenTrades(trades) {
     <tr class="hover:bg-gray-50">
       <td class="px-3 py-2 font-medium"><a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a></td>
       <td class="px-3 py-2">
-        <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
+        <a href="/trade/${t.id}" class="inline-block px-2 py-0.5 rounded text-xs font-semibold hover:opacity-80
           ${t.strategy_type === 'CSP' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
           ${t.strategy_type}
-        </span>
+        </a>
       </td>
       <td class="px-3 py-2 text-right font-medium" data-price-sym="${t.symbol}" data-strike="${t.strike}" data-type="${t.strategy_type}">…</td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.strike)}</td>
@@ -77,10 +77,10 @@ function renderClosedTrades(trades) {
     <tr class="hover:bg-gray-50">
       <td class="px-3 py-2 font-medium"><a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a></td>
       <td class="px-3 py-2">
-        <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
+        <a href="/trade/${t.id}" class="inline-block px-2 py-0.5 rounded text-xs font-semibold hover:opacity-80
           ${t.strategy_type === 'CSP' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
           ${t.strategy_type}
-        </span>
+        </a>
       </td>
       <td class="px-3 py-2 text-right">${fmtMoney(t.strike)}</td>
       <td class="px-3 py-2 whitespace-nowrap">${t.expiry_date}</td>

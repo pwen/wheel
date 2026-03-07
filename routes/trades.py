@@ -400,3 +400,49 @@ def get_trade(trade_id: int, session: Session = Depends(get_session)):
     spot = session.get(Spot, trade.underlying_id)
     d["symbol"] = spot.symbol if spot else "?"
     return d
+
+
+@router.get("/trades/{trade_id}/detail")
+def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
+    """Enriched trade view with live market data for decision-making."""
+    from services import get_option_quotes
+
+    trade = session.get(Trade, trade_id)
+    if not trade:
+        raise HTTPException(404, "Trade not found")
+
+    spot = session.get(Spot, trade.underlying_id)
+    symbol = spot.symbol if spot else "?"
+
+    d = _trade_to_dict(trade)
+    d["symbol"] = symbol
+
+    # Events timeline
+    events = session.exec(
+        select(TradeEvent).where(TradeEvent.trade_id == trade_id).order_by(TradeEvent.event_date)
+    ).all()
+    d["events"] = [e.model_dump() for e in events]
+
+    # Spot info
+    d["spot"] = {
+        "name": spot.name,
+        "asset_type": spot.asset_type,
+        "implied_volatility": float(spot.implied_volatility) if spot.implied_volatility else None,
+    } if spot else None
+
+    # Live option data (only for open trades)
+    d["live"] = None
+    if trade.status == TradeStatus.OPEN:
+        contracts = [{
+            "trade_id": trade.id,
+            "symbol": symbol,
+            "expiry_date": trade.expiry_date.isoformat(),
+            "strike": float(trade.strike),
+            "strategy_type": trade.strategy_type.value,
+        }]
+        quotes = get_option_quotes(contracts)
+        q = quotes.get(trade.id)
+        if q:
+            d["live"] = q
+
+    return d

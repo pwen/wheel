@@ -15,3 +15,8 @@ async def index(request: Request):
 @router.get("/symbol/{symbol}")
 async def symbol_page(symbol: str, request: Request):
     return templates.TemplateResponse("symbol.html", {"request": request, "symbol": symbol.upper()})
+
+
+@router.get("/trade/{trade_id}")
+async def trade_page(trade_id: int, request: Request):
+    return templates.TemplateResponse("trade.html", {"request": request, "trade_id": trade_id})
