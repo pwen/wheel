@@ -16,6 +16,49 @@ function card(label, value, sub, colorClass) {
     </div>`;
 }
 
+/* ---------- Market Flash ---------- */
+async function loadMarketFlash() {
+    const el = $("#market-flash");
+    try {
+        const res = await fetch("/api/market-flash");
+        if (!res.ok) throw new Error("Failed to load");
+        const data = await res.json();
+        if (data.markdown) {
+            el.innerHTML = marked.parse(data.markdown);
+        } else {
+            el.innerHTML = `
+            <div class="text-center py-4">
+              <p class="text-gray-500 text-sm mb-3">No market flash generated for today yet.</p>
+              <button id="gen-flash-btn"
+                class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                Generate Market Flash
+              </button>
+            </div>`;
+            $("#gen-flash-btn").addEventListener("click", generateMarketFlash);
+        }
+    } catch {
+        el.innerHTML = `<p class="text-gray-400 text-sm">Market flash unavailable.</p>`;
+    }
+}
+
+async function generateMarketFlash() {
+    const el = $("#market-flash");
+    const btn = $("#gen-flash-btn");
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Generating…";
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+    }
+    try {
+        const res = await fetch("/api/market-flash", { method: "POST" });
+        if (!res.ok) throw new Error("Generation failed");
+        const data = await res.json();
+        el.innerHTML = marked.parse(data.markdown);
+    } catch {
+        el.innerHTML = `<p class="text-red-500 text-sm">Failed to generate market flash. Check API key.</p>`;
+    }
+}
+
 /* ---------- Summary cards ---------- */
 function renderSummary(attention, vixData) {
     const el = $("#summary-cards");
@@ -75,20 +118,58 @@ function renderActions(attention) {
     }).join("");
 }
 
-/* ---------- All open positions table ---------- */
-function renderPositions(attention) {
-    const el = $("#positions-table");
-    if (!attention.length) {
-        el.innerHTML = `<p class="text-gray-400 text-sm p-4">No open positions.</p>`;
-        return;
-    }
+/* ---------- Expiring this week ---------- */
+function renderExpiring(attention) {
+    const section = $("#expiring-section");
+    const el = $("#expiring-list");
+    const expiring = attention.filter(t => t.remaining_dte >= 0 && t.remaining_dte <= 7);
+    if (!expiring.length) { section.classList.add("hidden"); return; }
 
-    const rows = attention.map(t => {
+    section.classList.remove("hidden");
+    el.innerHTML = expiring
+        .sort((a, b) => a.remaining_dte - b.remaining_dte)
+        .map(t => {
+            const badge = t.strategy_type === "CSP"
+                ? `<span class="px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">CSP</span>`
+                : `<span class="px-2 py-0.5 rounded text-xs font-semibold bg-sky-100 text-sky-700">CC</span>`;
+            const dteColor = t.remaining_dte <= 2 ? "text-red-600 font-semibold" : t.remaining_dte <= 5 ? "text-amber-600" : "text-gray-600";
+            const dayLabel = t.remaining_dte === 0 ? "Today" : t.remaining_dte === 1 ? "Tomorrow" : `${t.remaining_dte}d`;
+            return `
+            <a href="/trade/${t.id}" class="block bg-white border rounded-lg p-3 hover:border-indigo-300 transition-colors">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  ${badge}
+                  <span class="font-semibold">${t.symbol}</span>
+                  <span class="text-gray-500 text-sm">$${t.strike}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm">${fmtMoney(t.total_premium)} premium</span>
+                  <span class="${dteColor} text-sm font-medium">Exp ${dayLabel}</span>
+                </div>
+              </div>
+            </a>`;
+        }).join("");
+}
+
+/* ---------- Recently closed ---------- */
+function renderRecentlyClosed(trades) {
+    const section = $("#recent-section");
+    const el = $("#recent-list");
+    if (!trades.length) { section.classList.add("hidden"); return; }
+
+    section.classList.remove("hidden");
+    const statusMeta = {
+        expired: { label: "Expired", color: "bg-green-100 text-green-700" },
+        btc: { label: "BTC", color: "bg-blue-100 text-blue-700" },
+        assigned: { label: "Assigned", color: "bg-amber-100 text-amber-700" },
+        rolled: { label: "Rolled", color: "bg-purple-100 text-purple-700" },
+    };
+
+    const rows = trades.map(t => {
+        const sm = statusMeta[t.status] || { label: t.status, color: "bg-gray-100 text-gray-700" };
         const badge = t.strategy_type === "CSP"
             ? `<span class="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">CSP</span>`
             : `<span class="px-1.5 py-0.5 rounded text-xs font-semibold bg-sky-100 text-sky-700">CC</span>`;
-        const dteColor = t.remaining_dte <= 14 ? "text-red-600 font-semibold"
-            : t.remaining_dte <= 21 ? "text-amber-600" : "";
         return `
         <tr class="border-t hover:bg-gray-50">
           <td class="px-4 py-2">${badge}</td>
@@ -96,11 +177,10 @@ function renderPositions(attention) {
             <a href="/trade/${t.id}" class="text-indigo-600 hover:underline">${t.symbol}</a>
           </td>
           <td class="px-4 py-2 text-right">$${t.strike}</td>
-          <td class="px-4 py-2 text-right">${t.expiry_date}</td>
-          <td class="px-4 py-2 text-right ${dteColor}">${t.remaining_dte}d</td>
-          <td class="px-4 py-2 text-right">${t.days_in_trade}d / ${t.dte}d</td>
-          <td class="px-4 py-2 text-right">${fmtMoney(t.total_premium)}</td>
-          <td class="px-4 py-2 text-right" id="upl-${t.id}">—</td>
+          <td class="px-4 py-2"><span class="px-2 py-0.5 rounded text-xs font-medium ${sm.color}">${sm.label}</span></td>
+          <td class="px-4 py-2 text-right">${t.closed_at}</td>
+          <td class="px-4 py-2 text-right">${t.days_in_trade}d</td>
+          <td class="px-4 py-2 text-right ${plColor(t.realized_pl)}">${t.realized_pl != null ? fmtMoney(t.realized_pl) : "—"}</td>
         </tr>`;
     }).join("");
 
@@ -111,11 +191,10 @@ function renderPositions(attention) {
           <th class="px-4 py-2">Type</th>
           <th class="px-4 py-2">Symbol</th>
           <th class="px-4 py-2 text-right">Strike</th>
-          <th class="px-4 py-2 text-right">Expiry</th>
-          <th class="px-4 py-2 text-right">DTE</th>
-          <th class="px-4 py-2 text-right">Elapsed</th>
-          <th class="px-4 py-2 text-right">Premium</th>
-          <th class="px-4 py-2 text-right">Unreal. P/L</th>
+          <th class="px-4 py-2">Outcome</th>
+          <th class="px-4 py-2 text-right">Closed</th>
+          <th class="px-4 py-2 text-right">Days</th>
+          <th class="px-4 py-2 text-right">P/L</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -167,13 +246,6 @@ async function enrichWithPrices(attention) {
             const upl = (t.premium_per_share - quote.mid) * t.contracts * t.multiplier;
             totalUPL += upl;
 
-            // Update per-row unrealized P/L
-            const cell = document.getElementById(`upl-${t.id}`);
-            if (cell) {
-                cell.textContent = fmtMoney(upl);
-                cell.className = `px-4 py-2 text-right ${plColor(upl)}`;
-            }
-
             const uplPct = t.total_premium > 0 ? (upl / t.total_premium) * 100 : 0;
             const inFirstHalf = t.days_in_trade <= t.dte / 2;
             if (inFirstHalf && uplPct >= 50) {
@@ -213,10 +285,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         renderSummary(data.attention, vixData);
         renderActions(data.attention);
-        renderPositions(data.attention);
+        renderExpiring(data.attention);
+        renderRecentlyClosed(data.recently_closed || []);
 
-        // Async: enrich with live prices
+        // Async: enrich with live prices + load market flash (don't block page)
         enrichWithPrices(data.attention);
+        loadMarketFlash();
     } catch (e) {
         $("#summary-cards").innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
     }

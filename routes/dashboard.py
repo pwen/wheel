@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends
@@ -137,6 +137,25 @@ def dashboard_stats(session: Session = Depends(get_session)):
 
     # --- P/L by Month ---
     by_month = defaultdict(lambda: {"premium": 0, "realized_pl": 0, "opened": 0, "closed": 0})
+
+    # --- Recently Closed (last 7 days) ---
+    cutoff = today - timedelta(days=7)
+    recently_closed = []
+    for t in closed_trades:
+        if t.closed_at and t.closed_at >= cutoff:
+            sym = spots.get(t.underlying_id, "?")
+            recently_closed.append({
+                "id": t.id, "symbol": sym,
+                "strategy_type": t.strategy_type.value,
+                "strike": float(t.strike),
+                "status": t.status.value,
+                "closed_at": t.closed_at.isoformat(),
+                "days_in_trade": t.days_in_trade,
+                "total_premium": float(t.total_premium),
+                "realized_pl": float(t.realized_pl) if t.realized_pl is not None else None,
+            })
+    recently_closed.sort(key=lambda x: x["closed_at"], reverse=True)
+
     for t in trades:
         open_key = t.opened_at.strftime("%Y-%m")
         by_month[open_key]["premium"] += float(t.total_premium)
@@ -190,6 +209,7 @@ def dashboard_stats(session: Session = Depends(get_session)):
         },
         "outcome_distribution": dict(outcome_dist),
         "attention": attention,
+        "recently_closed": recently_closed,
         "by_strategy": {
             "CSP": strat_stats(csp_trades),
             "CC": strat_stats(cc_trades),
