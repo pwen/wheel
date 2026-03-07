@@ -16,7 +16,15 @@ make db-downgrade # roll back last migration
 make reset-db     # wipe DB and restart Postgres
 ```
 
-Or run the app directly (outside Docker):
+Seed the database with sample trades (app must be running):
+
+```bash
+docker compose exec app python scripts/seed.py
+```
+Or if running outside Docker with app up at localhost:5002
+```
+uv run python scripts/seed.py
+```
 
 ```bash
 uv sync

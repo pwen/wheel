@@ -19,8 +19,8 @@ function renderTrades() {
     }
     updateSortArrows();
     // Re-apply cached live data to newly rendered DOM
-    applyPrices();
-    applyOptionPrices();
+    if (typeof applyPrices === "function") applyPrices();
+    if (typeof applyOptionPrices === "function") applyOptionPrices();
 }
 
 function renderOpenTrades(trades) {
@@ -137,10 +137,14 @@ function switchTradeView(view) {
 }
 
 async function loadTrades() {
-    const res = await fetch("/api/trades");
-    allTrades = await res.json();
-    populateSpotFilter(allTrades);
-    renderTrades();
+    try {
+        const res = await fetch("/api/trades");
+        allTrades = await res.json();
+        populateSpotFilter(allTrades);
+        renderTrades();
+    } catch (e) {
+        console.error("loadTrades failed:", e);
+    }
 }
 
 function editTrade(id) {
