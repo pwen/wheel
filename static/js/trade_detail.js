@@ -5,7 +5,11 @@ const fmt = (v, d = 2) => v != null ? Number(v).toFixed(d) : "—";
 const fmtMoney = (v) => {
   if (v == null) return "—";
   const n = Number(v);
-  return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
+  const abs = Math.abs(n);
+  const formatted = abs >= 1000
+    ? abs.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+    : abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (n < 0 ? "-$" : "$") + formatted;
 };
 const fmtPct = (v) => v != null ? `${Number(v).toFixed(1)}%` : "—";
 

@@ -89,13 +89,20 @@ function renderAllocations(data, priceMap) {
                 <span class="text-sm text-gray-500 dark:text-gray-400">Total Wheel Capital</span>
                 <span class="text-lg font-bold text-gray-900 dark:text-gray-100">${fmtMoney(totalWheelValue)}</span>
             </div>
-            <div class="grid mt-2 text-xs" style="grid-template-columns: 4.5rem 1fr 1fr; row-gap: 0.25rem; column-gap: 1rem;">
-                <span class="text-gray-500 dark:text-gray-400">Actual</span>
-                <span class="text-gray-500 dark:text-gray-400">Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${sharesPct}%)</span></span>
-                <span class="text-gray-500 dark:text-gray-400">CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${cspPct}%)</span></span>
-                ${rg ? `<span class="${rg.color} font-bold">${rg.label}</span>
-                <span class="text-gray-400 dark:text-gray-500">Target <span class="font-bold text-gray-700 dark:text-gray-300">${rg.core}%</span> core <span class="text-gray-300 dark:text-gray-600 ml-1">VIX ${vix.vix}</span></span>
-                <span class="text-gray-400 dark:text-gray-500">Target <span class="font-bold text-gray-700 dark:text-gray-300">${rg.proxy}%</span> proxy</span>` : ""}
+            <div class="mt-2 text-xs space-y-0.5">
+                <div class="flex items-center gap-2">
+                    <span class="text-gray-500 dark:text-gray-400 w-16 shrink-0">Actual</span>
+                    <span class="text-gray-500 dark:text-gray-400">Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${sharesPct}%)</span></span>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <span class="text-gray-500 dark:text-gray-400">CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span> <span class="font-bold text-gray-700 dark:text-gray-300">(${cspPct}%)</span></span>
+                </div>
+                ${rg ? `<div class="flex items-center gap-2">
+                    <span class="${rg.color} font-bold w-16 shrink-0">${rg.label}</span>
+                    <span class="text-gray-400 dark:text-gray-500">Target <span class="font-bold text-gray-700 dark:text-gray-300">${rg.core}%</span> core</span>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <span class="text-gray-400 dark:text-gray-500">Target <span class="font-bold text-gray-700 dark:text-gray-300">${rg.proxy}%</span> proxy</span>
+                    <span class="text-gray-300 dark:text-gray-600 ml-1">VIX ${vix.vix}</span>
+                </div>` : ""}
             </div>
         </div>`;
 
@@ -128,7 +135,7 @@ function renderAllocations(data, priceMap) {
             const corePct = ac.total_value > 0 ? (coreVal / ac.total_value * 100) : 0;
             const proxyPct = ac.total_value > 0 ? (proxyVal / ac.total_value * 100) : 0;
 
-            const splitLabel = `Core ${corePct.toFixed(0)}% / Proxy ${proxyPct.toFixed(0)}%`;
+            const splitLabel = `Core <span class="font-bold">${corePct.toFixed(0)}%</span> / Proxy <span class="font-bold">${proxyPct.toFixed(0)}%</span>`;
 
             html += `<div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 mb-2 overflow-hidden">
                 <div class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 flex items-center justify-between cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">

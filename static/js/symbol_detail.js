@@ -2,7 +2,15 @@
 
 const $ = (sel) => document.querySelector(sel);
 const fmt = (v, decimals = 2) => v != null ? Number(v).toFixed(decimals) : "—";
-const fmtMoney = (v) => v != null ? (Number(v) < 0 ? "-$" + Math.abs(Number(v)).toFixed(2) : "$" + Number(v).toFixed(2)) : "—";
+const fmtMoney = (v) => {
+    if (v == null) return "—";
+    const n = Number(v);
+    const abs = Math.abs(n);
+    const formatted = abs >= 1000
+        ? abs.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+        : abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return (n < 0 ? "-$" : "$") + formatted;
+};
 
 const STATUS_CONFIG = {
     open: { label: "Open", cls: "bg-yellow-100 text-yellow-700" },
