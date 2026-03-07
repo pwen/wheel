@@ -2,6 +2,9 @@
 
 let allLots = [];
 let editingLotId = null;
+let _lotSortCol = "symbol";
+let _lotSortAsc = true;
+let _lotFilter = "";
 
 function openLotModal(lot) {
     const form = $("#lot-form");
@@ -32,18 +35,55 @@ function closeLotModal() {
     $("#lot-form").symbol.disabled = false;
 }
 
+function getFilteredSortedLots() {
+    let lots = allLots;
+    if (_lotFilter) {
+        const q = _lotFilter.toLowerCase();
+        lots = lots.filter(l => l.symbol.toLowerCase().includes(q));
+    }
+    if (_lotSortCol) {
+        lots = [...lots].sort((a, b) => {
+            let va = a[_lotSortCol], vb = b[_lotSortCol];
+            if (va == null) va = "";
+            if (vb == null) vb = "";
+            let cmp;
+            if (typeof va === "number" || typeof vb === "number") {
+                cmp = (Number(va) || 0) - (Number(vb) || 0);
+            } else {
+                cmp = String(va).localeCompare(String(vb));
+            }
+            return _lotSortAsc ? cmp : -cmp;
+        });
+    }
+    return lots;
+}
+
+function updateLotSortArrows() {
+    $$("th[data-lot-sort]").forEach(th => {
+        const arrow = th.querySelector(".lot-sort-arrow");
+        if (!arrow) return;
+        if (th.dataset.lotSort === _lotSortCol) {
+            arrow.textContent = _lotSortAsc ? " ▲" : " ▼";
+        } else {
+            arrow.textContent = "";
+        }
+    });
+}
+
 function renderLots() {
     const tbody = $("#lots-body");
     const emptyMsg = $("#lots-empty-msg");
+    const lots = getFilteredSortedLots();
 
-    if (allLots.length === 0) {
+    if (lots.length === 0) {
         tbody.innerHTML = "";
         emptyMsg.classList.remove("hidden");
+        emptyMsg.textContent = allLots.length === 0 ? "No share lots yet." : "No lots match filter.";
         return;
     }
 
     emptyMsg.classList.add("hidden");
-    tbody.innerHTML = allLots.map(lot => {
+    tbody.innerHTML = lots.map(lot => {
         const totalCost = lot.cost_per_share * lot.remaining_qty;
         return `
     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
@@ -76,6 +116,7 @@ async function loadLots() {
     const res = await fetch("/api/lots");
     allLots = await res.json();
     renderLots();
+    updateLotSortArrows();
     loadLotPrices();
 }
 
@@ -164,5 +205,32 @@ function handleLotFormSubmit(e) {
         } else {
             res.json().then(err => alert("Error: " + JSON.stringify(err.detail || err)));
         }
+    });
+}
+
+// ---- Lot sort click handlers ----
+$$("th[data-lot-sort]").forEach(th => {
+    th.style.cursor = "pointer";
+    th.addEventListener("click", () => {
+        const col = th.dataset.lotSort;
+        if (_lotSortCol === col) {
+            _lotSortAsc = !_lotSortAsc;
+        } else {
+            _lotSortCol = col;
+            _lotSortAsc = true;
+        }
+        renderLots();
+        updateLotSortArrows();
+        loadLotPrices();
+    });
+});
+
+// ---- Lot filter handler ----
+const _lotSearchInput = document.getElementById("lots-search");
+if (_lotSearchInput) {
+    _lotSearchInput.addEventListener("input", () => {
+        _lotFilter = _lotSearchInput.value.trim();
+        renderLots();
+        loadLotPrices();
     });
 }
