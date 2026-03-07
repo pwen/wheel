@@ -64,7 +64,7 @@ function restoreFromURL() {
 }
 
 // All tab names
-const ALL_TABS = ["recap", "dashboard", "trades", "holdings"];
+const ALL_TABS = ["recap", "dashboard", "trades", "holdings", "spots"];
 
 // Tabs
 function switchTab(tab) {
@@ -84,6 +84,7 @@ function switchTab(tab) {
     // Lazy-load tab content
     if (tab === "recap") initRecap();
     if (tab === "dashboard") initDashboard();
+    if (tab === "spots") initSpots();
 }
 
 $$(".tab-btn").forEach(btn => {
