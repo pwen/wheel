@@ -18,6 +18,9 @@ function renderTrades() {
         renderClosedTrades(sorted);
     }
     updateSortArrows();
+    // Re-apply cached live data to newly rendered DOM
+    applyPrices();
+    applyOptionPrices();
 }
 
 function renderOpenTrades(trades) {

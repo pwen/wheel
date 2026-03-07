@@ -67,14 +67,14 @@ function renderGlance(t, currentPrice) {
     // Unrealized P/L = premium collected - (mid * contracts * multiplier)
     let unrealPL = null;
     let unrealPLPct = null;
-    let pctDecayed = null;
+    let returnOnCapital = null;
 
     if (isOpen && t.live && t.live.mid != null) {
         const currentCost = t.live.mid * t.contracts * t.multiplier;
         unrealPL = premiumCollected - currentCost;
+        unrealPLPct = premiumCollected > 0 ? (unrealPL / premiumCollected) * 100 : 0;
         const cashAtRisk = Number(t.strike) * t.contracts * t.multiplier;
-        unrealPLPct = cashAtRisk > 0 ? (unrealPL / cashAtRisk) * 100 : 0;
-        pctDecayed = premiumCollected > 0 ? ((premiumCollected - currentCost) / premiumCollected) * 100 : 0;
+        returnOnCapital = cashAtRisk > 0 ? (unrealPL / cashAtRisk) * 100 : 0;
     }
 
     // DTE progress
@@ -84,7 +84,7 @@ function renderGlance(t, currentPrice) {
     const pctElapsed = totalDte > 0 ? Math.min(100, (elapsed / totalDte) * 100) : 100;
 
     const plColor = unrealPL != null ? (unrealPL >= 0 ? "text-green-600" : "text-red-600") : "";
-    const decayColor = pctDecayed != null ? (pctDecayed >= 50 ? "text-green-600" : "text-gray-700") : "";
+    const rocColor = returnOnCapital != null ? (returnOnCapital >= 0 ? "text-green-600" : "text-red-600") : "";
 
     el.innerHTML = `
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -95,11 +95,11 @@ function renderGlance(t, currentPrice) {
       <div>
         <div class="text-xs text-gray-500 uppercase">Unrealized P/L</div>
         <div class="text-lg font-semibold ${plColor}">${isOpen && t.live ? fmtMoney(unrealPL) : '<span class="text-gray-400 text-sm">Fetching…</span>'}</div>
-        ${unrealPLPct != null ? `<div class="text-xs text-gray-500">${fmtPct(unrealPLPct)} of risk</div>` : ""}
+        ${unrealPLPct != null ? `<div class="text-xs ${plColor}">${fmtPct(unrealPLPct)} of premium</div>` : ""}
       </div>
       <div>
-        <div class="text-xs text-gray-500 uppercase">Premium Decayed</div>
-        <div class="text-lg font-semibold ${decayColor}">${pctDecayed != null ? fmtPct(pctDecayed) : '<span class="text-gray-400 text-sm">—</span>'}</div>
+        <div class="text-xs text-gray-500 uppercase">Return on Capital</div>
+        <div class="text-lg font-semibold ${rocColor}">${returnOnCapital != null ? fmtPct(returnOnCapital) : '<span class="text-gray-400 text-sm">—</span>'}</div>
       </div>
       <div>
         <div class="text-xs text-gray-500 uppercase">Time Elapsed</div>
