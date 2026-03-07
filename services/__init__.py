@@ -184,12 +184,14 @@ def get_option_quotes(contracts: list[dict]) -> dict[int, dict]:
                     ask = float(row["ask"]) if row["ask"] > 0 else None
                     mid = round((bid + ask) / 2, 4) if bid and ask else (bid or ask)
                     iv = round(float(row["impliedVolatility"]) * 100, 2) if row["impliedVolatility"] else None
-                    out[t["trade_id"]] = {"mid": mid, "iv": iv}
+                    volume = int(row["volume"]) if row.get("volume") and not (isinstance(row["volume"], float) and row["volume"] != row["volume"]) else None
+                    oi = int(row["openInterest"]) if row.get("openInterest") and not (isinstance(row["openInterest"], float) and row["openInterest"] != row["openInterest"]) else None
+                    out[t["trade_id"]] = {"mid": mid, "iv": iv, "bid": bid, "ask": ask, "volume": volume, "open_interest": oi}
                 except Exception:
-                    out[t["trade_id"]] = {"mid": None, "iv": None}
+                    out[t["trade_id"]] = {"mid": None, "iv": None, "bid": None, "ask": None, "volume": None, "open_interest": None}
         except Exception:
             for t in trades:
-                out[t["trade_id"]] = {"mid": None, "iv": None}
+                out[t["trade_id"]] = {"mid": None, "iv": None, "bid": None, "ask": None, "volume": None, "open_interest": None}
         return out
 
     with ThreadPoolExecutor(max_workers=min(8, len(by_symbol))) as pool:
@@ -198,6 +200,65 @@ def get_option_quotes(contracts: list[dict]) -> dict[int, dict]:
             results.update(future.result())
 
     return results
+
+
+def compute_greeks(spot: float, strike: float, iv: float, dte: int, strategy_type: str, r: float = 0.045) -> dict:
+    """Compute option Greeks via Black-Scholes.
+
+    Args:
+        spot: Current underlying price
+        strike: Option strike price
+        iv: Implied volatility as a decimal (e.g., 0.30 for 30%)
+        dte: Days to expiration
+        strategy_type: 'CSP' (put) or 'CC' (call)
+        r: Risk-free rate (default 4.5%)
+
+    Returns:
+        dict with delta, theta (per day in $), gamma, prob_otm
+    """
+    import math
+
+    if dte <= 0 or iv <= 0 or spot <= 0 or strike <= 0:
+        return {"delta": None, "theta": None, "gamma": None, "prob_otm": None}
+
+    T = dte / 365.0
+    sqrt_T = math.sqrt(T)
+    d1 = (math.log(spot / strike) + (r + 0.5 * iv ** 2) * T) / (iv * sqrt_T)
+    d2 = d1 - iv * sqrt_T
+
+    # Standard normal CDF and PDF using math.erf
+    def norm_cdf(x):
+        return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+    def norm_pdf(x):
+        return math.exp(-0.5 * x * x) / math.sqrt(2.0 * math.pi)
+
+    is_put = strategy_type == "CSP"
+
+    if is_put:
+        delta = round(norm_cdf(d1) - 1, 4)       # Negative for puts
+        prob_otm = round(norm_cdf(d2) * 100, 1)   # P(S > K) = prob put expires OTM
+    else:
+        delta = round(norm_cdf(d1), 4)             # Positive for calls
+        prob_otm = round(norm_cdf(-d2) * 100, 1)   # P(S < K) = prob call expires OTM
+
+    # Theta per day (in dollars per share)
+    theta_component = -(spot * norm_pdf(d1) * iv) / (2 * sqrt_T)
+    if is_put:
+        theta = theta_component + r * strike * math.exp(-r * T) * norm_cdf(-d2)
+    else:
+        theta = theta_component - r * strike * math.exp(-r * T) * norm_cdf(d2)
+    theta_per_day = round(theta / 365, 4)
+
+    # Gamma (same for puts and calls)
+    gamma = round(norm_pdf(d1) / (spot * iv * sqrt_T), 6)
+
+    return {
+        "delta": delta,
+        "theta": theta_per_day,
+        "gamma": gamma,
+        "prob_otm": prob_otm,
+    }
 
 
 def get_iv_rank(symbol: str) -> dict:

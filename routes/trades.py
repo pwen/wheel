@@ -5,6 +5,7 @@ from datetime import date, datetime
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session, select
+import yfinance as yf
 
 from db import get_session
 from models import (
@@ -418,7 +419,7 @@ def delete_trade(trade_id: int, session: Session = Depends(get_session)):
 @router.get("/trades/{trade_id}/detail")
 def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
     """Enriched trade view with live market data for decision-making."""
-    from services import get_option_quotes, get_iv_rank
+    from services import get_option_quotes, get_iv_rank, compute_greeks
 
     trade = session.get(Trade, trade_id)
     if not trade:
@@ -457,8 +458,25 @@ def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
         q = quotes.get(trade.id)
         if q:
             d["live"] = q
+            # Compute Greeks if we have IV and a spot price
+            iv_decimal = q.get("iv")
+            spot_price = None
+            try:
+                spot_price = yf.Ticker(symbol).fast_info.get("lastPrice")
+            except Exception:
+                pass
+            if iv_decimal and spot_price:
+                dte = (trade.expiry_date - date.today()).days
+                greeks = compute_greeks(
+                    spot=spot_price,
+                    strike=float(trade.strike),
+                    iv=iv_decimal / 100,  # convert from % to decimal
+                    dte=dte,
+                    strategy_type=trade.strategy_type.value,
+                )
+                d["live"].update(greeks)
 
-    # IV Rank / Percentile
+    # IV Rank
     d["iv_rank_data"] = get_iv_rank(symbol)
 
     return d

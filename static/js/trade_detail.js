@@ -238,6 +238,16 @@ function renderMarket(t, currentPrice) {
     const live = t.live;
     const spotIV = t.spot?.implied_volatility;
 
+    // Tooltip helper: label with hover info icon
+    const tip = (label, desc) => `
+      <div class="text-xs text-gray-500 uppercase flex items-center gap-1">
+        ${label}
+        <span class="relative group cursor-help">
+          <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+          <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-normal w-48 z-50 normal-case font-normal">${desc}</span>
+        </span>
+      </div>`;
+
     const items = [];
 
     // Current price
@@ -248,7 +258,7 @@ function renderMarket(t, currentPrice) {
         const chColor = change != null ? (change >= 0 ? "text-green-600" : "text-red-600") : "";
         items.push(`
         <div>
-          <div class="text-xs text-gray-500 uppercase">Spot Price</div>
+          ${tip("Spot Price", "Current price of the underlying stock or ETF.")}
           <div class="text-lg font-semibold">${fmtMoney(currentPrice)}</div>
           ${change != null ? `<div class="text-xs ${chColor}">${change >= 0 ? "+" : ""}${fmtMoney(change)} (${fmtPct(changePct)}) since open</div>` : ""}
         </div>`);
@@ -258,7 +268,7 @@ function renderMarket(t, currentPrice) {
     if (live) {
         items.push(`
         <div>
-          <div class="text-xs text-gray-500 uppercase">Option Mid Price</div>
+          ${tip("Option Mid Price", "Midpoint between bid and ask. This is what it would roughly cost to buy-to-close.")}
           <div class="text-lg font-semibold">${live.mid != null ? fmtMoney(live.mid) : "—"}</div>
           <div class="text-xs text-gray-500">per share</div>
         </div>`);
@@ -278,9 +288,83 @@ function renderMarket(t, currentPrice) {
         }
         items.push(`
         <div>
-          <div class="text-xs text-gray-500 uppercase">Option IV</div>
+          ${tip("Option IV", "Implied volatility of this specific contract. Higher IV = more premium but more risk.")}
           <div class="text-lg font-semibold">${currentIV != null ? fmtPct(currentIV) : "—"}</div>
           ${ivSub}
+        </div>`);
+    }
+
+    // Delta
+    if (live && live.delta != null) {
+        const d = live.delta;
+        const absD = Math.abs(d);
+        items.push(`
+        <div>
+          ${tip("Delta", "How much the option price moves per $1 move in the stock. Also approximates probability of finishing ITM.")}
+          <div class="text-lg font-semibold">${fmt(d, 2)}</div>
+          <div class="text-xs text-gray-500">≈ ${fmt(absD * 100, 0)}% chance ITM</div>
+        </div>`);
+    }
+
+    // Theta
+    if (live && live.theta != null) {
+        const th = live.theta;
+        const dailyIncome = Math.abs(th) * t.contracts * t.multiplier;
+        items.push(`
+        <div>
+          ${tip("Theta", "Daily time decay — how much value the option loses per day. As the seller, this is your daily income.")}
+          <div class="text-lg font-semibold text-green-600">$${fmt(dailyIncome, 2)}<span class="text-sm text-gray-500">/day</span></div>
+          <div class="text-xs text-gray-500">${fmt(th, 4)} per share</div>
+        </div>`);
+    }
+
+    // Probability OTM
+    if (live && live.prob_otm != null) {
+        const p = live.prob_otm;
+        const pColor = p >= 70 ? "text-green-600" : p >= 50 ? "text-yellow-600" : "text-red-600";
+        items.push(`
+        <div>
+          ${tip("Prob OTM", "Probability the option expires out-of-the-money (worthless). Higher = better for the seller.")}
+          <div class="text-lg font-semibold ${pColor}">${fmt(p, 1)}%</div>
+          <div class="text-xs text-gray-500">${p >= 70 ? "Favorable" : p >= 50 ? "Coin flip" : "At risk"}</div>
+        </div>`);
+    }
+
+    // Gamma
+    if (live && live.gamma != null) {
+        items.push(`
+        <div>
+          ${tip("Gamma", "Rate of delta change per $1 move in the stock. High gamma near expiry means rapid swings in risk.")}
+          <div class="text-lg font-semibold">${fmt(live.gamma, 4)}</div>
+          <div class="text-xs text-gray-500">delta change per $1</div>
+        </div>`);
+    }
+
+    // Bid-Ask Spread
+    if (live && live.bid != null && live.ask != null) {
+        const spread = live.ask - live.bid;
+        const spreadPct = live.mid ? (spread / live.mid) * 100 : null;
+        const spreadColor = spreadPct != null ? (spreadPct <= 10 ? "text-green-600" : spreadPct <= 25 ? "text-yellow-600" : "text-red-600") : "";
+        const spreadLabel = spreadPct != null ? (spreadPct <= 10 ? "Tight" : spreadPct <= 25 ? "Moderate" : "Wide") : "";
+        items.push(`
+        <div>
+          ${tip("Bid-Ask Spread", "Gap between buy and sell price. Tighter spreads mean lower cost to enter or exit. Wide spreads eat into profits.")}
+          <div class="text-lg font-semibold ${spreadColor}">${fmtMoney(spread)}</div>
+          <div class="text-xs text-gray-500">${spreadLabel}${spreadPct != null ? ` · ${fmt(spreadPct, 1)}% of mid` : ""}</div>
+        </div>`);
+    }
+
+    // Volume / Open Interest
+    if (live && (live.volume != null || live.open_interest != null)) {
+        const vol = live.volume;
+        const oi = live.open_interest;
+        const ratio = vol != null && oi ? (vol / oi) : null;
+        const liqLabel = oi != null ? (oi >= 1000 ? "Liquid" : oi >= 100 ? "Moderate" : "Thin") : "";
+        items.push(`
+        <div>
+          ${tip("Volume / OI", "Today's trading volume vs total open contracts. Higher = easier to get good fills. Vol/OI > 1 signals unusual activity.")}
+          <div class="text-lg font-semibold">${vol != null ? vol.toLocaleString() : "—"} / ${oi != null ? oi.toLocaleString() : "—"}</div>
+          <div class="text-xs text-gray-500">${liqLabel}${ratio != null ? ` · Vol/OI: ${fmt(ratio, 2)}` : ""}</div>
         </div>`);
     }
 
@@ -292,7 +376,7 @@ function renderMarket(t, currentPrice) {
         const rankLabel = rank >= 80 ? "Very High" : rank >= 50 ? "Elevated" : rank >= 20 ? "Normal" : "Low";
         items.push(`
         <div>
-          <div class="text-xs text-gray-500 uppercase">IV Rank</div>
+          ${tip("IV Rank", "Where current IV sits in its 52-week range. High rank = good time to sell premium.")}
           <div class="text-lg font-semibold ${rankColor}">${fmt(rank, 0)}%</div>
           <div class="text-xs text-gray-500">${rankLabel}${ivData.current_iv != null ? ` · 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
         </div>`);
@@ -305,7 +389,7 @@ function renderMarket(t, currentPrice) {
         const plColor = netPL >= 0 ? "text-green-600" : "text-red-600";
         items.push(`
         <div>
-          <div class="text-xs text-gray-500 uppercase">Close Now (BTC)</div>
+          ${tip("Close Now (BTC)", "Net P/L if you buy-to-close right now at the mid price.")}
           <div class="text-lg font-semibold ${plColor}">${fmtMoney(netPL)}</div>
           <div class="text-xs text-gray-500">Cost: ${fmtMoney(closeCost)}</div>
         </div>`);
