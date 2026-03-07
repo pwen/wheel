@@ -1,6 +1,7 @@
 """OpenAI / Perplexity client — reusable across features."""
 
 import os
+from datetime import date
 
 from openai import OpenAI
 
@@ -26,17 +27,15 @@ def get_trade_recommendation(trade_context: dict) -> str:
     """
     client = get_perplexity_client()
     if not client:
-        # Diagnostic: check what env vars are visible
-        has_key = "PERPLEXITY_API_KEY" in os.environ
-        key_len = len(os.environ.get("PERPLEXITY_API_KEY", ""))
-        raise RuntimeError(
-            f"Perplexity API key not configured (present={has_key}, len={key_len})"
-        )
+        return "Perplexity API key not configured.", None
 
     tc = trade_context
 
     # Core trade data
-    data_block = f"""TRADE DATA:
+    today = date.today().strftime("%B %d, %Y")
+    data_block = f"""TODAY'S DATE: {today}
+
+TRADE DATA:
 - Strategy: {tc['strategy_type']} ({tc['strategy_label']})
 - Symbol: {tc['symbol']} ({tc['spot_name']})
 - Strike: ${tc['strike']:.2f}
