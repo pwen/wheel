@@ -102,6 +102,7 @@ function renderGlance(t, currentPrice) {
         <div class="text-xs text-gray-500 uppercase">Unrealized P/L</div>
         <div class="text-lg font-semibold ${plColor}">${isOpen && t.live ? fmtMoney(unrealPL) : '<span class="text-gray-400 text-sm">Fetching…</span>'}</div>
         ${unrealPLPct != null ? `<div class="text-xs ${plColor}">${fmtPct(unrealPLPct)} of premium</div>` : ""}
+        ${unrealPL != null ? `<div class="text-xs text-gray-500">Cost to close: ${fmtMoney(premiumCollected - unrealPL)}</div>` : ""}
       </div>
       <div>
         <div class="text-xs text-gray-500 uppercase">Return on Capital</div>
@@ -294,25 +295,13 @@ function renderMarket(t, currentPrice) {
         </div>`);
     }
 
-    // Delta
-    if (live && live.delta != null) {
-        const d = live.delta;
-        const absD = Math.abs(d);
-        items.push(`
-        <div>
-          ${tip("Delta", "How much the option price moves per $1 move in the stock. Also approximates probability of finishing ITM.")}
-          <div class="text-lg font-semibold">${fmt(d, 2)}</div>
-          <div class="text-xs text-gray-500">≈ ${fmt(absD * 100, 0)}% chance ITM</div>
-        </div>`);
-    }
-
     // Theta
     if (live && live.theta != null) {
         const th = live.theta;
         const dailyIncome = Math.abs(th) * t.contracts * t.multiplier;
         items.push(`
         <div>
-          ${tip("Theta", "Daily time decay — how much value the option loses per day. As the seller, this is your daily income.")}
+          ${tip("Theta", `This position earns ~$${fmt(dailyIncome, 2)}/day from time decay. The option loses $${fmt(Math.abs(th), 4)}/share daily, which is income for you as the seller.`)}
           <div class="text-lg font-semibold text-green-600">$${fmt(dailyIncome, 2)}<span class="text-sm text-gray-500">/day</span></div>
           <div class="text-xs text-gray-500">${fmt(th, 4)} per share</div>
         </div>`);
@@ -324,7 +313,7 @@ function renderMarket(t, currentPrice) {
         const pColor = p >= 70 ? "text-green-600" : p >= 50 ? "text-yellow-600" : "text-red-600";
         items.push(`
         <div>
-          ${tip("Prob OTM", "Probability the option expires out-of-the-money (worthless). Higher = better for the seller.")}
+          ${tip("Prob OTM", `${fmt(p, 1)}% chance the option expires worthless — meaning you keep the full premium. ${p >= 70 ? "Odds are in your favor." : p >= 50 ? "Roughly a coin flip." : "Assignment is likely — consider rolling or closing."}`)}
           <div class="text-lg font-semibold ${pColor}">${fmt(p, 1)}%</div>
           <div class="text-xs text-gray-500">${p >= 70 ? "Favorable" : p >= 50 ? "Coin flip" : "At risk"}</div>
         </div>`);
@@ -332,9 +321,10 @@ function renderMarket(t, currentPrice) {
 
     // Gamma
     if (live && live.gamma != null) {
+        const gRisk = live.gamma >= 0.05 ? "High gamma — delta can shift fast." : live.gamma >= 0.02 ? "Moderate gamma." : "Low gamma — position is stable.";
         items.push(`
         <div>
-          ${tip("Gamma", "Rate of delta change per $1 move in the stock. High gamma near expiry means rapid swings in risk.")}
+          ${tip("Gamma", `For every $1 the stock moves, delta changes by ${fmt(live.gamma, 4)}. ${gRisk}`)}
           <div class="text-lg font-semibold">${fmt(live.gamma, 4)}</div>
           <div class="text-xs text-gray-500">delta change per $1</div>
         </div>`);
@@ -346,9 +336,10 @@ function renderMarket(t, currentPrice) {
         const spreadPct = live.mid ? (spread / live.mid) * 100 : null;
         const spreadColor = spreadPct != null ? (spreadPct <= 10 ? "text-green-600" : spreadPct <= 25 ? "text-yellow-600" : "text-red-600") : "";
         const spreadLabel = spreadPct != null ? (spreadPct <= 10 ? "Tight" : spreadPct <= 25 ? "Moderate" : "Wide") : "";
+        const spreadTip = `Bid $${fmt(live.bid, 2)} / Ask $${fmt(live.ask, 2)} — you'd lose ~$${fmt(spread / 2, 2)}/share to slippage. ${spreadPct != null && spreadPct > 25 ? "Wide spread — consider limit orders." : "Spread looks reasonable."}`;
         items.push(`
         <div>
-          ${tip("Bid-Ask Spread", "Gap between buy and sell price. Tighter spreads mean lower cost to enter or exit. Wide spreads eat into profits.")}
+          ${tip("Bid-Ask Spread", spreadTip)}
           <div class="text-lg font-semibold ${spreadColor}">${fmtMoney(spread)}</div>
           <div class="text-xs text-gray-500">${spreadLabel}${spreadPct != null ? ` · ${fmt(spreadPct, 1)}% of mid` : ""}</div>
         </div>`);
@@ -360,9 +351,10 @@ function renderMarket(t, currentPrice) {
         const oi = live.open_interest;
         const ratio = vol != null && oi ? (vol / oi) : null;
         const liqLabel = oi != null ? (oi >= 1000 ? "Liquid" : oi >= 100 ? "Moderate" : "Thin") : "";
+        const volOiTip = `${vol != null ? vol.toLocaleString() : "N/A"} contracts traded today out of ${oi != null ? oi.toLocaleString() : "N/A"} open. ${oi != null && oi < 100 ? "Low liquidity — may be hard to get good fills." : "Decent liquidity."}${ratio != null && ratio > 1 ? " Vol/OI > 1 suggests unusual activity." : ""}`;
         items.push(`
         <div>
-          ${tip("Volume / OI", "Today's trading volume vs total open contracts. Higher = easier to get good fills. Vol/OI > 1 signals unusual activity.")}
+          ${tip("Volume / OI", volOiTip)}
           <div class="text-lg font-semibold">${vol != null ? vol.toLocaleString() : "—"} / ${oi != null ? oi.toLocaleString() : "—"}</div>
           <div class="text-xs text-gray-500">${liqLabel}${ratio != null ? ` · Vol/OI: ${fmt(ratio, 2)}` : ""}</div>
         </div>`);
@@ -376,22 +368,9 @@ function renderMarket(t, currentPrice) {
         const rankLabel = rank >= 80 ? "Very High" : rank >= 50 ? "Elevated" : rank >= 20 ? "Normal" : "Low";
         items.push(`
         <div>
-          ${tip("IV Rank", "Where current IV sits in its 52-week range. High rank = good time to sell premium.")}
+          ${tip("IV Rank", `IV is at the ${fmt(rank, 0)}th percentile of its 52-week range. ${rank >= 50 ? "Elevated — good time to sell premium." : "Below average — less premium available."}`)}
           <div class="text-lg font-semibold ${rankColor}">${fmt(rank, 0)}%</div>
           <div class="text-xs text-gray-500">${rankLabel}${ivData.current_iv != null ? ` · 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
-        </div>`);
-    }
-
-    // What-if: close now
-    if (live && live.mid != null) {
-        const closeCost = live.mid * t.contracts * t.multiplier;
-        const netPL = Number(t.total_premium) - closeCost;
-        const plColor = netPL >= 0 ? "text-green-600" : "text-red-600";
-        items.push(`
-        <div>
-          ${tip("Close Now (BTC)", "Net P/L if you buy-to-close right now at the mid price.")}
-          <div class="text-lg font-semibold ${plColor}">${fmtMoney(netPL)}</div>
-          <div class="text-xs text-gray-500">Cost: ${fmtMoney(closeCost)}</div>
         </div>`);
     }
 
@@ -400,7 +379,15 @@ function renderMarket(t, currentPrice) {
         return;
     }
 
-    el.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-4 gap-4">${items.join("")}</div>`;
+    const yahooUrl = `https://finance.yahoo.com/quote/${encodeURIComponent(t.symbol)}/options/`;
+    el.innerHTML = `
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">${items.join("")}</div>
+    <div class="mt-3 pt-3 border-t text-right">
+      <a href="${yahooUrl}" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-400 hover:text-indigo-600 inline-flex items-center gap-1">
+        View full option chain on Yahoo Finance
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5-6H18m0 0v4.5m0-4.5-7.5 7.5"/></svg>
+      </a>
+    </div>`;
 }
 
 
