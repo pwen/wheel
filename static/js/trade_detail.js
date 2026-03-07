@@ -536,13 +536,13 @@ async function fetchRecommendation() {
       throw new Error(err.detail || "Failed to get recommendation");
     }
     const data = await res.json();
-    renderRecommendation(data.recommendation);
+    renderRecommendation(data.recommendation, data.tokens);
   } catch (e) {
     el.innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
   }
 }
 
-function renderRecommendation(text) {
+function renderRecommendation(text, tokens) {
   const el = $("#td-recommendation");
 
   // Parse the structured response — each field is "LABEL: value" on one line
@@ -598,6 +598,11 @@ function renderRecommendation(text) {
   // Fallback: if parsing failed, show raw text
   if (!html) {
     html = `<p class="text-sm text-gray-700 whitespace-pre-line">${text}</p>`;
+  }
+
+  // Token usage footer
+  if (tokens && tokens.total) {
+    html += `<p class="text-[10px] text-gray-300 mt-3">${tokens.total} tokens used</p>`;
   }
 
   el.innerHTML = html;

@@ -488,8 +488,8 @@ def get_trade_recommendation(trade_context: dict):
     from services.openai import get_trade_recommendation as _get_rec
 
     try:
-        text = _get_rec(trade_context)
+        text, tokens = _get_rec(trade_context)
     except RuntimeError as e:
         raise HTTPException(503, str(e))
 
-    return {"recommendation": text}
+    return {"recommendation": text, "tokens": tokens}

@@ -7,7 +7,7 @@ from openai import OpenAI
 
 def get_perplexity_client() -> OpenAI | None:
     """Return a Perplexity-flavored OpenAI client, or None if no key is set."""
-    api_key = os.environ.get("PERPLEXITY_API_KEY", "")
+    api_key = os.environ.get("PERPLEXITY_API_KEY", "").strip()
     if not api_key:
         return None
     return OpenAI(api_key=api_key, base_url="https://api.perplexity.ai")
@@ -26,7 +26,12 @@ def get_trade_recommendation(trade_context: dict) -> str:
     """
     client = get_perplexity_client()
     if not client:
-        raise RuntimeError("Perplexity API key not configured")
+        # Diagnostic: check what env vars are visible
+        has_key = "PERPLEXITY_API_KEY" in os.environ
+        key_len = len(os.environ.get("PERPLEXITY_API_KEY", ""))
+        raise RuntimeError(
+            f"Perplexity API key not configured (present={has_key}, len={key_len})"
+        )
 
     tc = trade_context
 
@@ -141,4 +146,11 @@ Be direct and opinionated. No disclaimers."""
         max_tokens=500,
     )
 
-    return resp.choices[0].message.content
+    usage = resp.usage
+    tokens = {
+        "input": usage.prompt_tokens if usage else None,
+        "output": usage.completion_tokens if usage else None,
+        "total": usage.total_tokens if usage else None,
+    } if usage else None
+
+    return resp.choices[0].message.content, tokens
