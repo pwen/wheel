@@ -36,3 +36,24 @@ def get_option_prices(contracts: list[OptionQuoteRequest]):
     for r in raw:
         r["symbol"] = r["symbol"].upper()
     return get_option_quotes(raw)
+
+
+@router.get("/option-iv")
+def get_option_iv(
+    symbol: str = Query(...),
+    expiry_date: str = Query(...),
+    strike: float = Query(...),
+    strategy_type: str = Query(...),
+):
+    """Fetch current IV for a specific option contract."""
+    symbol = symbol.upper()
+    contracts = [{
+        "trade_id": 0,
+        "symbol": symbol,
+        "expiry_date": expiry_date,
+        "strike": strike,
+        "strategy_type": strategy_type.upper(),
+    }]
+    quotes = get_option_quotes(contracts)
+    q = quotes.get(0)
+    return {"iv": q["iv"] if q else None}

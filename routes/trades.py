@@ -24,6 +24,7 @@ class TradeCreate(BaseModel):
     total_premium: Decimal
     opened_at: date
     spot_price_at_open: Optional[Decimal] = None
+    iv_at_open: Optional[Decimal] = None
 
 
 class TradeClose(BaseModel):
@@ -58,6 +59,7 @@ class TradeUpdate(BaseModel):
     total_premium: Optional[Decimal] = None
     opened_at: Optional[date] = None
     spot_price_at_open: Optional[Decimal] = None
+    iv_at_open: Optional[Decimal] = None
     # Closing fields (for editing closed trades — status is immutable)
     closed_at: Optional[date] = None
     closing_cost: Optional[Decimal] = None
@@ -115,6 +117,7 @@ def create_trade(body: TradeCreate, session: Session = Depends(get_session)):
         total_premium=body.total_premium,
         opened_at=body.opened_at,
         spot_price_at_open=body.spot_price_at_open,
+        iv_at_open=body.iv_at_open,
     )
     session.add(trade)
     session.commit()
@@ -154,7 +157,7 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
 
     for field in ["strategy_type", "strike", "expiry_date", "contracts",
                    "total_premium", "opened_at", "spot_price_at_open",
-                   "closed_at", "closing_cost", "closing_spot"]:
+                   "iv_at_open", "closed_at", "closing_cost", "closing_spot"]:
         val = getattr(body, field)
         if val is not None:
             setattr(trade, field, val)

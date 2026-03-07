@@ -162,6 +162,8 @@ function handleTradeFormSubmit(e) {
     body.total_premium = parseFloat(body.total_premium);
     if (body.spot_price_at_open) body.spot_price_at_open = parseFloat(body.spot_price_at_open);
     else delete body.spot_price_at_open;
+    if (body.iv_at_open) body.iv_at_open = parseFloat(body.iv_at_open);
+    else delete body.iv_at_open;
     // Closing fields (only sent when editing a closed trade)
     if (body.closing_cost) body.closing_cost = parseFloat(body.closing_cost);
     else delete body.closing_cost;

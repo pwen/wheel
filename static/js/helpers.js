@@ -20,6 +20,7 @@ function openModal(trade) {
         form.contracts.value = trade.contracts;
         form.total_premium.value = trade.total_premium;
         form.spot_price_at_open.value = trade.spot_price_at_open || "";
+        form.iv_at_open.value = trade.iv_at_open != null ? trade.iv_at_open : "";
         form.opened_at.value = trade.opened_at;
         // Show closing fields only for closed trades
         if (trade.status !== "open") {
@@ -76,8 +77,49 @@ async function fetchSpotPrice() {
     }
 }
 
+// Auto-fetch IV at open when symbol + expiry + strike + strategy_type are filled
+let _ivController = null;
+async function fetchIVAtOpen() {
+    const form = $("#trade-form");
+    const symbol = form.symbol.value.trim();
+    const expiry = form.expiry_date.value;
+    const strike = form.strike.value;
+    const strategyType = form.strategy_type.value;
+    if (!symbol || !expiry || !strike || !strategyType) return;
+
+    if (_ivController) _ivController.abort();
+    _ivController = new AbortController();
+
+    const input = form.iv_at_open;
+    const spinner = $("#iv-at-open-spinner");
+    spinner.classList.remove("hidden");
+    input.placeholder = "Fetching…";
+    try {
+        const res = await fetch(
+            `/api/option-iv?symbol=${encodeURIComponent(symbol)}&expiry_date=${expiry}&strike=${strike}&strategy_type=${strategyType}`,
+            { signal: _ivController.signal }
+        );
+        const data = await res.json();
+        if (data.iv != null && !input.value) {
+            input.value = data.iv;
+        }
+        input.placeholder = "Auto-fills when fields set";
+        spinner.classList.add("hidden");
+    } catch (e) {
+        if (e.name !== "AbortError") {
+            input.placeholder = "Auto-fills when fields set";
+            spinner.classList.add("hidden");
+        }
+    }
+}
+
 (function () {
     const form = $("#trade-form");
     form.symbol.addEventListener("change", fetchSpotPrice);
     form.opened_at.addEventListener("change", fetchSpotPrice);
+    // IV auto-fetch triggers
+    form.symbol.addEventListener("change", fetchIVAtOpen);
+    form.expiry_date.addEventListener("change", fetchIVAtOpen);
+    form.strike.addEventListener("change", fetchIVAtOpen);
+    form.strategy_type.addEventListener("change", fetchIVAtOpen);
 })();
