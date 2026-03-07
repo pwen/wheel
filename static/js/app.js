@@ -36,6 +36,10 @@ function restoreFromURL() {
     if (p.get("sort")) {
         sortCol = p.get("sort");
         sortAsc = p.get("dir") !== "desc";
+    } else {
+        // Default: soonest expiring first
+        sortCol = "dte";
+        sortAsc = true;
     }
 }
 

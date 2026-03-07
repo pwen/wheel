@@ -44,7 +44,7 @@ function applyOptionPrices() {
             uplCell.textContent = fmtMoney(upl);
             uplCell.classList.remove("text-green-600", "text-red-600");
             uplCell.classList.add(upl >= 0 ? "text-green-600" : "text-red-600");
-            uplPctCell.innerHTML = fmt(uplPct) + "%" + (uplPct >= 50 ? ' <span class="inline-flex items-center ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 animate-pulse" title="Consider BTC at 50%+ profit and redeploy capital">TAKE PROFIT</span>' : '');
+            uplPctCell.innerHTML = fmt(uplPct) + "%" + (uplPct >= 50 ? ' <span title="50%+ profit — consider BTC and redeploy">💰</span>' : '');
             uplPctCell.classList.remove("text-green-600", "text-red-600");
             uplPctCell.classList.add(uplPct >= 0 ? "text-green-600" : "text-red-600");
         } else {
