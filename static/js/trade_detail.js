@@ -388,18 +388,21 @@ function renderMarket(t, currentPrice, vixData) {
         };
         const rm = regimeMap[vixData.regime] || regimeMap.sideways;
         const v = vixData.vix;
+        const avg = vixData.avg5d;
+        const trendArrow = vixData.trend === "rising" ? "↑" : vixData.trend === "falling" ? "↓" : "→";
+        const trendWord = vixData.trend === "rising" ? "rising" : vixData.trend === "falling" ? "falling" : "stable";
         const vixTip = v >= 40
-            ? `VIX at ${v} — extreme fear. Sell far OTM with long DTE. Deploy only 20–30% of cash.`
+            ? `VIX at ${v} (5d avg: ${avg}) and ${trendWord}. Extreme fear — sell far OTM with long DTE. Deploy only 20–30% of cash.`
             : v >= 25
-                ? `VIX at ${v} — elevated fear. Go defensive: wide strikes, stagger entries. Deploy 30–40% of cash.`
+                ? `VIX at ${v} (5d avg: ${avg}) and ${trendWord}. Elevated fear — go defensive: wide strikes, stagger entries. Deploy 30–40%.`
                 : v >= 16
-                    ? `VIX at ${v} — sweet spot for selling premium. Standard wheel mechanics, deploy 80–100%.`
-                    : `VIX at ${v} — low vol, calm market. Premiums are thin — keep 50% in reserve.`;
+                    ? `VIX at ${v} (5d avg: ${avg}) and ${trendWord}. Sweet spot for selling premium. Standard wheel mechanics, deploy 80–100%.`
+                    : `VIX at ${v} (5d avg: ${avg}) and ${trendWord}. Low vol, calm market. Premiums are thin — keep 50% in reserve.`;
         items.push(`
         <div>
           ${tip("VIX", vixTip)}
-          <div class="text-lg font-semibold ${rm.color}">${v.toFixed(2)}</div>
-          <div class="text-xs text-gray-500">${rm.label} Market</div>
+          <div class="text-lg font-semibold ${rm.color}">${v.toFixed(2)} <span class="text-sm">${trendArrow}</span></div>
+          <div class="text-xs text-gray-500">${rm.label} · 5d avg: ${avg != null ? avg.toFixed(2) : "—"}</div>
         </div>`);
     }
 

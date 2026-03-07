@@ -62,11 +62,16 @@ function renderVixBanner(el) {
             return;
         }
         const r = REGIMES[data.regime] || REGIMES.sideways;
+        const trendArrow = data.trend === "rising" ? "↑" : data.trend === "falling" ? "↓" : "→";
+        const trendColor = data.trend === "rising" ? "text-red-600" : data.trend === "falling" ? "text-green-600" : "text-gray-500";
+        const avg5d = data.avg5d != null ? data.avg5d.toFixed(2) : "—";
         el.innerHTML = `
           <div class="relative group cursor-help">
             <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg border ${r.color}">
               <span class="w-2 h-2 rounded-full ${r.dotColor} animate-pulse"></span>
               <span class="font-semibold">VIX ${data.vix.toFixed(2)}</span>
+              <span class="font-bold ${trendColor}">${trendArrow}</span>
+              <span class="text-xs opacity-75">5d avg: ${avg5d}</span>
               <span class="hidden sm:inline">· ${r.label}</span>
             </div>
             <!-- Dropdown guidance panel -->
@@ -75,7 +80,8 @@ function renderVixBanner(el) {
                 <span class="font-bold text-base">${r.label}</span>
                 <span class="text-xs text-gray-400">${r.range}</span>
               </div>
-              <p class="text-sm mb-3 italic text-gray-600">${r.strategy}</p>
+              <p class="text-sm mb-2 italic text-gray-600">${r.strategy}</p>
+              <p class="text-xs text-gray-500 mb-3">Regime based on 5-day avg (${avg5d}) — VIX is ${data.trend === "rising" ? "rising ↑ (getting fearful)" : data.trend === "falling" ? "falling ↓ (calming down)" : "stable →"}.</p>
               <div class="grid grid-cols-2 gap-3 text-xs">
                 <div class="bg-purple-50 rounded p-2">
                   <div class="font-semibold text-purple-700 mb-1">CSP Rules</div>

@@ -63,21 +63,43 @@ def get_option_iv(
 
 @router.get("/vix")
 def get_vix():
-    """Fetch current VIX level and determine market regime."""
+    """Fetch current VIX level, 5-day average, trend, and market regime."""
     try:
         ticker = yf.Ticker("^VIX")
-        info = ticker.fast_info
-        vix = float(info.last_price)
-    except Exception:
-        return {"vix": None, "regime": None}
+        hist = ticker.history(period="10d")  # fetch extra in case of holidays
+        if hist.empty:
+            return {"vix": None, "avg5d": None, "trend": None, "regime": None}
 
-    if vix >= 40:
+        vix = float(hist["Close"].iloc[-1])
+
+        # 5-day average from closing prices
+        closes = hist["Close"].tail(5)
+        avg5d = float(closes.mean())
+
+        # Trend: compare current to 5d avg
+        pct_diff = ((vix - avg5d) / avg5d) * 100
+        if pct_diff > 5:
+            trend = "rising"
+        elif pct_diff < -5:
+            trend = "falling"
+        else:
+            trend = "stable"
+    except Exception:
+        return {"vix": None, "avg5d": None, "trend": None, "regime": None}
+
+    # Regime based on 5-day average (smoothed)
+    if avg5d >= 40:
         regime = "crisis"
-    elif vix >= 25:
+    elif avg5d >= 25:
         regime = "bear"
-    elif vix >= 16:
+    elif avg5d >= 16:
         regime = "sideways"
     else:
         regime = "bull"
 
-    return {"vix": round(vix, 2), "regime": regime}
+    return {
+        "vix": round(vix, 2),
+        "avg5d": round(avg5d, 2),
+        "trend": trend,
+        "regime": regime,
+    }
