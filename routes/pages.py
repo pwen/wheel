@@ -9,7 +9,8 @@ templates = Jinja2Templates(directory=Path(__file__).resolve().parent.parent / "
 
 # Tab name → URL path mapping
 _TAB_PATHS = {"/": "dashboard", "/trades": "trades", "/recap": "recap",
-              "/dashboard": "dashboard", "/lots": "lots", "/spots": "spots"}
+              "/dashboard": "dashboard", "/lots": "lots", "/spots": "spots",
+              "/holdings": "spots"}
 
 
 @router.get("/")
@@ -18,6 +19,7 @@ _TAB_PATHS = {"/": "dashboard", "/trades": "trades", "/recap": "recap",
 @router.get("/dashboard")
 @router.get("/lots")
 @router.get("/spots")
+@router.get("/holdings")
 async def tab_page(request: Request):
     tab = _TAB_PATHS.get(request.url.path, "trades")
     return templates.TemplateResponse("index.html", {"request": request, "active_tab": tab})

@@ -21,9 +21,10 @@ function toggleTheme() {
 window._sharedVixData = null;
 
 // URL state management
-const TAB_PATHS = { recap: "/recap", dashboard: "/dashboard", trades: "/trades", holdings: "/lots", spots: "/spots" };
+const TAB_PATHS = { recap: "/recap", dashboard: "/dashboard", trades: "/trades", holdings: "/lots", spots: "/holdings" };
 const PATH_TO_TAB = Object.fromEntries(Object.entries(TAB_PATHS).map(([k, v]) => [v, k]));
 PATH_TO_TAB["/"] = "dashboard";
+PATH_TO_TAB["/spots"] = "spots";
 
 function currentTab() {
     return PATH_TO_TAB[location.pathname] || "trades";
@@ -103,8 +104,38 @@ function switchTab(tab) {
     // Lazy-load tab content
     if (tab === "recap") initRecap();
     if (tab === "dashboard") initDashboard();
-    if (tab === "spots") initSpots();
+    if (tab === "spots") { initSpots(); initAllocations(); }
 }
+
+// Holdings sub-view toggle (By Allocation / Spots / Pairings)
+let _spotsSubView = "allocations";
+function switchSpotsView(view) {
+    _spotsSubView = view;
+    $$(".spots-view-btn").forEach(b => {
+        const active = b.dataset.view === view;
+        b.classList.toggle("bg-indigo-600", active);
+        b.classList.toggle("text-white", active);
+        b.classList.toggle("bg-gray-200", !active);
+        b.classList.toggle("dark:bg-gray-700", !active);
+        b.classList.toggle("text-gray-700", !active);
+        b.classList.toggle("dark:text-gray-300", !active);
+    });
+    const flatEl = document.getElementById("spots-flat-view");
+    const allocEl = document.getElementById("spots-alloc-view");
+    const pairingsEl = document.getElementById("spots-pairings-view");
+    const searchEl = document.getElementById("spots-search");
+    if (flatEl) flatEl.classList.toggle("hidden", view !== "spots");
+    if (allocEl) allocEl.classList.toggle("hidden", view !== "allocations");
+    if (pairingsEl) pairingsEl.classList.toggle("hidden", view !== "pairings");
+    if (searchEl) searchEl.classList.toggle("hidden", view !== "spots");
+
+    if (view === "allocations") initAllocations();
+    if (view === "pairings") initPairingsView();
+}
+
+$$(".spots-view-btn").forEach(btn => {
+    btn.addEventListener("click", () => switchSpotsView(btn.dataset.view));
+});
 
 $$(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {

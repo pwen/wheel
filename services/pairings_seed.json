@@ -1,0 +1,465 @@
+{
+    "_description": "Core/Proxy ETF pairings for wheel strategy. Core = lowest-cost LT hold. Proxy = high options liquidity for income.",
+    "pairings": [
+        {
+            "asset_class": "US Large Cap",
+            "group": "US Equity",
+            "core": [
+                {
+                    "symbol": "VOO",
+                    "note": "S&P 500, Vanguard"
+                },
+                {
+                    "symbol": "IVV",
+                    "note": "S&P 500, iShares"
+                },
+                {
+                    "symbol": "RSP",
+                    "note": "S&P 500 equal-weight, Invesco"
+                },
+                {
+                    "symbol": "VUG",
+                    "note": "Vanguard Growth"
+                },
+                {
+                    "symbol": "SCHG",
+                    "note": "Schwab Growth"
+                },
+                {
+                    "symbol": "QQQM",
+                    "note": "Nasdaq-100 mini, lower ER for LT hold"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "SPY",
+                    "note": "Most liquid options market in the world"
+                },
+                {
+                    "symbol": "QQQ",
+                    "note": "Nasdaq-100, extremely liquid options"
+                }
+            ]
+        },
+        {
+            "asset_class": "US Small Cap",
+            "group": "US Equity",
+            "core": [
+                {
+                    "symbol": "SCHA",
+                    "note": "Schwab US Small-Cap"
+                },
+                {
+                    "symbol": "VB",
+                    "note": "Vanguard Small-Cap"
+                },
+                {
+                    "symbol": "IJR",
+                    "note": "S&P SmallCap 600, iShares"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "IWM",
+                    "note": "Russell 2000, top-tier options liquidity"
+                }
+            ]
+        },
+        {
+            "asset_class": "Developed Markets",
+            "group": "International Equity",
+            "core": [
+                {
+                    "symbol": "VEA",
+                    "note": "Vanguard FTSE Developed ex-US"
+                },
+                {
+                    "symbol": "IEFA",
+                    "note": "iShares Core MSCI EAFE"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "EFA",
+                    "note": "MSCI EAFE, highly liquid options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Emerging Markets",
+            "group": "International Equity",
+            "core": [
+                {
+                    "symbol": "IEMG",
+                    "note": "iShares Core MSCI EM"
+                },
+                {
+                    "symbol": "VWO",
+                    "note": "Vanguard FTSE EM"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "EEM",
+                    "note": "MSCI EM, very liquid options"
+                }
+            ]
+        },
+        {
+            "asset_class": "China",
+            "group": "Single Country",
+            "core": [
+                {
+                    "symbol": "FLCH",
+                    "note": "Franklin FTSE China"
+                },
+                {
+                    "symbol": "MCHI",
+                    "note": "iShares MSCI China"
+                },
+                {
+                    "symbol": "KWEB",
+                    "note": "KraneShares CSI China Internet"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "FXI",
+                    "note": "China Large-Cap, top options liquidity"
+                },
+                {
+                    "symbol": "CQQQ",
+                    "note": "Invesco China Technology, decent options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Brazil",
+            "group": "Single Country",
+            "core": [
+                {
+                    "symbol": "EWZ",
+                    "note": "MSCI Brazil \u2014 no cheaper alternative with options"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "EWZ",
+                    "note": "Same ticker, solid options liquidity"
+                }
+            ]
+        },
+        {
+            "asset_class": "South Korea",
+            "group": "Single Country",
+            "core": [
+                {
+                    "symbol": "FLKR",
+                    "note": "Franklin FTSE South Korea"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "EWY",
+                    "note": "MSCI South Korea, decent options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Mexico",
+            "group": "Single Country",
+            "core": [
+                {
+                    "symbol": "EWW",
+                    "note": "MSCI Mexico \u2014 only liquid option"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "EWW",
+                    "note": "Same ticker, moderate options liquidity"
+                }
+            ]
+        },
+        {
+            "asset_class": "India",
+            "group": "Single Country",
+            "core": [
+                {
+                    "symbol": "FLIN",
+                    "note": "Franklin FTSE India"
+                },
+                {
+                    "symbol": "INDA",
+                    "note": "iShares MSCI India"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "INDA",
+                    "note": "MSCI India, best options liquidity for India"
+                }
+            ]
+        },
+        {
+            "asset_class": "Gold",
+            "group": "Commodities",
+            "core": [
+                {
+                    "symbol": "GLDM",
+                    "note": "SPDR Gold MiniShares, cheapest gold"
+                },
+                {
+                    "symbol": "IAUM",
+                    "note": "iShares Gold Micro"
+                },
+                {
+                    "symbol": "IAU",
+                    "note": "iShares Gold Trust"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "GLD",
+                    "note": "SPDR Gold, extremely liquid options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Silver",
+            "group": "Commodities",
+            "core": [
+                {
+                    "symbol": "SIVR",
+                    "note": "abrdn Physical Silver"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "SLV",
+                    "note": "iShares Silver, very liquid options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Oil & Energy",
+            "group": "Commodities",
+            "core": [
+                {
+                    "symbol": "XLE",
+                    "note": "Energy Select Sector SPDR"
+                },
+                {
+                    "symbol": "VDE",
+                    "note": "Vanguard Energy"
+                },
+                {
+                    "symbol": "XOP",
+                    "note": "SPDR S&P Oil & Gas E&P"
+                },
+                {
+                    "symbol": "GUNR",
+                    "note": "FlexShares Global Upstream Natural Resources"
+                },
+                {
+                    "symbol": "AMLP",
+                    "note": "Alerian MLP ETF, midstream energy MLPs"
+                },
+                {
+                    "symbol": "IXC",
+                    "note": "iShares Global Energy ETF"
+                },
+                {
+                    "symbol": "FENY",
+                    "note": "Fidelity MSCI Energy Index ETF"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "XOP",
+                    "note": "Oil & Gas E&P, higher vol, good premiums"
+                },
+                {
+                    "symbol": "USO",
+                    "note": "Liquid options, but LT hold not recommended"
+                }
+            ]
+        },
+        {
+            "asset_class": "Semiconductors",
+            "group": "Thematic / Sector",
+            "core": [
+                {
+                    "symbol": "SMH",
+                    "note": "VanEck Semiconductor"
+                },
+                {
+                    "symbol": "SOXX",
+                    "note": "iShares Semiconductor"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "SMH",
+                    "note": "Very liquid options, tight spreads"
+                }
+            ]
+        },
+        {
+            "asset_class": "Financials",
+            "group": "Thematic / Sector",
+            "core": [
+                {
+                    "symbol": "VFH",
+                    "note": "Vanguard Financials"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "XLF",
+                    "note": "Financial Select SPDR, top-tier options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Healthcare",
+            "group": "Thematic / Sector",
+            "core": [
+                {
+                    "symbol": "VHT",
+                    "note": "Vanguard Health Care"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "XLV",
+                    "note": "Health Care Select SPDR, liquid options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Real Estate",
+            "group": "Real Assets",
+            "core": [
+                {
+                    "symbol": "SCHH",
+                    "note": "Schwab US REIT"
+                },
+                {
+                    "symbol": "VNQ",
+                    "note": "Vanguard Real Estate"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "IYR",
+                    "note": "iShares US Real Estate, good options OI"
+                },
+                {
+                    "symbol": "VNQ",
+                    "note": "Decent options liquidity"
+                }
+            ]
+        },
+        {
+            "asset_class": "US Aggregate Bonds",
+            "group": "Fixed Income",
+            "core": [
+                {
+                    "symbol": "BND",
+                    "note": "Vanguard Total Bond"
+                },
+                {
+                    "symbol": "AGG",
+                    "note": "iShares Core US Agg Bond"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "TLT",
+                    "note": "20+ Year Treasury, very liquid options (different duration!)"
+                }
+            ]
+        },
+        {
+            "asset_class": "Utilities",
+            "group": "Thematic / Sector",
+            "core": [
+                {
+                    "symbol": "VPU",
+                    "note": "Vanguard Utilities"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "XLU",
+                    "note": "Utilities Select SPDR, liquid options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Industrials",
+            "group": "Thematic / Sector",
+            "core": [
+                {
+                    "symbol": "VIS",
+                    "note": "Vanguard Industrials"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "XLI",
+                    "note": "Industrial Select SPDR, liquid options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Clean Energy",
+            "group": "Thematic / Sector",
+            "core": [
+                {
+                    "symbol": "ICLN",
+                    "note": "iShares Global Clean Energy"
+                },
+                {
+                    "symbol": "QCLN",
+                    "note": "First Trust NASDAQ Clean Edge"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "TAN",
+                    "note": "Invesco Solar, high vol, decent options"
+                }
+            ]
+        },
+        {
+            "asset_class": "Cryto",
+            "group": "Digital Assets",
+            "core": [
+                {
+                    "symbol": "BTC",
+                    "note": "Bitcoin direct holding"
+                },
+                {
+                    "symbol": "IBIT",
+                    "note": "iShares Bitcoin Trust"
+                },
+                {
+                    "symbol": "FBTC",
+                    "note": "Fidelity Wise Origin Bitcoin"
+                }
+            ],
+            "proxy": [
+                {
+                    "symbol": "IBIT",
+                    "note": "Rapidly growing options market"
+                },
+                {
+                    "symbol": "BITO",
+                    "note": "ProShares Bitcoin futures, established options chain"
+                }
+            ]
+        }
+    ]
+}

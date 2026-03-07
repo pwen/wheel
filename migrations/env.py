@@ -11,7 +11,7 @@ from sqlmodel import SQLModel
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import all models so metadata is populated
-from models import Spot, Trade, TradeEvent, ShareLot  # noqa: F401
+from models import Spot, Trade, TradeEvent, ShareLot, Pairing  # noqa: F401
 
 config = context.config
 
