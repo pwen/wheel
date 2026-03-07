@@ -8,4 +8,4 @@ from services.yfinance import (  # noqa: F401
     get_spot_price_on_date,
     populate_spot_info,
 )
-from services.openai import get_perplexity_client  # noqa: F401
+from services.openai import get_perplexity_client, get_trade_recommendation  # noqa: F401

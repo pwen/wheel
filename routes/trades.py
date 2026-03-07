@@ -480,3 +480,16 @@ def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
     d["iv_rank_data"] = get_iv_rank(symbol)
 
     return d
+
+
+@router.post("/trades/recommendation")
+def get_trade_recommendation(trade_context: dict):
+    """Use Perplexity to generate a trade recommendation from pre-fetched data."""
+    from services.openai import get_trade_recommendation as _get_rec
+
+    try:
+        text = _get_rec(trade_context)
+    except RuntimeError as e:
+        raise HTTPException(503, str(e))
+
+    return {"recommendation": text}

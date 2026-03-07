@@ -40,11 +40,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const prices = priceRes.ok ? await priceRes.json() : {};
     const currentPrice = prices[t.symbol] || null;
 
+    // Store data for recommendation
+    window._tradeData = t;
+    window._currentPrice = currentPrice;
+
     renderHeader(t);
     renderGlance(t, currentPrice);
     renderRisk(t, currentPrice);
     renderMarket(t, currentPrice);
     renderEvents(t);
+
+    // Hide recommendation section for closed trades
+    if (t.status !== "open") {
+      const recSection = $("#recommendation-section");
+      if (recSection) recSection.classList.add("hidden");
+    }
 
     // VIX banner in header
     const vixEl = document.getElementById("vix-banner");
@@ -95,15 +105,24 @@ function renderGlance(t, currentPrice) {
   const plColor = unrealPL != null ? (unrealPL >= 0 ? "text-green-600" : "text-red-600") : "";
   const rocColor = returnOnCapital != null ? (returnOnCapital >= 0 ? "text-green-600" : "text-red-600") : "";
 
+  // Render profit alert into recommendation section
+  const alertEl = $("#rec-alert");
+  if (alertEl) {
+    if (unrealPLPct != null && elapsed <= totalDte / 2 && unrealPLPct >= 50) {
+      alertEl.innerHTML = `
+      <div class="px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
+        <span class="text-emerald-600 text-lg">💰</span>
+        <div>
+          <span class="font-semibold text-emerald-800">50%+ Profit in first half!</span>
+          <span class="text-sm text-emerald-700 ml-1">Consider buying to close at ${fmtPct(unrealPLPct)} profit and redeploying capital.</span>
+        </div>
+      </div>`;
+    } else {
+      alertEl.innerHTML = "";
+    }
+  }
+
   el.innerHTML = `
-    ${unrealPLPct != null && elapsed <= totalDte / 2 && unrealPLPct >= 50 ? `
-    <div class="mb-3 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
-      <span class="text-emerald-600 text-lg">💰</span>
-      <div>
-        <span class="font-semibold text-emerald-800">50%+ Profit in first half!</span>
-        <span class="text-sm text-emerald-700 ml-1">Consider buying to close at ${fmtPct(unrealPLPct)} profit and redeploying capital.</span>
-      </div>
-    </div>` : ''}
     <p class="text-base text-gray-900 mb-3">${obligation}</p>
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div>
@@ -122,7 +141,7 @@ function renderGlance(t, currentPrice) {
       </div>
       <div>
         ${(() => {
-          const tipFn = (label, desc) => `
+      const tipFn = (label, desc) => `
             <div class="text-xs text-gray-500 uppercase flex items-center gap-1">
               ${label}
               <span class="relative group cursor-help">
@@ -130,8 +149,8 @@ function renderGlance(t, currentPrice) {
                 <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-normal w-48 z-50 normal-case font-normal">${desc}</span>
               </span>
             </div>`;
-          return tipFn("Premium Yield", "Premium collected as a % of cash secured (strike × shares). Measures income earned relative to capital committed.");
-        })()}
+      return tipFn("Premium Yield", "Premium collected as a % of cash secured (strike × shares). Measures income earned relative to capital committed.");
+    })()}
         <div class="text-lg font-semibold">${(() => { const cash = Number(t.strike) * t.contracts * t.multiplier; return cash > 0 ? fmtPct(premiumCollected / cash * 100) : '—'; })()}</div>
       </div>
       <div>
@@ -441,4 +460,144 @@ function renderEvents(t) {
     `).join("");
 
   el.innerHTML = rows;
+}
+
+
+/* ---------- AI Recommendation ---------- */
+function _buildTradeContext(t, currentPrice) {
+  const live = t.live || {};
+  const mid = live.mid;
+  const premium = Number(t.total_premium);
+  const costToClose = mid != null ? mid * t.contracts * t.multiplier : null;
+  const upl = costToClose != null ? premium - costToClose : null;
+  const uplPct = upl != null && premium > 0 ? (upl / premium) * 100 : null;
+
+  let moneyness = null, dist = null, distPct = null;
+  if (currentPrice) {
+    dist = Math.abs(currentPrice - Number(t.strike));
+    distPct = (dist / Number(t.strike)) * 100;
+    moneyness = t.strategy_type === "CSP"
+      ? (currentPrice < Number(t.strike) ? "ITM" : "OTM")
+      : (currentPrice > Number(t.strike) ? "ITM" : "OTM");
+  }
+
+  return {
+    strategy_type: t.strategy_type,
+    strategy_label: t.strategy_type === "CSP" ? "Cash-Secured Put" : "Covered Call",
+    symbol: t.symbol,
+    spot_name: t.spot?.name || "?",
+    strike: Number(t.strike),
+    expiry_date: t.expiry_date,
+    remaining_dte: t.dte - t.days_in_trade,
+    contracts: t.contracts,
+    shares: t.contracts * t.multiplier,
+    total_premium: premium,
+    premium_per_share: t.premium_per_share,
+    break_even: t.break_even,
+    opened_at: t.opened_at,
+    days_in_trade: t.days_in_trade,
+    dte: t.dte,
+    status: t.status,
+    current_price: currentPrice,
+    moneyness,
+    dist_to_strike: dist,
+    dist_to_strike_pct: distPct,
+    iv_at_open: t.iv_at_open != null ? Number(t.iv_at_open) : null,
+    live: Object.keys(live).length ? live : null,
+    upl,
+    upl_pct: uplPct,
+    cost_to_close: costToClose,
+    iv_rank: t.iv_rank_data?.iv_rank ?? null,
+    theta_daily_income: live.theta ? Math.abs(live.theta) * t.contracts * t.multiplier : 0,
+  };
+}
+
+async function fetchRecommendation() {
+  const el = $("#td-recommendation");
+  const t = window._tradeData;
+  const currentPrice = window._currentPrice;
+
+  if (!t) {
+    el.innerHTML = `<p class="text-red-500 text-sm">Trade data not loaded yet.</p>`;
+    return;
+  }
+
+  el.innerHTML = `<p class="text-gray-500 text-sm animate-pulse">Analyzing trade data…</p>`;
+
+  try {
+    const res = await fetch("/api/trades/recommendation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(_buildTradeContext(t, currentPrice)),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to get recommendation");
+    }
+    const data = await res.json();
+    renderRecommendation(data.recommendation);
+  } catch (e) {
+    el.innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
+  }
+}
+
+function renderRecommendation(text) {
+  const el = $("#td-recommendation");
+
+  // Parse the structured response — each field is "LABEL: value" on one line
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+
+  // Extract fields
+  const extract = (prefix) => {
+    const line = lines.find(l => new RegExp(`^${prefix}:`, "i").test(l));
+    return line ? line.replace(new RegExp(`^${prefix}:\\s*`, "i"), "").trim() : null;
+  };
+
+  const rec = extract("RECOMMENDATION");
+  const reasoning = extract("REASONING");
+  const risk = extract("KEY RISK") || extract("KEY RISKS");
+  const rollDir = extract("ROLL DIRECTION");
+
+  // Color-code the recommendation
+  let recColor = "bg-gray-100 text-gray-700";
+  if (rec) {
+    const lower = rec.toLowerCase();
+    if (lower.includes("hold") || lower.includes("let expire")) recColor = "bg-green-100 text-green-700";
+    else if (lower.includes("buy to close") || lower.includes("close")) recColor = "bg-amber-100 text-amber-700";
+    else if (lower.includes("roll")) recColor = "bg-purple-100 text-purple-700";
+  }
+
+  let html = "";
+
+  if (rec) {
+    html += `<div class="mb-3"><span class="inline-block px-3 py-1.5 rounded-lg text-sm font-bold ${recColor}">${rec}</span></div>`;
+  }
+
+  if (reasoning) {
+    html += `<div class="mb-2">
+      <span class="text-xs font-semibold text-gray-500 uppercase">Reasoning:</span>
+      <span class="text-sm text-gray-700 ml-1">${reasoning}</span>
+    </div>`;
+  }
+
+  if (risk) {
+    html += `<div class="mb-2">
+      <span class="text-xs font-semibold text-gray-500 uppercase">Key Risk:</span>
+      <span class="text-sm text-gray-700 ml-1">${risk}</span>
+    </div>`;
+  }
+
+  if (rollDir) {
+    html += `<div class="mb-2">
+      <span class="text-xs font-semibold text-gray-500 uppercase">Roll Direction:</span>
+      <span class="text-sm text-gray-700 ml-1">${rollDir}</span>
+    </div>`;
+  }
+
+  // Fallback: if parsing failed, show raw text
+  if (!html) {
+    html = `<p class="text-sm text-gray-700 whitespace-pre-line">${text}</p>`;
+  }
+
+  el.innerHTML = html;
 }
