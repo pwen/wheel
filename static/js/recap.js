@@ -12,10 +12,10 @@ var initRecap = (function () {
 
     function card(label, value, sub, colorClass) {
         return `
-        <div class="bg-white border rounded-lg p-4">
-          <div class="text-xs text-gray-500 uppercase">${label}</div>
+        <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
+          <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">${label}</div>
           <div class="text-xl font-semibold ${colorClass || ''}">${value}</div>
-          ${sub ? `<div class="text-xs text-gray-500">${sub}</div>` : ""}
+          ${sub ? `<div class="text-xs text-gray-500 dark:text-gray-400">${sub}</div>` : ""}
         </div>`;
     }
 
@@ -49,13 +49,13 @@ var initRecap = (function () {
         if (!flagged.length) {
             if (!final) {
                 el.innerHTML = `
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                  <span class="text-gray-500">Fetching live prices…</span>
+                <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
+                  <span class="text-gray-500 dark:text-gray-400">Fetching live prices…</span>
                 </div>`;
             } else {
                 el.innerHTML = `
-                <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                  <span class="text-green-700 font-medium">✓ No action items today — all positions look good!</span>
+                <div class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-center">
+                  <span class="text-green-700 dark:text-green-400 font-medium">✓ No action items today — all positions look good!</span>
                 </div>`;
             }
             return;
@@ -79,12 +79,12 @@ var initRecap = (function () {
                 ? `<span class="px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">CSP</span>`
                 : `<span class="px-2 py-0.5 rounded text-xs font-semibold bg-sky-100 text-sky-700">CC</span>`;
             return `
-            <a href="/trade/${t.id}" class="block bg-white border rounded-lg p-3 hover:border-indigo-300 transition-colors">
+            <a href="/trade/${t.id}" class="block bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-3 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors">
               <div class="flex items-center justify-between flex-wrap gap-2">
                 <div class="flex items-center gap-2">
                   ${badge}
                   <span class="font-semibold">${t.symbol}</span>
-                  <span class="text-gray-500 text-sm">$${t.strike} exp ${t.expiry_date}</span>
+                  <span class="text-gray-500 dark:text-gray-400 text-sm">$${t.strike} exp ${t.expiry_date}</span>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">${tags}</div>
               </div>
@@ -109,12 +109,12 @@ var initRecap = (function () {
                 const dteColor = t.remaining_dte <= 2 ? "text-red-600 font-semibold" : t.remaining_dte <= 5 ? "text-amber-600" : "text-gray-600";
                 const dayLabel = t.remaining_dte === 0 ? "Today" : t.remaining_dte === 1 ? "Tomorrow" : `${t.remaining_dte}d`;
                 return `
-                <a href="/trade/${t.id}" class="block bg-white border rounded-lg p-3 hover:border-indigo-300 transition-colors">
+                <a href="/trade/${t.id}" class="block bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-3 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                       ${badge}
                       <span class="font-semibold">${t.symbol}</span>
-                      <span class="text-gray-500 text-sm">$${t.strike}</span>
+                      <span class="text-gray-500 dark:text-gray-400 text-sm">$${t.strike}</span>
                     </div>
                     <div class="flex items-center gap-3">
                       <span class="text-sm">${fmtMoney(t.total_premium)} premium</span>
@@ -145,7 +145,7 @@ var initRecap = (function () {
                 ? `<span class="px-1.5 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-700">CSP</span>`
                 : `<span class="px-1.5 py-0.5 rounded text-xs font-semibold bg-sky-100 text-sky-700">CC</span>`;
             return `
-            <tr class="border-t hover:bg-gray-50">
+            <tr class="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-2">${badge}</td>
               <td class="px-4 py-2 font-medium">
                 <a href="/trade/${t.id}" class="text-indigo-600 hover:underline">${t.symbol}</a>
@@ -161,7 +161,7 @@ var initRecap = (function () {
         el.innerHTML = `
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-50 text-left text-xs text-gray-500 uppercase">
+            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
               <th class="px-4 py-2">Type</th>
               <th class="px-4 py-2">Symbol</th>
               <th class="px-4 py-2 text-right">Strike</th>

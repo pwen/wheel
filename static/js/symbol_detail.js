@@ -46,7 +46,7 @@ function renderSDOpenTrades(trades) {
     const empty = $("#sd-open-empty");
     if (trades.length === 0) { empty.classList.remove("hidden"); return; }
     tbody.innerHTML = trades.map(t => `
-    <tr class="hover:bg-gray-50">
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
       <td class="px-3 py-2">
         <a href="/trade/${t.id}" class="inline-block px-2 py-0.5 rounded text-xs font-semibold hover:opacity-80
           ${t.strategy_type === 'CSP' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
@@ -68,7 +68,7 @@ function renderSDClosedTrades(trades) {
     const empty = $("#sd-closed-empty");
     if (trades.length === 0) { empty.classList.remove("hidden"); return; }
     tbody.innerHTML = trades.map(t => `
-    <tr class="hover:bg-gray-50">
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
       <td class="px-3 py-2">
         <a href="/trade/${t.id}" class="inline-block px-2 py-0.5 rounded text-xs font-semibold hover:opacity-80
           ${t.strategy_type === 'CSP' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
@@ -99,7 +99,7 @@ function renderSDLots(lots) {
     tbody.innerHTML = lots.map(lot => {
         const totalCost = lot.cost_per_share * lot.remaining_qty;
         return `
-    <tr class="hover:bg-gray-50">
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
       <td class="px-3 py-2 text-right">${lot.qty}</td>
       <td class="px-3 py-2 text-right">${lot.remaining_qty}</td>
       <td class="px-3 py-2 text-right">${fmtMoney(lot.cost_per_share)}</td>
@@ -171,8 +171,8 @@ function renderSDTotals(totals) {
     const all = [...row1, ...row2];
 
     $("#sd-totals").innerHTML = all.map(c => `
-    <div class="bg-gray-50 rounded-lg p-3">
-      <div class="text-xs text-gray-500 mb-1">${c.label}</div>
+    <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-3">
+      <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">${c.label}</div>
       <div class="text-lg font-semibold ${c.color || ''}" ${c.attr || ''}>${c.value}</div>
     </div>`).join("");
 }
@@ -203,22 +203,22 @@ function renderSDSpotInfo(spot) {
         : '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-700">Stock</span>';
 
     const items = [
-        spot.sector && `<span class="text-gray-500 text-sm">Sector:</span> <span class="text-sm">${spot.sector}</span>`,
-        spot.industry && `<span class="text-gray-500 text-sm">Industry:</span> <span class="text-sm">${spot.industry}</span>`,
-        spot.region && `<span class="text-gray-500 text-sm">Region:</span> <span class="text-sm">${spot.region}</span>`,
-        spot.market_cap && `<span class="text-gray-500 text-sm">Mkt Cap:</span> <span class="text-sm">${fmtBigNum(spot.market_cap)}</span>`,
-        spot.pe_ratio && `<span class="text-gray-500 text-sm">P/E:</span> <span class="text-sm">${fmt(spot.pe_ratio)}</span>`,
-        spot.beta && `<span class="text-gray-500 text-sm">Beta:</span> <span class="text-sm">${fmt(spot.beta, 3)}</span>`,
-        spot.avg_daily_volume && `<span class="text-gray-500 text-sm">Avg Vol:</span> <span class="text-sm">${fmtVol(spot.avg_daily_volume)}</span>`,
-        spot.aum && `<span class="text-gray-500 text-sm">AUM:</span> <span class="text-sm">${fmtBigNum(spot.aum)}</span>`,
-        spot.expense_ratio && `<span class="text-gray-500 text-sm">Expense:</span> <span class="text-sm">${(spot.expense_ratio * 100).toFixed(2)}%</span>`,
+        spot.sector && `<span class="text-gray-600 dark:text-gray-400 text-sm">Sector:</span> <span class="text-sm">${spot.sector}</span>`,
+        spot.industry && `<span class="text-gray-600 dark:text-gray-400 text-sm">Industry:</span> <span class="text-sm">${spot.industry}</span>`,
+        spot.region && `<span class="text-gray-600 dark:text-gray-400 text-sm">Region:</span> <span class="text-sm">${spot.region}</span>`,
+        spot.market_cap && `<span class="text-gray-600 dark:text-gray-400 text-sm">Mkt Cap:</span> <span class="text-sm">${fmtBigNum(spot.market_cap)}</span>`,
+        spot.pe_ratio && `<span class="text-gray-600 dark:text-gray-400 text-sm">P/E:</span> <span class="text-sm">${fmt(spot.pe_ratio)}</span>`,
+        spot.beta && `<span class="text-gray-600 dark:text-gray-400 text-sm">Beta:</span> <span class="text-sm">${fmt(spot.beta, 3)}</span>`,
+        spot.avg_daily_volume && `<span class="text-gray-600 dark:text-gray-400 text-sm">Avg Vol:</span> <span class="text-sm">${fmtVol(spot.avg_daily_volume)}</span>`,
+        spot.aum && `<span class="text-gray-600 dark:text-gray-400 text-sm">AUM:</span> <span class="text-sm">${fmtBigNum(spot.aum)}</span>`,
+        spot.expense_ratio && `<span class="text-gray-600 dark:text-gray-400 text-sm">Expense:</span> <span class="text-sm">${(spot.expense_ratio * 100).toFixed(2)}%</span>`,
     ].filter(Boolean);
 
     const optItems = [
-        spot.implied_volatility && `<span class="text-gray-500 text-sm">IV (30d ATM):</span> <span class="text-sm">${(spot.implied_volatility * 100).toFixed(1)}%</span>`,
-        spot.option_volume && `<span class="text-gray-500 text-sm">Opt Vol:</span> <span class="text-sm">${fmtVol(spot.option_volume)}</span>`,
-        spot.open_interest && `<span class="text-gray-500 text-sm">Open Int:</span> <span class="text-sm">${fmtVol(spot.open_interest)}</span>`,
-        spot.bid_ask_spread != null && `<span class="text-gray-500 text-sm">Bid-Ask:</span> <span class="text-sm">$${spot.bid_ask_spread.toFixed(2)}</span>`,
+        spot.implied_volatility && `<span class="text-gray-600 dark:text-gray-400 text-sm">IV (30d ATM):</span> <span class="text-sm">${(spot.implied_volatility * 100).toFixed(1)}%</span>`,
+        spot.option_volume && `<span class="text-gray-600 dark:text-gray-400 text-sm">Opt Vol:</span> <span class="text-sm">${fmtVol(spot.option_volume)}</span>`,
+        spot.open_interest && `<span class="text-gray-600 dark:text-gray-400 text-sm">Open Int:</span> <span class="text-sm">${fmtVol(spot.open_interest)}</span>`,
+        spot.bid_ask_spread != null && `<span class="text-gray-600 dark:text-gray-400 text-sm">Bid-Ask:</span> <span class="text-sm">$${spot.bid_ask_spread.toFixed(2)}</span>`,
     ].filter(Boolean);
 
     el.innerHTML = `

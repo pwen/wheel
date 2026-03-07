@@ -89,7 +89,9 @@ function setCloseAction(action) {
         b.classList.toggle("bg-purple-600", isActive && action === "rolled");
         b.classList.toggle("text-white", isActive);
         b.classList.toggle("bg-white", !isActive);
+        b.classList.toggle("dark:bg-gray-700", !isActive);
         b.classList.toggle("text-gray-700", !isActive);
+        b.classList.toggle("dark:text-gray-300", !isActive);
     });
 
     // Show the right form

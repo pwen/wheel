@@ -35,7 +35,7 @@ function renderOpenTrades(trades) {
 
     emptyMsg.classList.add("hidden");
     tbody.innerHTML = trades.map(t => `
-    <tr class="hover:bg-gray-50">
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
       <td class="px-3 py-2 font-medium"><a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a></td>
       <td class="px-3 py-2">
         <a href="/trade/${t.id}" class="inline-block px-2 py-0.5 rounded text-xs font-semibold hover:opacity-80
@@ -78,7 +78,7 @@ function renderClosedTrades(trades) {
 
     emptyMsg.classList.add("hidden");
     tbody.innerHTML = trades.map(t => `
-    <tr class="hover:bg-gray-50">
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
       <td class="px-3 py-2 font-medium"><a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a></td>
       <td class="px-3 py-2">
         <a href="/trade/${t.id}" class="inline-block px-2 py-0.5 rounded text-xs font-semibold hover:opacity-80
@@ -124,8 +124,11 @@ function switchTradeView(view) {
         b.classList.toggle("bg-indigo-600", active);
         b.classList.toggle("text-white", active);
         b.classList.toggle("bg-white", !active);
+        b.classList.toggle("dark:bg-gray-800", !active);
         b.classList.toggle("text-gray-700", !active);
+        b.classList.toggle("dark:text-gray-300", !active);
         b.classList.toggle("border", !active);
+        b.classList.toggle("dark:border-gray-600", !active);
     });
     $("#view-open").classList.toggle("hidden", view !== "open");
     $("#view-closed").classList.toggle("hidden", view !== "closed");

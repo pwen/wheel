@@ -114,11 +114,11 @@ function renderGlance(t, currentPrice) {
   if (alertEl) {
     if (unrealPLPct != null && elapsed <= totalDte / 2 && unrealPLPct >= 50) {
       alertEl.innerHTML = `
-      <div class="px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
+      <div class="px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg flex items-center gap-2">
         <span class="text-emerald-600 text-lg">💰</span>
         <div>
-          <span class="font-semibold text-emerald-800">50%+ Profit in first half!</span>
-          <span class="text-sm text-emerald-700 ml-1">Consider buying to close at ${fmtPct(unrealPLPct)} profit and redeploying capital.</span>
+          <span class="font-semibold text-emerald-800 dark:text-emerald-400">50%+ Profit in first half!</span>
+          <span class="text-sm text-emerald-700 dark:text-emerald-500 ml-1">Consider buying to close at ${fmtPct(unrealPLPct)} profit and redeploying capital.</span>
         </div>
       </div>`;
     } else {
@@ -127,20 +127,20 @@ function renderGlance(t, currentPrice) {
   }
 
   el.innerHTML = `
-    <p class="text-base text-gray-900 mb-3">${obligation}</p>
+    <p class="text-base text-gray-900 dark:text-gray-100 mb-3">${obligation}</p>
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div>
-        <div class="text-xs text-gray-500 uppercase">Premium Collected</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Premium Collected</div>
         <div class="text-lg font-semibold">${fmtMoney(premiumCollected)}</div>
       </div>
       <div>
-        <div class="text-xs text-gray-500 uppercase">Unrealized P/L</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Unrealized P/L</div>
         <div class="text-lg font-semibold ${plColor}">${isOpen && t.live ? fmtMoney(unrealPL) : '<span class="text-gray-400 text-sm">Fetching…</span>'}</div>
         ${unrealPLPct != null ? `<div class="text-xs ${plColor}">${fmtPct(unrealPLPct)} of premium</div>` : ""}
-        ${unrealPL != null ? `<div class="text-xs text-gray-500">Cost to close: ${fmtMoney(premiumCollected - unrealPL)}</div>` : ""}
+        ${unrealPL != null ? `<div class="text-xs text-gray-500 dark:text-gray-400">Cost to close: ${fmtMoney(premiumCollected - unrealPL)}</div>` : ""}
       </div>
       <div>
-        <div class="text-xs text-gray-500 uppercase">Return on Capital</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Return on Capital</div>
         <div class="text-lg font-semibold ${rocColor}">${returnOnCapital != null ? fmtPct(returnOnCapital) : '<span class="text-gray-400 text-sm">—</span>'}</div>
       </div>
       <div>
@@ -187,18 +187,18 @@ function renderGlance(t, currentPrice) {
     })()}
       </div>
       <div>
-        <div class="text-xs text-gray-500 uppercase">Time Elapsed</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Time Elapsed</div>
         <div class="text-lg font-semibold">${elapsed}d / ${totalDte}d</div>
-        <div class="text-xs ${remaining <= 14 ? 'text-red-600 font-semibold' : remaining <= 21 ? 'text-amber-600 font-medium' : 'text-gray-500'}">${remaining}d remaining${remaining <= 14 ? ' ⚠️' : remaining <= 21 ? ' ⏳' : ''}</div>
+        <div class="text-xs ${remaining <= 14 ? 'text-red-600 font-semibold' : remaining <= 21 ? 'text-amber-600 font-medium' : 'text-gray-500 dark:text-gray-400'}">${remaining}d remaining${remaining <= 14 ? ' \u26a0\ufe0f' : remaining <= 21 ? ' \u23f3' : ''}</div>
       </div>
     </div>
     <!-- Theta progress bar -->
     <div class="mt-4">
-      <div class="flex justify-between text-xs text-gray-500 mb-1">
+      <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
         <span>Opened ${t.opened_at}</span>
         <span>Expires ${t.expiry_date}</span>
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
+      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
         <div class="h-2 rounded-full ${remaining <= 14 ? 'bg-red-500' : remaining <= 21 ? 'bg-amber-400' : pctElapsed >= 80 ? 'bg-green-500' : pctElapsed >= 50 ? 'bg-yellow-400' : 'bg-blue-500'}"
              style="width: ${pctElapsed}%"></div>
       </div>
@@ -252,23 +252,23 @@ function renderRisk(t, currentPrice) {
   el.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
-        <div class="text-xs text-gray-500 uppercase">Status</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Status</div>
         <div class="text-lg font-semibold ${statusColor}">${statusIcon} ${status}</div>
       </div>
       <div>
-        <div class="text-xs text-gray-500 uppercase">Distance to Strike</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Distance to Strike</div>
         <div class="text-lg font-semibold">${fmtMoney(Math.abs(distToStrike))}</div>
-        <div class="text-xs text-gray-500">${distPct >= 0 ? "+" : ""}${fmtPct(distPct)} ${isCSP ? "above" : (distToStrike < 0 ? "below" : "above")}</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">${distPct >= 0 ? "+" : ""}${fmtPct(distPct)} ${isCSP ? "above" : (distToStrike < 0 ? "below" : "above")}</div>
       </div>
       <div>
-        <div class="text-xs text-gray-500 uppercase">Break-Even</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Break-Even</div>
         <div class="text-lg font-semibold">${fmtMoney(breakEven)}</div>
         <div class="text-xs ${beColor}">${fmtMoney(Math.abs(distToBreakEven))} ${isCSP ? (distToBreakEven > 0 ? "above" : "below") : (distToBreakEven < 0 ? "below" : "above")} current</div>
       </div>
     </div>
     <!-- Visual strike/price gauge -->
     <div class="mt-6 mb-2 relative h-8 mx-8">
-      <div class="absolute inset-0 bg-gray-100 rounded-lg"></div>
+      <div class="absolute inset-0 bg-gray-100 dark:bg-gray-700 rounded-lg"></div>
       ${renderGauge(strike, breakEven, currentPrice, isCSP)}
     </div>`;
 }
@@ -349,7 +349,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Option Mid Price", "Midpoint between bid and ask. This is what it would roughly cost to buy-to-close.")}
           <div class="text-lg font-semibold">${live.mid != null ? fmtMoney(live.mid) : "—"}</div>
-          <div class="text-xs text-gray-500">per share</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">per share</div>
         </div>`);
 
     // IV with change since open
@@ -361,9 +361,9 @@ function renderMarket(t, currentPrice) {
       const ivChColor = ivChange <= 0 ? "text-green-600" : "text-red-600";
       ivSub = `<div class="text-xs ${ivChColor}">${ivChange >= 0 ? "+" : ""}${fmt(ivChange, 1)}% since open (was ${fmtPct(ivAtOpen)})</div>`;
     } else if (ivAtOpen != null) {
-      ivSub = `<div class="text-xs text-gray-500">IV at open: ${fmtPct(ivAtOpen)}</div>`;
+      ivSub = `<div class="text-xs text-gray-500 dark:text-gray-400">IV at open: ${fmtPct(ivAtOpen)}</div>`;
     } else {
-      ivSub = spotIV ? `<div class="text-xs text-gray-500">ATM IV: ${fmtPct(spotIV * 100)}</div>` : "";
+      ivSub = spotIV ? `<div class="text-xs text-gray-500 dark:text-gray-400">ATM IV: ${fmtPct(spotIV * 100)}</div>` : "";
     }
     items.push(`
         <div>
@@ -380,8 +380,8 @@ function renderMarket(t, currentPrice) {
     items.push(`
         <div>
           ${tip("Theta", `This position earns ~$${fmt(dailyIncome, 2)}/day from time decay. The option loses $${fmt(Math.abs(th), 4)}/share daily, which is income for you as the seller.`)}
-          <div class="text-lg font-semibold text-green-600">$${fmt(dailyIncome, 2)}<span class="text-sm text-gray-500">/day</span></div>
-          <div class="text-xs text-gray-500">${fmt(th, 4)} per share</div>
+          <div class="text-lg font-semibold text-green-600">$${fmt(dailyIncome, 2)}<span class="text-sm text-gray-500 dark:text-gray-400">/day</span></div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">${fmt(th, 4)} per share</div>
         </div>`);
   }
 
@@ -393,7 +393,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Prob OTM", `${fmt(p, 1)}% chance the option expires worthless — meaning you keep the full premium. ${p >= 70 ? "Odds are in your favor." : p >= 50 ? "Roughly a coin flip." : "Assignment is likely — consider rolling or closing."}`)}
           <div class="text-lg font-semibold ${pColor}">${fmt(p, 1)}%</div>
-          <div class="text-xs text-gray-500">${p >= 70 ? "Favorable" : p >= 50 ? "Coin flip" : "At risk"}</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">${p >= 70 ? "Favorable" : p >= 50 ? "Coin flip" : "At risk"}</div>
         </div>`);
   }
 
@@ -404,7 +404,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Gamma", `For every $1 the stock moves, delta changes by ${fmt(live.gamma, 4)}. ${gRisk}`)}
           <div class="text-lg font-semibold">${fmt(live.gamma, 4)}</div>
-          <div class="text-xs text-gray-500">delta change per $1</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">delta change per $1</div>
         </div>`);
   }
 
@@ -419,7 +419,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("Bid-Ask Spread", spreadTip)}
           <div class="text-lg font-semibold ${spreadColor}">${fmtMoney(spread)}</div>
-          <div class="text-xs text-gray-500">${spreadLabel}${spreadPct != null ? ` · ${fmt(spreadPct, 1)}% of mid` : ""}</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">${spreadLabel}${spreadPct != null ? ` \u00b7 ${fmt(spreadPct, 1)}% of mid` : ""}</div>
         </div>`);
   }
 
@@ -448,7 +448,7 @@ function renderMarket(t, currentPrice) {
         <div>
           ${tip("IV Rank", `IV is at the ${fmt(rank, 0)}th percentile of its 52-week range. ${rank >= 50 ? "Elevated — good time to sell premium." : "Below average — less premium available."}`)}
           <div class="text-lg font-semibold ${rankColor}">${fmt(rank, 0)}%</div>
-          <div class="text-xs text-gray-500">${rankLabel}${ivData.current_iv != null ? ` · 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">${rankLabel}${ivData.current_iv != null ? ` \u00b7 30d HV: ${fmt(ivData.current_iv, 1)}%` : ""}</div>
         </div>`);
   }
 
@@ -460,7 +460,7 @@ function renderMarket(t, currentPrice) {
   const yahooUrl = `https://finance.yahoo.com/quote/${encodeURIComponent(t.symbol)}/options/`;
   el.innerHTML = `
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">${items.join("")}</div>
-    <div class="mt-3 pt-3 border-t text-right">
+    <div class="mt-3 pt-3 border-t dark:border-gray-700 text-right">
       <a href="${yahooUrl}" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-400 hover:text-indigo-600 inline-flex items-center gap-1">
         View full option chain on Yahoo Finance
         <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5-6H18m0 0v4.5m0-4.5-7.5 7.5"/></svg>
@@ -484,10 +484,10 @@ function renderEvents(t) {
   };
 
   const rows = events.map(e => `
-        <div class="flex items-center gap-3 py-2 border-b last:border-0">
+        <div class="flex items-center gap-3 py-2 border-b dark:border-gray-700 last:border-0">
             <div class="w-2 h-2 rounded-full ${e.event_type === 'open' ? 'bg-green-500' : e.event_type === 'close' ? 'bg-gray-400' : e.event_type === 'assignment' ? 'bg-red-500' : 'bg-blue-500'}"></div>
             <div class="text-sm font-medium w-24">${eventLabels[e.event_type] || e.event_type}</div>
-            <div class="text-sm text-gray-600">${e.event_date}</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">${e.event_date}</div>
             <div class="text-sm ml-auto">${e.qty} × ${fmtMoney(e.price)}</div>
         </div>
     `).join("");

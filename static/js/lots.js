@@ -46,7 +46,7 @@ function renderLots() {
     tbody.innerHTML = allLots.map(lot => {
         const totalCost = lot.cost_per_share * lot.remaining_qty;
         return `
-    <tr class="hover:bg-gray-50">
+    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
       <td class="px-3 py-2 font-medium"><a href="/symbol/${encodeURIComponent(lot.symbol)}" class="text-indigo-600 hover:underline">${lot.symbol}</a></td>
       <td class="px-3 py-2 text-right">${lot.qty}</td>
       <td class="px-3 py-2 text-right">${lot.remaining_qty}</td>

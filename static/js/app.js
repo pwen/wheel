@@ -1,3 +1,20 @@
+// ---- Theme toggle ----
+function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.classList.toggle('dark');
+    localStorage.theme = isDark ? 'dark' : 'light';
+    document.getElementById('theme-icon-sun').classList.toggle('hidden', !isDark);
+    document.getElementById('theme-icon-moon').classList.toggle('hidden', isDark);
+}
+// Init icon state on load
+(function () {
+    const isDark = document.documentElement.classList.contains('dark');
+    const sun = document.getElementById('theme-icon-sun');
+    const moon = document.getElementById('theme-icon-moon');
+    if (sun) sun.classList.toggle('hidden', !isDark);
+    if (moon) moon.classList.toggle('hidden', isDark);
+})();
+
 // ---- Wire up event listeners & init ----
 
 // Shared VIX data (fetched once, consumed by recap + dashboard)
@@ -57,6 +74,7 @@ function switchTab(tab) {
         b.classList.toggle("text-indigo-600", active);
         b.classList.toggle("border-transparent", !active);
         b.classList.toggle("text-gray-500", !active);
+        b.classList.toggle("dark:text-gray-400", !active);
     });
     ALL_TABS.forEach(t => {
         const el = document.getElementById("tab-" + t);
@@ -137,7 +155,7 @@ if (vixEl) {
     fetch("/api/vix").then(r => r.ok ? r.json() : null).then(data => {
         window._sharedVixData = data;
         if (data) renderVixBanner(vixEl, data);
-    }).catch(() => {});
+    }).catch(() => { });
 }
 
 // Market status

@@ -12,10 +12,10 @@ var initDashboard = (function () {
                  <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-normal w-48 z-50 normal-case font-normal">${tooltip}</span>
                </span>` : "";
         return `
-        <div class="bg-white border rounded-lg p-4">
-          <div class="text-xs text-gray-500 uppercase">${label}${tipHtml}</div>
+        <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
+          <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">${label}${tipHtml}</div>
           <div class="text-xl font-semibold ${colorClass || ''}">${value}</div>
-          ${sub ? `<div class="text-xs text-gray-500">${sub}</div>` : ""}
+          ${sub ? `<div class="text-xs text-gray-500 dark:text-gray-400">${sub}</div>` : ""}
         </div>`;
     }
 
@@ -143,22 +143,22 @@ var initDashboard = (function () {
         for (const [name, s] of Object.entries(byStrat)) {
             const badgeColor = name === "CSP" ? "bg-purple-100 text-purple-700" : "bg-sky-100 text-sky-700";
             items.push(`
-            <div class="bg-white border rounded-lg p-4">
+            <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-4">
               <div class="flex items-center gap-2 mb-3">
                 <span class="px-2 py-0.5 rounded text-xs font-semibold ${badgeColor}">${name}</span>
-                <span class="text-sm text-gray-500">${s.count} trades (${s.open} open)</span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">${s.count} trades (${s.open} open)</span>
               </div>
               <div class="grid grid-cols-3 gap-3 text-sm">
                 <div>
-                  <div class="text-xs text-gray-500 uppercase">Premium</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Premium</div>
                   <div class="font-semibold">${fmtMoney(s.premium)}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 uppercase">Realized P/L</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Realized P/L</div>
                   <div class="font-semibold ${plColor(s.realized_pl)}">${fmtMoney(s.realized_pl)}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 uppercase">Win Rate</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Win Rate</div>
                   <div class="font-semibold">${s.win_rate != null ? fmtPct(s.win_rate) : "—"}</div>
                 </div>
               </div>
@@ -172,7 +172,7 @@ var initDashboard = (function () {
         if (!symbols.length) { el.innerHTML = `<p class="text-gray-400 text-sm p-4">No trades yet.</p>`; return; }
 
         const rows = symbols.map(s => `
-          <tr class="border-t hover:bg-gray-50">
+          <tr class="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="px-4 py-2 font-medium">
               <a href="/symbol/${encodeURIComponent(s.symbol)}" class="text-indigo-600 hover:underline">${s.symbol}</a>
             </td>
@@ -187,7 +187,7 @@ var initDashboard = (function () {
         el.innerHTML = `
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-50 text-left text-xs text-gray-500 uppercase">
+            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
               <th class="px-4 py-2">Symbol</th>
               <th class="px-4 py-2 text-right">Trades</th>
               <th class="px-4 py-2 text-right">Premium</th>
@@ -229,7 +229,7 @@ var initDashboard = (function () {
         const rows = data.map(d => {
             cumPL += d.realized_pl;
             return `
-            <tr class="border-t hover:bg-gray-50">
+            <tr class="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-2 font-medium">${d.period}</td>
               <td class="px-4 py-2 text-right">${d.opened}</td>
               <td class="px-4 py-2 text-right">${d.closed}</td>
@@ -242,7 +242,7 @@ var initDashboard = (function () {
         return `
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-50 text-left text-xs text-gray-500 uppercase">
+            <tr class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
               <th class="px-4 py-2">${periodLabel}</th>
               <th class="px-4 py-2 text-right">Opened</th>
               <th class="px-4 py-2 text-right">Closed</th>
@@ -266,7 +266,7 @@ var initDashboard = (function () {
             const isPos = d.realized_pl >= 0;
             return `
             <div class="flex items-center gap-2 group">
-              <div class="w-20 text-xs text-gray-500 text-right shrink-0">${d.period}</div>
+              <div class="w-20 text-xs text-gray-500 dark:text-gray-400 text-right shrink-0">${d.period}</div>
               <div class="flex-1 flex items-center h-7">
                 <div class="${isPos ? 'bg-green-400' : 'bg-red-400'} h-5 rounded" style="width:${Math.max(pct, 2)}%"></div>
               </div>
@@ -279,9 +279,9 @@ var initDashboard = (function () {
         <div class="p-4 space-y-1">
           <div class="flex items-center gap-2 mb-2">
             <div class="w-20"></div>
-            <div class="flex-1 text-xs text-gray-400 uppercase">Realized P/L</div>
-            <div class="w-20 text-xs text-gray-400 uppercase text-right">P/L</div>
-            <div class="w-20 text-xs text-gray-400 uppercase text-right">Cum.</div>
+            <div class="flex-1 text-xs text-gray-400 dark:text-gray-500 uppercase">Realized P/L</div>
+            <div class="w-20 text-xs text-gray-400 dark:text-gray-500 uppercase text-right">P/L</div>
+            <div class="w-20 text-xs text-gray-400 dark:text-gray-500 uppercase text-right">Cum.</div>
           </div>
           ${bars}
         </div>`;
@@ -301,8 +301,8 @@ var initDashboard = (function () {
                 _currentPeriod = btn.dataset.period;
                 document.querySelectorAll("#period-toggle button").forEach(b => {
                     b.className = b === btn
-                        ? "px-2 py-1 rounded font-medium bg-white shadow text-gray-900"
-                        : "px-2 py-1 rounded font-medium text-gray-500 hover:text-gray-700";
+                        ? "px-2 py-1 rounded font-medium bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-gray-100"
+                        : "px-2 py-1 rounded font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200";
                 });
                 renderPLTime();
             });
@@ -312,8 +312,8 @@ var initDashboard = (function () {
                 _currentView = btn.dataset.view;
                 document.querySelectorAll("#view-toggle button").forEach(b => {
                     b.className = b === btn
-                        ? "px-2 py-1 rounded font-medium bg-white shadow text-gray-900"
-                        : "px-2 py-1 rounded font-medium text-gray-500 hover:text-gray-700";
+                        ? "px-2 py-1 rounded font-medium bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-gray-100"
+                        : "px-2 py-1 rounded font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200";
                 });
                 renderPLTime();
             });

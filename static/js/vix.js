@@ -76,30 +76,30 @@ function renderVixBanner(el, prefetchedData) {
               <span class="hidden sm:inline">· ${r.label}</span>
             </div>
             <!-- Dropdown guidance panel -->
-            <div class="hidden group-hover:block absolute right-0 top-full mt-1 w-96 bg-white border rounded-lg shadow-xl z-50 p-4 text-left text-gray-700">
+            <div class="hidden group-hover:block absolute right-0 top-full mt-1 w-96 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-xl z-50 p-4 text-left text-gray-700 dark:text-gray-200">
               <div class="flex items-center justify-between mb-2">
                 <span class="font-bold text-base">${r.label}</span>
                 <span class="text-xs text-gray-400">${r.range}</span>
               </div>
-              <p class="text-sm mb-2 italic text-gray-600">${r.strategy}</p>
-              <p class="text-xs text-gray-500 mb-3">Regime based on 5-day avg (${avg5d}) — VIX is ${data.trend === "rising" ? "rising ↑ (getting fearful)" : data.trend === "falling" ? "falling ↓ (calming down)" : "stable →"}.</p>
+              <p class="text-sm mb-2 italic text-gray-600 dark:text-gray-400">${r.strategy}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Regime based on 5-day avg (${avg5d}) — VIX is ${data.trend === "rising" ? "rising ↑ (getting fearful)" : data.trend === "falling" ? "falling ↓ (calming down)" : "stable →"}.</p>
               <div class="grid grid-cols-2 gap-3 text-xs">
-                <div class="bg-purple-50 rounded p-2">
-                  <div class="font-semibold text-purple-700 mb-1">CSP Rules</div>
+                <div class="bg-purple-50 dark:bg-purple-900/30 rounded p-2">
+                  <div class="font-semibold text-purple-700 dark:text-purple-400 mb-1">CSP Rules</div>
                   <div>Delta: ${r.csp.delta}</div>
                   <div>Distance: ${r.csp.distance}</div>
                   <div>DTE: ${r.csp.dte}</div>
-                  <div class="mt-1 text-gray-500">${r.csp.goal}</div>
+                  <div class="mt-1 text-gray-500 dark:text-gray-400">${r.csp.goal}</div>
                 </div>
-                <div class="bg-sky-50 rounded p-2">
-                  <div class="font-semibold text-sky-700 mb-1">CC Rules</div>
+                <div class="bg-sky-50 dark:bg-sky-900/30 rounded p-2">
+                  <div class="font-semibold text-sky-700 dark:text-sky-400 mb-1">CC Rules</div>
                   <div>Delta: ${r.cc.delta}</div>
                   <div>Distance: ${r.cc.distance}</div>
                   <div>DTE: ${r.cc.dte}</div>
-                  <div class="mt-1 text-gray-500">${r.cc.goal}</div>
+                  <div class="mt-1 text-gray-500 dark:text-gray-400">${r.cc.goal}</div>
                 </div>
               </div>
-              <div class="mt-3 text-xs text-gray-600 bg-gray-50 rounded p-2">
+              <div class="mt-3 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded p-2">
                 <span class="font-semibold">Sizing:</span> ${r.sizing}
               </div>
             </div>
