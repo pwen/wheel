@@ -42,3 +42,4 @@ Set these env vars on Railway:
 - `DATABASE_URL` — reference from a Railway Postgres service
 - `APP_PASSWORD` — single password for access control
 - `SECRET_KEY` — random string for cookie signing
+- `PERPLEXITY_API_KEY` -  key for communicating with perlexity api
