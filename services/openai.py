@@ -78,11 +78,18 @@ GREEKS:
 
     # P/L
     if tc.get("upl") is not None:
+        upl = tc['upl']
+        upl_pct = tc['upl_pct']
+        if upl >= 0:
+            pl_note = f"WINNING — {upl_pct:.1f}% of premium captured. Closing now locks in ${upl:.2f} profit."
+        else:
+            pl_note = f"LOSING — option has moved against you. Closing now realizes a ${abs(upl):.2f} loss."
         data_block += f"""
 
 P/L:
-- Unrealized P/L: ${tc['upl']:.2f} ({tc['upl_pct']:.1f}% of premium)
-- Cost to close at mid: ${tc['cost_to_close']:.2f}"""
+- Unrealized P/L: ${upl:.2f} ({upl_pct:.1f}% of premium)
+- Cost to close at mid: ${tc['cost_to_close']:.2f}
+- Status: {pl_note}"""
 
     # IV Rank
     if tc.get("iv_rank") is not None:
@@ -108,6 +115,7 @@ TRADER PHILOSOPHY:
 - Around 21 DTE, gamma risk picks up and it's a natural decision point — close winners, reassess losers.
 - Will roll CSPs down and out to defend against assignment, but only if it generates a net credit. No credit, no roll.
 - Rarely rolls covered calls — if the stock rallies past the strike above cost basis, let shares get called away and take the win.
+- Almost never buys to close at a loss. If the trade is underwater, hold for theta or roll for a credit. Assignment is fine — that's the whole point of the wheel. The only reason to close a loser is if the thesis on the underlying has fundamentally broken.
 - If assignment is unavoidable, accepts it and starts the other leg of the wheel.
 - Closes CSPs before binary events (earnings, major catalysts) to avoid gap risk. CCs can hold through unless already at high profit.
 - If holding assigned shares underwater, patient — waits for a green day to sell CCs rather than locking in losses.
