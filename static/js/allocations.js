@@ -69,6 +69,9 @@ function renderAllocations(data, priceMap) {
 
     const totalWheelValue = totalSharesValue + totalCspCommitted;
 
+    const sharesPct = totalWheelValue > 0 ? (totalSharesValue / totalWheelValue * 100).toFixed(0) : 0;
+    const cspPct = totalWheelValue > 0 ? (totalCspCommitted / totalWheelValue * 100).toFixed(0) : 0;
+
     // Summary bar
     summaryEl.innerHTML = `
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 px-4 py-3 flex items-center justify-between">
@@ -79,10 +82,10 @@ function renderAllocations(data, priceMap) {
                 </div>
                 <span class="text-gray-300 dark:text-gray-600">|</span>
                 <div class="text-xs text-gray-500 dark:text-gray-400">
-                    Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span>
+                    Shares <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalSharesValue)}</span> <span class="text-gray-400 dark:text-gray-500">(${sharesPct}%)</span>
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">
-                    CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span>
+                    CSP Committed <span class="font-medium text-gray-700 dark:text-gray-300">${fmtMoney(totalCspCommitted)}</span> <span class="text-gray-400 dark:text-gray-500">(${cspPct}%)</span>
                 </div>
             </div>
         </div>`;
