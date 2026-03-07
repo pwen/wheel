@@ -141,17 +141,46 @@ function renderGlance(t, currentPrice) {
       </div>
       <div>
         ${(() => {
-      const tipFn = (label, desc) => `
+      const cash = Number(t.strike) * t.contracts * t.multiplier;
+      const rawYield = cash > 0 ? (premiumCollected / cash) * 100 : null;
+      const annYield = rawYield != null && totalDte > 0 ? rawYield * (365 / totalDte) : null;
+      const isCSP = t.strategy_type === "CSP";
+
+      // Yield quality tiers (based on 30-45 DTE norms)
+      const thresholds = isCSP
+        ? { thin: 1, decent: 3, strong: 5 }   // CSP: <1% thin, 1-3% decent, 3-5% strong, 5%+ fat
+        : { thin: 0.5, decent: 1.5, strong: 3 }; // CC: <0.5% thin, 0.5-1.5% decent, 1.5-3% strong, 3%+ fat
+      let tier, tierColor, tierDesc;
+      if (rawYield == null) { tier = ""; tierColor = ""; tierDesc = ""; }
+      else if (rawYield < thresholds.thin) { tier = "Thin"; tierColor = "text-gray-500"; tierDesc = "low IV, slim pickings"; }
+      else if (rawYield < thresholds.decent) { tier = "Decent"; tierColor = "text-blue-600"; tierDesc = "standard wheel income"; }
+      else if (rawYield < thresholds.strong) { tier = "Strong"; tierColor = "text-green-600"; tierDesc = "elevated IV, sweet spot"; }
+      else { tier = "Fat"; tierColor = "text-emerald-600 font-bold"; tierDesc = "rich premium, high risk priced in"; }
+
+      const guide = isCSP
+        ? `CSP guide (30-45 DTE):
+< 1% → Thin (low IV)
+1-3% → Decent
+3-5% → Strong (sweet spot)
+5%+ → Fat (high risk premium)`
+        : `CC guide (30-45 DTE):
+< 0.5% → Thin
+0.5-1.5% → Decent
+1.5-3% → Strong
+3%+ → Fat`;
+
+      return `
             <div class="text-xs text-gray-500 uppercase flex items-center gap-1">
-              ${label}
+              Premium Yield
               <span class="relative group cursor-help">
                 <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
-                <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-normal w-48 z-50 normal-case font-normal">${desc}</span>
+                <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-pre-line w-52 z-50 normal-case font-normal">${guide}</span>
               </span>
-            </div>`;
-      return tipFn("Premium Yield", "Premium collected as a % of cash secured (strike × shares). Measures income earned relative to capital committed.");
+            </div>
+            <div class="text-lg font-semibold ${tierColor}">${rawYield != null ? fmtPct(rawYield) : '—'}</div>
+            ${annYield != null ? `<div class="text-xs text-gray-500">${fmtPct(annYield)} annualized</div>` : ""}
+            ${tier ? `<div class="text-xs ${tierColor}">${tier} — ${tierDesc}</div>` : ""}`;
     })()}
-        <div class="text-lg font-semibold">${(() => { const cash = Number(t.strike) * t.contracts * t.multiplier; return cash > 0 ? fmtPct(premiumCollected / cash * 100) : '—'; })()}</div>
       </div>
       <div>
         <div class="text-xs text-gray-500 uppercase">Time Elapsed</div>
