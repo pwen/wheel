@@ -27,7 +27,8 @@ function renderPerformance(p) {
             p.win_rate != null ? (p.win_rate >= 70 ? "text-green-600" : p.win_rate >= 50 ? "text-yellow-600" : "text-red-600") : ""),
         card("Avg Days in Trade", p.avg_days_in_trade != null ? p.avg_days_in_trade + "d" : "—"),
         card("Avg P/L per Trade", fmtMoney(p.avg_pl_per_trade), null, plColor(p.avg_pl_per_trade)),
-        card("Open Positions", p.open_trades, `${fmtMoney(p.capital_deployed)} deployed`),
+        card("Open Positions", p.open_trades),
+        card("Cash Reserved", fmtMoney(p.capital_deployed), "Backing open CSPs"),
     ].join("");
 }
 

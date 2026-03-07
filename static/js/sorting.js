@@ -16,10 +16,14 @@ function applySorting(trades) {
         if (va == null && vb == null) return 0;
         if (va == null) return 1;
         if (vb == null) return -1;
-        if (typeof va === "string") return va.localeCompare(vb);
-        return va - vb;
+        let cmp;
+        if (typeof va === "string") cmp = va.localeCompare(vb);
+        else cmp = va - vb;
+        if (cmp !== 0) return sortAsc ? cmp : -cmp;
+        // Secondary sort: symbol ascending
+        const sa = (a.symbol || "").localeCompare(b.symbol || "");
+        return sa;
     });
-    if (!sortAsc) sorted.reverse();
     return sorted;
 }
 
