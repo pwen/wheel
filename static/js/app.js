@@ -25,15 +25,26 @@ const TAB_PATHS = { recap: "/recap", dashboard: "/dashboard", trades: "/trades",
 const PATH_TO_TAB = Object.fromEntries(Object.entries(TAB_PATHS).map(([k, v]) => [v, k]));
 PATH_TO_TAB["/"] = "dashboard";
 PATH_TO_TAB["/spots"] = "spots";
+PATH_TO_TAB["/holdings/spots"] = "spots";
+PATH_TO_TAB["/holdings/pairings"] = "spots";
+
+const PATH_TO_SUBVIEW = {
+    "/holdings": "allocations",
+    "/holdings/spots": "spots",
+    "/holdings/pairings": "pairings",
+    "/spots": "spots",
+};
+const SUBVIEW_PATHS = { allocations: "/holdings", spots: "/holdings/spots", pairings: "/holdings/pairings" };
 
 function currentTab() {
-    return PATH_TO_TAB[location.pathname] || "trades";
+    const p = location.pathname;
+    return PATH_TO_TAB[p] || "trades";
 }
 
 function updateURL(push = false) {
     const activeTab = document.querySelector(".tab-btn.text-indigo-600");
     const tab = activeTab ? activeTab.dataset.tab : "trades";
-    const basePath = TAB_PATHS[tab] || "/trades";
+    const basePath = (tab === "spots") ? (SUBVIEW_PATHS[_spotsSubView] || "/holdings") : (TAB_PATHS[tab] || "/trades");
 
     const params = new URLSearchParams();
     // Trade view (open / closed)
@@ -67,6 +78,9 @@ function restoreFromURL() {
     const p = new URLSearchParams(location.search);
     // Tab from pathname
     switchTab(currentTab());
+    // Holdings sub-view from pathname
+    const subView = PATH_TO_SUBVIEW[location.pathname];
+    if (subView) switchSpotsView(subView);
     // Trade view
     switchTradeView(p.get("view") || "open");
     // Filters (spot filter is populated after trades load, so set it later)
@@ -134,7 +148,10 @@ function switchSpotsView(view) {
 }
 
 $$(".spots-view-btn").forEach(btn => {
-    btn.addEventListener("click", () => switchSpotsView(btn.dataset.view));
+    btn.addEventListener("click", () => {
+        switchSpotsView(btn.dataset.view);
+        updateURL(true);
+    });
 });
 
 $$(".tab-btn").forEach(btn => {

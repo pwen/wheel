@@ -128,7 +128,7 @@ function renderAllocations(data, priceMap) {
             const allEntries = [
                 ...ac.core.map(e => ({ ...e, role: "core" })),
                 ...ac.proxy.map(e => ({ ...e, role: "proxy" })),
-            ];
+            ].filter(e => e.shares > 0 || e.has_active_trades);
 
             for (const e of allEntries) {
                 const roleBadge = e.role === "core"

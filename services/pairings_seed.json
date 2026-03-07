@@ -120,6 +120,10 @@
                 {
                     "symbol": "KWEB",
                     "note": "KraneShares CSI China Internet"
+                },
+                {
+                    "symbol": "KBA",
+                    "note": "KraneShares Bosera MSCI China A"
                 }
             ],
             "proxy": [
