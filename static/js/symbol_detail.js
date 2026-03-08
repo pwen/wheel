@@ -36,7 +36,10 @@ async function loadSymbolDetail() {
         renderSDSpotInfo(data.spot);
         renderSDOpenTrades(data.open_trades);
         renderSDClosedTrades(data.closed_trades);
-        renderSDTotals(data.totals);
+        const cashReservedCsp = (data.open_trades || [])
+            .filter(t => t.strategy_type === "CSP")
+            .reduce((sum, t) => sum + (Number(t.strike) * Number(t.contracts) * Number(t.multiplier || 100)), 0);
+        renderSDTotals(data.totals, cashReservedCsp);
         loadWheelGuidance(symbol);
 
         if (data.lots.length > 0) {
@@ -51,110 +54,49 @@ document.addEventListener("DOMContentLoaded", loadSymbolDetail);
 
 
 async function loadWheelGuidance(symbol) {
-    const guidanceEl = $("#sd-wheel-guidance");
-    const candidateEl = $("#sd-wheel-candidates");
-    if (!guidanceEl || !candidateEl) return;
+    const cardEl = $("#sd-wheel-card");
+    if (!cardEl) return;
 
     try {
         const res = await fetch(`/api/spots/${encodeURIComponent(symbol)}/wheel-guidance`);
         if (!res.ok) throw new Error("Failed to load wheel guidance");
         const data = await res.json();
-        renderSDWheelGuidance(data);
-        renderSDWheelCandidates(data);
+        renderSDWheelCard(data);
     } catch (e) {
-        guidanceEl.innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
-        candidateEl.innerHTML = `<p class="text-gray-500 text-sm">Candidates unavailable.</p>`;
+        cardEl.innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
     }
 }
 
 
-function renderSDWheelGuidance(data) {
-    const el = $("#sd-wheel-guidance");
+function renderSDWheelCard(data) {
+    const el = $("#sd-wheel-card");
     if (!el) return;
 
-    const phase1 = data.phase1 || {};
-    const setup = phase1.setup || {};
-    const context = data.context || {};
     const regime = data.regime || {};
+    const sentiment = data.sentiment || {};
+    const context = data.context || {};
 
-    const actionLabels = {
-        hold_or_manage_current: "Manage Current Position First",
-        sell_next: "Sell Next Option",
-    };
-    const confidenceCls =
-        phase1.confidence === "high" ? "text-green-700 bg-green-100" :
-            phase1.confidence === "low" ? "text-red-700 bg-red-100" :
-                "text-amber-700 bg-amber-100";
+    const legHtml = (title, leg, theme) => {
+        const target = leg.target || {};
+        const reasons = (leg.reasons || []).map(r => `<li class="text-sm text-gray-700 dark:text-gray-300">${r}</li>`).join("");
+        const flags = (leg.flags || []).map(f => `<li class="text-sm text-red-700 dark:text-red-400">${f}</li>`).join("");
+        const candidates = leg.candidates || [];
 
-    const reasons = (phase1.reasons || []).map(r => `<li class="text-sm text-gray-700 dark:text-gray-300">${r}</li>`).join("");
-    const blocks = (phase1.blocking_flags || []).map(f => `<li class="text-sm text-red-700 dark:text-red-400">${f}</li>`).join("");
+        const recBadge = {
+            consider: "bg-green-100 text-green-700",
+            consider_small: "bg-emerald-100 text-emerald-700",
+            wait: "bg-amber-100 text-amber-700",
+            not_available: "bg-gray-200 text-gray-700",
+        }[leg.recommendation] || "bg-gray-100 text-gray-700";
 
-    const deltaMin = setup.delta_min_abs != null ? Number(setup.delta_min_abs).toFixed(2) : "—";
-    const deltaMax = setup.delta_max_abs != null ? Number(setup.delta_max_abs).toFixed(2) : "—";
+        const recLabel = {
+            consider: "Consider Selling",
+            consider_small: "Consider Small / Selective",
+            wait: "Wait",
+            not_available: "Not Available",
+        }[leg.recommendation] || "Review";
 
-    el.innerHTML = `
-            <div class="space-y-4">
-                <div class="flex items-center justify-between gap-2">
-                <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Phase 1 · Wheel Coach</div>
-                <span class="px-2 py-0.5 rounded text-xs font-semibold ${confidenceCls}">${(phase1.confidence || "medium").toUpperCase()} CONFIDENCE</span>
-                </div>
-                <div>
-                <span class="inline-block px-2 py-1 rounded text-sm font-semibold bg-indigo-100 text-indigo-700">${actionLabels[phase1.action] || "Guidance"}</span>
-                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Next lane: <span class="font-semibold">${phase1.next_strategy || "—"}</span></span>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Regime</div>
-                    <div class="text-sm font-semibold">${regime.regime || "—"}${regime.vix != null ? ` (VIX ${regime.vix})` : ""}</div>
-                </div>
-                <div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target DTE</div>
-                    <div class="text-sm font-semibold">${setup.dte_min ?? "—"} - ${setup.dte_max ?? "—"} days</div>
-                </div>
-                <div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target Delta</div>
-                    <div class="text-sm font-semibold">${deltaMin} - ${deltaMax} (abs)</div>
-                </div>
-                <div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Shares / Basis</div>
-                    <div class="text-sm font-semibold">${context.shares_held ?? 0} / ${context.avg_cost != null ? fmtMoney(context.avg_cost) : "—"}</div>
-                </div>
-                </div>
-                ${reasons
-            ? `<div>
-                        <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold mb-1.5">Why</div>
-                        <ul class="list-disc pl-5 space-y-1">${reasons}</ul>
-                    </div>`
-            : '<p class="text-sm text-gray-500">No additional context.</p>'}
-                ${blocks
-            ? `<div class="pt-3 border-t dark:border-gray-700">
-                        <div class="text-xs uppercase text-red-600 font-semibold mb-1.5">Do Not Trade If</div>
-                        <ul class="list-disc pl-5 space-y-1">${blocks}</ul>
-                    </div>`
-            : ""}
-            </div>
-        `;
-}
-
-
-function renderSDWheelCandidates(data) {
-    const el = $("#sd-wheel-candidates");
-    if (!el) return;
-
-    const phase2 = data.phase2 || {};
-    const candidates = phase2.candidates || [];
-    const notes = phase2.notes || [];
-
-    if (!candidates.length) {
-        el.innerHTML = `
-                <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Phase 2 · Candidate Contracts</div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">No candidates found in the current lane.</p>
-                ${notes.length ? `<ul class="mt-3 list-disc pl-5 space-y-1">${notes.map(n => `<li class="text-xs text-gray-500 dark:text-gray-400">${n}</li>`).join("")}</ul>` : ""}
-            `;
-        return;
-    }
-
-    const rows = candidates.map(c => `
+        const rows = candidates.slice(0, 2).map(c => `
             <tr class="border-t dark:border-gray-700">
                 <td class="px-3 py-2 text-sm font-medium">${c.expiry}</td>
                 <td class="px-3 py-2 text-sm text-right">${c.dte}</td>
@@ -165,31 +107,76 @@ function renderSDWheelCandidates(data) {
                 <td class="px-3 py-2 text-sm text-right">${c.prob_otm != null ? `${Number(c.prob_otm).toFixed(1)}%` : "—"}</td>
                 <td class="px-3 py-2 text-sm text-right ${c.spread_pct != null && c.spread_pct > 25 ? "text-red-600" : ""}">${c.spread_pct != null ? `${Number(c.spread_pct).toFixed(1)}%` : "—"}</td>
                 <td class="px-3 py-2 text-sm text-right">${(c.open_interest ?? 0).toLocaleString()}</td>
+                <td class="px-3 py-2 text-sm text-right">${(c.volume ?? 0).toLocaleString()}</td>
             </tr>
         `).join("");
 
-    el.innerHTML = `
-            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Phase 2 · Candidate Contracts</div>
-            <div class="overflow-x-auto rounded-lg border dark:border-gray-700">
-                <table class="w-full text-xs">
-                    <thead class="bg-gray-50 dark:bg-gray-700/50">
-                        <tr class="text-gray-500 dark:text-gray-400 uppercase text-[11px]">
-                            <th class="px-3 py-2 text-left">Expiry</th>
-                            <th class="px-3 py-2 text-right">DTE</th>
-                            <th class="px-3 py-2 text-right">Strike</th>
-                            <th class="px-3 py-2 text-right">Delta</th>
-                            <th class="px-3 py-2 text-right">Mid</th>
-                            <th class="px-3 py-2 text-right">Yield</th>
-                            <th class="px-3 py-2 text-right">Prob OTM</th>
-                            <th class="px-3 py-2 text-right">Spread</th>
-                            <th class="px-3 py-2 text-right">OI</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
+        return `
+            <div class="rounded-lg border ${theme.border} ${theme.bg} p-4 space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="font-semibold ${theme.text}">${title}</div>
+                    <span class="px-2 py-0.5 rounded text-xs font-semibold ${recBadge}">${recLabel}</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Available</div>
+                        <div class="text-sm font-semibold">${leg.available_contracts ?? 0} contract(s)</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target DTE</div>
+                        <div class="text-sm font-semibold">${target.dte_min ?? "—"}-${target.dte_max ?? "—"}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target Delta</div>
+                        <div class="text-sm font-semibold">${target.delta_min_abs != null ? Number(target.delta_min_abs).toFixed(2) : "—"}-${target.delta_max_abs != null ? Number(target.delta_max_abs).toFixed(2) : "—"}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Eligible</div>
+                        <div class="text-sm font-semibold">${leg.eligible ? "Yes" : "No"}</div>
+                    </div>
+                </div>
+                ${reasons ? `<div><div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold mb-1">Guidance</div><ul class="list-disc pl-5 space-y-1">${reasons}</ul></div>` : ""}
+                ${flags ? `<div><div class="text-xs uppercase text-red-600 font-semibold mb-1">Warnings</div><ul class="list-disc pl-5 space-y-1">${flags}</ul></div>` : ""}
+                ${rows ? `
+                    <div class="overflow-x-auto rounded-lg border dark:border-gray-700">
+                        <table class="w-full text-xs">
+                            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                                <tr class="text-gray-500 dark:text-gray-400 uppercase text-[11px]">
+                                    <th class="px-3 py-2 text-left">Expiry</th>
+                                    <th class="px-3 py-2 text-right">DTE</th>
+                                    <th class="px-3 py-2 text-right">Strike</th>
+                                    <th class="px-3 py-2 text-right">Delta</th>
+                                    <th class="px-3 py-2 text-right">Mid</th>
+                                    <th class="px-3 py-2 text-right">Yield</th>
+                                    <th class="px-3 py-2 text-right">Prob OTM</th>
+                                    <th class="px-3 py-2 text-right">Spread</th>
+                                    <th class="px-3 py-2 text-right">OI</th>
+                                    <th class="px-3 py-2 text-right">Vol</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>`
+                : ""}
             </div>
-            ${notes.length ? `<ul class="mt-3 list-disc pl-5 space-y-1">${notes.map(n => `<li class="text-xs text-gray-500 dark:text-gray-400">${n}</li>`).join("")}</ul>` : ""}
         `;
+    };
+
+    el.innerHTML = `
+        <div class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Regime And Sentiment</div>
+                    <div class="text-sm font-semibold">${regime.regime || "—"}${regime.vix != null ? ` (VIX ${regime.vix})` : ""} · ${sentiment.label || "neutral"}</div>
+                </div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">
+                    Shares: <span class="font-semibold">${context.shares_held ?? 0}</span> · Open CC: <span class="font-semibold">${context.open_cc_contracts ?? 0}</span> · Open CSP: <span class="font-semibold">${context.open_csp_contracts ?? 0}</span>
+                </div>
+            </div>
+            ${legHtml("Covered Call (CC)", data.cc || {}, { border: "border-sky-200 dark:border-sky-800", bg: "bg-sky-50/40 dark:bg-sky-900/15", text: "text-sky-700 dark:text-sky-300" })}
+            ${legHtml("Cash-Secured Put (CSP)", data.csp || {}, { border: "border-purple-200 dark:border-purple-800", bg: "bg-purple-50/40 dark:bg-purple-900/15", text: "text-purple-700 dark:text-purple-300" })}
+        </div>
+    `;
 }
 
 function renderSDOpenTrades(trades) {
@@ -269,6 +256,9 @@ async function loadSDLotPrices(symbol, lots) {
         const totalShareCost = lots.reduce((s, l) => s + l.cost_per_share * l.remaining_qty, 0);
         const shareUpl = totalShareMktVal - totalShareCost;
 
+        const totalsEl = $("#sd-totals");
+        const cashReserved = totalsEl ? Number(totalsEl.dataset.cashReserved || 0) : 0;
+
         const mktValCard = document.querySelector("#sd-totals [data-sd-mktval]");
         if (mktValCard) mktValCard.textContent = fmtMoney(totalShareMktVal);
 
@@ -278,26 +268,38 @@ async function loadSDLotPrices(symbol, lots) {
             sharePLCard.classList.remove("text-green-600", "text-red-600");
             sharePLCard.classList.add(shareUpl >= 0 ? "text-green-600" : "text-red-600");
         }
+
+        const totalCommitCard = document.querySelector("#sd-totals [data-sd-total-commitment]");
+        if (totalCommitCard) totalCommitCard.textContent = fmtMoney(totalShareMktVal + cashReserved);
     } catch { /* ignore */ }
 }
 
-function renderSDTotals(totals) {
+function renderSDTotals(totals, cashReservedCsp = 0) {
     const optionsIncome = totals.total_premium_collected - totals.total_closing_cost;
+    const hasShares = Number(totals.total_shares || 0) > 0;
+    const initialMktValue = hasShares ? null : 0;
+    const initialCommitment = hasShares ? null : cashReservedCsp;
+
+    const totalsEl = $("#sd-totals");
+    if (totalsEl) totalsEl.dataset.cashReserved = String(cashReservedCsp);
+
     const row1 = [
         { label: "Options Income", value: fmtMoney(optionsIncome), color: optionsIncome >= 0 ? "text-green-600" : "text-red-600" },
         { label: "Realized P/L", value: fmtMoney(totals.total_realized_pl), color: totals.total_realized_pl >= 0 ? "text-green-600" : "text-red-600" },
         { label: "Open Trades", value: totals.open_trade_count },
         { label: "Closed Trades", value: totals.closed_trade_count },
+        { label: "Cash Reserved (CSP)", value: fmtMoney(cashReservedCsp), color: "text-amber-700 dark:text-amber-400", attr: 'data-sd-cash-reserved' },
+        { label: "Total Commitment", value: initialCommitment != null ? fmtMoney(initialCommitment) : "…", attr: 'data-sd-total-commitment', color: "text-indigo-700 dark:text-indigo-400" },
     ];
     const row2 = [
         { label: "Shares Held", value: totals.total_shares },
-        { label: "Market Value", value: "…", attr: 'data-sd-mktval' },
+        { label: "Market Value", value: initialMktValue != null ? fmtMoney(initialMktValue) : "…", attr: 'data-sd-mktval' },
         { label: "Cost Basis", value: fmtMoney(totals.total_share_cost) },
-        { label: "Unrealized P/L", value: "…", attr: 'data-sd-share-pl', color: "" },
+        { label: "Unrealized P/L", value: initialMktValue != null ? fmtMoney(initialMktValue - Number(totals.total_share_cost || 0)) : "…", attr: 'data-sd-share-pl', color: "" },
     ];
     const all = [...row1, ...row2];
 
-    $("#sd-totals").innerHTML = all.map(c => `
+    totalsEl.innerHTML = all.map(c => `
     <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-3">
       <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">${c.label}</div>
       <div class="text-lg font-semibold ${c.color || ''}" ${c.attr || ''}>${c.value}</div>

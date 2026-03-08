@@ -8,7 +8,7 @@ from datetime import date, datetime
 import yfinance as yf
 from sqlmodel import Session, select
 
-from models import ShareLot, Spot, Trade, TradeStatus
+from models import ShareLot, Spot, StrategyType, Trade, TradeStatus
 from services.yfinance import compute_greeks
 
 
@@ -75,72 +75,148 @@ def _pick_next_strategy(shares_held: int) -> str:
     return "CC" if shares_held >= 100 else "CSP"
 
 
-def _build_phase1_guidance(trade: Trade, detail: dict, shares_held: int, avg_cost: float | None, regime: str) -> dict:
-    live = detail.get("live") or {}
-    remaining_dte = max(0, detail.get("dte", 0) - detail.get("days_in_trade", 0))
-    strategy = _pick_next_strategy(shares_held)
+def _get_spot_sentiment(symbol: str) -> dict:
+    """Simple price-action sentiment from short and medium lookback windows."""
+    try:
+        hist = yf.Ticker(symbol).history(period="3mo")
+        if hist.empty or len(hist) < 25:
+            return {"label": "neutral", "score": 0, "r5": None, "r20": None}
+
+        close = hist["Close"]
+        r5 = ((float(close.iloc[-1]) / float(close.iloc[-6])) - 1.0) * 100 if len(close) >= 6 else 0
+        r20 = ((float(close.iloc[-1]) / float(close.iloc[-21])) - 1.0) * 100 if len(close) >= 21 else 0
+
+        score = 0
+        if r20 > 3:
+            score += 1
+        elif r20 < -3:
+            score -= 1
+        if r5 > 1.5:
+            score += 1
+        elif r5 < -1.5:
+            score -= 1
+
+        if score >= 2:
+            label = "bullish"
+        elif score == 1:
+            label = "improving"
+        elif score <= -2:
+            label = "bearish"
+        elif score == -1:
+            label = "weakening"
+        else:
+            label = "neutral"
+
+        return {"label": label, "score": score, "r5": round(r5, 2), "r20": round(r20, 2)}
+    except Exception:
+        return {"label": "neutral", "score": 0, "r5": None, "r20": None}
+
+
+def _candidate_liquidity_ok(candidate: dict) -> bool:
+    spread = candidate.get("spread_pct")
+    oi = int(candidate.get("open_interest") or 0)
+    vol = int(candidate.get("volume") or 0)
+    spread_ok = spread is None or spread <= 20
+    oi_ok = oi >= 250
+    vol_ok = vol >= 10
+    return spread_ok and oi_ok and vol_ok
+
+
+def _build_leg_guidance(
+    strategy: str,
+    candidates: list[dict],
+    regime: str,
+    sentiment: dict,
+    shares_held: int,
+    open_cc_contracts: int,
+    avg_cost: float | None,
+    current_price: float | None = None,
+) -> dict:
     rules = REGIME_RULES.get(regime, REGIME_RULES["sideways"])[strategy]
-    delta_lo, delta_hi = rules["delta_abs"]
     dte_lo, dte_hi = rules["dte"]
+    delta_lo, delta_hi = rules["delta_abs"]
 
     reasons = []
-    blocking_flags = []
-    confidence = "medium"
-    action = "sell_next"
+    flags = []
 
-    # Trade-state management gate: manage live position before opening a fresh leg.
-    if trade.status == TradeStatus.OPEN:
-        action = "hold_or_manage_current"
-        reasons.append("Current trade is still open; prioritize management before opening a new leg.")
-        if remaining_dte <= 21:
-            reasons.append(f"{remaining_dte} DTE left: gamma risk zone, consider closing/rolling first.")
+    if strategy == "CC":
+        max_cc_contracts = shares_held // 100
+        available_contracts = max(0, max_cc_contracts - open_cc_contracts)
+        eligible = available_contracts > 0
+        defensive_regime = regime in {"bear", "crisis"}
+        underwater_vs_basis = (
+            avg_cost is not None and current_price is not None and current_price < avg_cost
+        )
+        if not eligible:
+            flags.append(
+                f"No CC capacity left: {shares_held} shares support {max_cc_contracts} contract(s), already using {open_cc_contracts}."
+            )
+            recommendation = "not_available"
+        elif defensive_regime and underwater_vs_basis:
+            recommendation = "wait"
+            flags.append(
+                "Defensive rule: in bear/crisis while spot is below your basis, wait for a green day before selling new CCs."
+            )
+        else:
+            best = candidates[0] if candidates else None
+            if not best:
+                recommendation = "wait"
+                flags.append("No liquid CC contracts found in your regime lane.")
+            else:
+                if avg_cost is not None and best["strike"] < avg_cost:
+                    recommendation = "wait"
+                    flags.append(f"Best CC strike (${best['strike']:.2f}) is below your basis (${avg_cost:.2f}).")
+                elif not _candidate_liquidity_ok(best):
+                    recommendation = "wait"
+                    flags.append("Liquidity is weak (spread/OI/volume) for top CC candidate.")
+                else:
+                    recommendation = "consider"
+                    reasons.append("CC candidate has acceptable liquidity and fits your regime lane.")
+                if regime == "bull" and sentiment.get("label") in {"bullish", "improving"}:
+                    reasons.append("Bullish tape: use higher-call strikes to avoid capping upside too tightly.")
+    else:
+        # CSP: user asked to assume capital for 1 contract but be more selective.
+        eligible = True
+        available_contracts = 1
+        best = candidates[0] if candidates else None
+        if not best:
+            recommendation = "wait"
+            flags.append("No liquid CSP contracts found in your regime lane.")
+        else:
+            conservative_regime = regime in {"bear", "crisis"}
+            sentiment_weak = sentiment.get("label") in {"bearish", "weakening"}
+            liq_ok = _candidate_liquidity_ok(best)
+            prob_ok = (best.get("prob_otm") or 0) >= 68
+            delta_ok = abs(best.get("delta") or 0) <= 0.22
+            yield_ok = (best.get("premium_yield_pct") or 0) >= 0.8
 
-        mid = _safe_float(live.get("mid"), default=-1)
-        total_premium = _safe_float(detail.get("total_premium"), default=0)
-        if mid >= 0 and total_premium > 0:
-            close_cost = mid * trade.contracts * trade.multiplier
-            upl = total_premium - close_cost
-            upl_pct = (upl / total_premium) * 100
-            if detail.get("days_in_trade", 0) <= detail.get("dte", 1) / 2 and upl_pct >= 50:
-                reasons.append("50%+ premium captured in first half of trade; closing early is favored.")
-
-    # Liquidity guardrails from current contract quote.
-    bid = _safe_float(live.get("bid"), default=0)
-    ask = _safe_float(live.get("ask"), default=0)
-    mid = _safe_float(live.get("mid"), default=0)
-    if bid > 0 and ask > 0 and mid > 0:
-        spread_pct = ((ask - bid) / mid) * 100
-        if spread_pct > 25:
-            blocking_flags.append(f"Current contract spread is wide ({spread_pct:.1f}% of mid).")
-
-    open_interest = live.get("open_interest")
-    if open_interest is not None and _safe_float(open_interest, default=0) < 100:
-        blocking_flags.append("Current contract open interest is thin (<100).")
-
-    if strategy == "CC" and shares_held < 100:
-        blocking_flags.append("Need at least 100 shares to sell a covered call.")
+            if conservative_regime and sentiment_weak:
+                recommendation = "wait"
+                flags.append("Regime + sentiment are defensive. Stand down unless you strongly want assignment.")
+            elif liq_ok and prob_ok and delta_ok and yield_ok:
+                recommendation = "consider_small"
+                reasons.append("CSP candidate is conservative enough on delta/probability/liquidity.")
+            else:
+                recommendation = "wait"
+                flags.append("CSP setup is not defensive enough on liquidity/probability/delta/yield.")
 
     if strategy == "CC" and avg_cost is not None:
-        reasons.append(f"Prefer CC strikes at/above your average cost basis (${avg_cost:.2f}).")
-
-    if blocking_flags:
-        confidence = "low"
-
-    if not reasons:
-        reasons.append("No urgent trade-management flags detected.")
+        reasons.append(f"Prefer strikes at/above basis (${avg_cost:.2f}).")
 
     return {
-        "action": action,
-        "next_strategy": strategy,
-        "confidence": confidence,
-        "reasons": reasons,
-        "blocking_flags": blocking_flags,
-        "setup": {
+        "strategy": strategy,
+        "eligible": eligible,
+        "available_contracts": available_contracts,
+        "recommendation": recommendation,
+        "target": {
             "dte_min": dte_lo,
             "dte_max": dte_hi,
             "delta_min_abs": delta_lo,
             "delta_max_abs": delta_hi,
         },
+        "reasons": reasons,
+        "flags": flags,
+        "candidates": candidates[:3],
     }
 
 
@@ -282,7 +358,14 @@ def generate_symbol_wheel_guidance(symbol: str, session: Session) -> dict:
     trades = session.exec(
         select(Trade).where(Trade.underlying_id == spot.id).order_by(Trade.opened_at.desc())
     ).all()
-    open_trade = next((t for t in trades if t.status == TradeStatus.OPEN), None)
+    open_trades = [t for t in trades if t.status == TradeStatus.OPEN]
+    open_trade = open_trades[0] if open_trades else None
+    open_cc_contracts = int(
+        sum(t.contracts for t in open_trades if t.strategy_type == StrategyType.CC)
+    )
+    open_csp_contracts = int(
+        sum(t.contracts for t in open_trades if t.strategy_type == StrategyType.CSP)
+    )
 
     lots = session.exec(select(ShareLot).where(ShareLot.underlying_id == spot.id)).all()
     shares_held = int(sum(l.remaining_qty for l in lots))
@@ -296,61 +379,71 @@ def generate_symbol_wheel_guidance(symbol: str, session: Session) -> dict:
 
     vix = _get_vix_regime()
     regime = vix.get("regime", "sideways")
+    sentiment = _get_spot_sentiment(symbol)
 
-    strategy = _pick_next_strategy(shares_held)
-    setup = REGIME_RULES.get(regime, REGIME_RULES["sideways"])[strategy]
-    dte_lo, dte_hi = setup["dte"]
-    delta_lo, delta_hi = setup["delta_abs"]
-
-    action = "sell_next"
-    confidence = "medium"
-    reasons = []
-    blocking_flags = []
-
-    if open_trade:
-        action = "hold_or_manage_current"
-        remaining_dte = max(0, open_trade.dte - open_trade.days_in_trade)
-        reasons.append(
-            f"{open_trade.strategy_type.value} expiring {open_trade.expiry_date} is still open; manage it before opening a new leg."
-        )
-        if remaining_dte <= 21:
-            reasons.append(f"{remaining_dte} DTE left on open trade, which is inside your gamma-risk window.")
-
-    if strategy == "CC":
-        if shares_held < 100:
-            blocking_flags.append("Need at least 100 shares to sell a covered call.")
-        elif avg_cost is not None:
-            reasons.append(f"For CC, prefer strikes at/above your basis (${avg_cost:.2f}).")
-    else:
-        reasons.append("For CSP, choose strikes where assignment would still be acceptable at your intended basis.")
-
-    if current_price <= 0:
-        blocking_flags.append("Current spot price unavailable, so candidate scoring may be incomplete.")
-
-    if blocking_flags:
-        confidence = "low"
-
-    phase2 = {
-        "candidates": [],
-        "notes": ["Current price unavailable; cannot compute candidate contracts."],
-    }
+    cc_candidates: list[dict] = []
+    csp_candidates: list[dict] = []
+    cc_notes: list[str] = []
+    csp_notes: list[str] = []
     if current_price > 0:
-        phase2 = _build_phase2_candidates(
+        cc_res = _build_phase2_candidates(
             symbol=symbol,
             current_price=current_price,
-            strategy=strategy,
+            strategy="CC",
             setup={
-                "dte_min": dte_lo,
-                "dte_max": dte_hi,
-                "delta_min_abs": delta_lo,
-                "delta_max_abs": delta_hi,
+                "dte_min": REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CC"]["dte"][0],
+                "dte_max": REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CC"]["dte"][1],
+                "delta_min_abs": REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CC"]["delta_abs"][0],
+                "delta_max_abs": REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CC"]["delta_abs"][1],
             },
             avg_cost=avg_cost,
         )
+        cc_candidates = cc_res.get("candidates", [])
+        cc_notes = cc_res.get("notes", [])
+
+        csp_res = _build_phase2_candidates(
+            symbol=symbol,
+            current_price=current_price,
+            strategy="CSP",
+            setup={
+                "dte_min": REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CSP"]["dte"][0],
+                "dte_max": REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CSP"]["dte"][1],
+                "delta_min_abs": REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CSP"]["delta_abs"][0],
+                "delta_max_abs": REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CSP"]["delta_abs"][1],
+            },
+            avg_cost=None,
+        )
+        csp_candidates = csp_res.get("candidates", [])
+        csp_notes = csp_res.get("notes", [])
+
+    cc_guidance = _build_leg_guidance(
+        strategy="CC",
+        candidates=cc_candidates,
+        regime=regime,
+        sentiment=sentiment,
+        shares_held=shares_held,
+        open_cc_contracts=open_cc_contracts,
+        avg_cost=avg_cost,
+        current_price=current_price if current_price > 0 else None,
+    )
+    csp_guidance = _build_leg_guidance(
+        strategy="CSP",
+        candidates=csp_candidates,
+        regime=regime,
+        sentiment=sentiment,
+        shares_held=shares_held,
+        open_cc_contracts=open_cc_contracts,
+        avg_cost=avg_cost,
+    )
+    if cc_notes:
+        cc_guidance["flags"].extend(cc_notes)
+    if csp_notes:
+        csp_guidance["flags"].extend(csp_notes)
 
     return {
         "symbol": symbol,
         "regime": vix,
+        "sentiment": sentiment,
         "context": {
             "shares_held": shares_held,
             "avg_cost": round(avg_cost, 2) if avg_cost is not None else None,
@@ -358,19 +451,9 @@ def generate_symbol_wheel_guidance(symbol: str, session: Session) -> dict:
             "open_trade_id": open_trade.id if open_trade else None,
             "open_trade_type": open_trade.strategy_type.value if open_trade else None,
             "open_trade_expiry": open_trade.expiry_date.isoformat() if open_trade else None,
+            "open_cc_contracts": open_cc_contracts,
+            "open_csp_contracts": open_csp_contracts,
         },
-        "phase1": {
-            "action": action,
-            "next_strategy": strategy,
-            "confidence": confidence,
-            "reasons": reasons,
-            "blocking_flags": blocking_flags,
-            "setup": {
-                "dte_min": dte_lo,
-                "dte_max": dte_hi,
-                "delta_min_abs": delta_lo,
-                "delta_max_abs": delta_hi,
-            },
-        },
-        "phase2": phase2,
+        "cc": cc_guidance,
+        "csp": csp_guidance,
     }
