@@ -50,6 +50,20 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="sd-totals"></div>
         </section>
 
+        <!-- Wheel Guidance -->
+        <section>
+            <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">Wheel
+                Guidance
+            </h3>
+            <div id="sd-wheel-guidance"
+                class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-5 mb-3">
+                <p class="text-gray-400 text-sm">Loading wheel guidance…</p>
+            </div>
+            <div id="sd-wheel-candidates" class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg p-5">
+                <p class="text-gray-400 text-sm">Loading candidate contracts…</p>
+            </div>
+        </section>
+
         <!-- Open Options -->
         <section>
             <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">Open Options
@@ -72,30 +86,6 @@
                     <tbody id="sd-open-body" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
                 </table>
                 <p id="sd-open-empty" class="text-center text-gray-400 py-4 hidden text-sm">No open options.</p>
-            </div>
-        </section>
-
-        <!-- Share Lots -->
-        <section>
-            <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">Share Lots
-            </h3>
-            <div class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th class="px-3 py-2 text-right font-semibold">Qty</th>
-                            <th class="px-3 py-2 text-right font-semibold">Remaining</th>
-                            <th class="px-3 py-2 text-right font-semibold">Cost Basis</th>
-                            <th class="px-3 py-2 text-right font-semibold">Total Cost</th>
-                            <th class="px-3 py-2 text-right font-semibold">Market Value</th>
-                            <th class="px-3 py-2 text-right font-semibold">P/L</th>
-                            <th class="px-3 py-2 text-left font-semibold">Acquired</th>
-                            <th class="px-3 py-2 text-left font-semibold">Source</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sd-lots-body" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
-                </table>
-                <p id="sd-lots-empty" class="text-center text-gray-400 py-4 hidden text-sm">No share lots.</p>
             </div>
         </section>
 

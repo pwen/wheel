@@ -36,8 +36,8 @@ async function loadSymbolDetail() {
         renderSDSpotInfo(data.spot);
         renderSDOpenTrades(data.open_trades);
         renderSDClosedTrades(data.closed_trades);
-        renderSDLots(data.lots);
         renderSDTotals(data.totals);
+        loadWheelGuidance(symbol);
 
         if (data.lots.length > 0) {
             loadSDLotPrices(symbol, data.lots);
@@ -48,6 +48,149 @@ async function loadSymbolDetail() {
 }
 
 document.addEventListener("DOMContentLoaded", loadSymbolDetail);
+
+
+async function loadWheelGuidance(symbol) {
+    const guidanceEl = $("#sd-wheel-guidance");
+    const candidateEl = $("#sd-wheel-candidates");
+    if (!guidanceEl || !candidateEl) return;
+
+    try {
+        const res = await fetch(`/api/spots/${encodeURIComponent(symbol)}/wheel-guidance`);
+        if (!res.ok) throw new Error("Failed to load wheel guidance");
+        const data = await res.json();
+        renderSDWheelGuidance(data);
+        renderSDWheelCandidates(data);
+    } catch (e) {
+        guidanceEl.innerHTML = `<p class="text-red-500 text-sm">${e.message}</p>`;
+        candidateEl.innerHTML = `<p class="text-gray-500 text-sm">Candidates unavailable.</p>`;
+    }
+}
+
+
+function renderSDWheelGuidance(data) {
+    const el = $("#sd-wheel-guidance");
+    if (!el) return;
+
+    const phase1 = data.phase1 || {};
+    const setup = phase1.setup || {};
+    const context = data.context || {};
+    const regime = data.regime || {};
+
+    const actionLabels = {
+        hold_or_manage_current: "Manage Current Position First",
+        sell_next: "Sell Next Option",
+    };
+    const confidenceCls =
+        phase1.confidence === "high" ? "text-green-700 bg-green-100" :
+            phase1.confidence === "low" ? "text-red-700 bg-red-100" :
+                "text-amber-700 bg-amber-100";
+
+    const reasons = (phase1.reasons || []).map(r => `<li class="text-sm text-gray-700 dark:text-gray-300">${r}</li>`).join("");
+    const blocks = (phase1.blocking_flags || []).map(f => `<li class="text-sm text-red-700 dark:text-red-400">${f}</li>`).join("");
+
+    const deltaMin = setup.delta_min_abs != null ? Number(setup.delta_min_abs).toFixed(2) : "—";
+    const deltaMax = setup.delta_max_abs != null ? Number(setup.delta_max_abs).toFixed(2) : "—";
+
+    el.innerHTML = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between gap-2">
+                <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Phase 1 · Wheel Coach</div>
+                <span class="px-2 py-0.5 rounded text-xs font-semibold ${confidenceCls}">${(phase1.confidence || "medium").toUpperCase()} CONFIDENCE</span>
+                </div>
+                <div>
+                <span class="inline-block px-2 py-1 rounded text-sm font-semibold bg-indigo-100 text-indigo-700">${actionLabels[phase1.action] || "Guidance"}</span>
+                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Next lane: <span class="font-semibold">${phase1.next_strategy || "—"}</span></span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Regime</div>
+                    <div class="text-sm font-semibold">${regime.regime || "—"}${regime.vix != null ? ` (VIX ${regime.vix})` : ""}</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target DTE</div>
+                    <div class="text-sm font-semibold">${setup.dte_min ?? "—"} - ${setup.dte_max ?? "—"} days</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target Delta</div>
+                    <div class="text-sm font-semibold">${deltaMin} - ${deltaMax} (abs)</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Shares / Basis</div>
+                    <div class="text-sm font-semibold">${context.shares_held ?? 0} / ${context.avg_cost != null ? fmtMoney(context.avg_cost) : "—"}</div>
+                </div>
+                </div>
+                ${reasons
+            ? `<div>
+                        <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold mb-1.5">Why</div>
+                        <ul class="list-disc pl-5 space-y-1">${reasons}</ul>
+                    </div>`
+            : '<p class="text-sm text-gray-500">No additional context.</p>'}
+                ${blocks
+            ? `<div class="pt-3 border-t dark:border-gray-700">
+                        <div class="text-xs uppercase text-red-600 font-semibold mb-1.5">Do Not Trade If</div>
+                        <ul class="list-disc pl-5 space-y-1">${blocks}</ul>
+                    </div>`
+            : ""}
+            </div>
+        `;
+}
+
+
+function renderSDWheelCandidates(data) {
+    const el = $("#sd-wheel-candidates");
+    if (!el) return;
+
+    const phase2 = data.phase2 || {};
+    const candidates = phase2.candidates || [];
+    const notes = phase2.notes || [];
+
+    if (!candidates.length) {
+        el.innerHTML = `
+                <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Phase 2 · Candidate Contracts</div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">No candidates found in the current lane.</p>
+                ${notes.length ? `<ul class="mt-3 list-disc pl-5 space-y-1">${notes.map(n => `<li class="text-xs text-gray-500 dark:text-gray-400">${n}</li>`).join("")}</ul>` : ""}
+            `;
+        return;
+    }
+
+    const rows = candidates.map(c => `
+            <tr class="border-t dark:border-gray-700">
+                <td class="px-3 py-2 text-sm font-medium">${c.expiry}</td>
+                <td class="px-3 py-2 text-sm text-right">${c.dte}</td>
+                <td class="px-3 py-2 text-sm text-right">${fmtMoney(c.strike)}</td>
+                <td class="px-3 py-2 text-sm text-right">${c.delta != null ? Number(c.delta).toFixed(3) : "—"}</td>
+                <td class="px-3 py-2 text-sm text-right">${fmtMoney(c.mid)}</td>
+                <td class="px-3 py-2 text-sm text-right">${c.premium_yield_pct != null ? `${Number(c.premium_yield_pct).toFixed(2)}%` : "—"}</td>
+                <td class="px-3 py-2 text-sm text-right">${c.prob_otm != null ? `${Number(c.prob_otm).toFixed(1)}%` : "—"}</td>
+                <td class="px-3 py-2 text-sm text-right ${c.spread_pct != null && c.spread_pct > 25 ? "text-red-600" : ""}">${c.spread_pct != null ? `${Number(c.spread_pct).toFixed(1)}%` : "—"}</td>
+                <td class="px-3 py-2 text-sm text-right">${(c.open_interest ?? 0).toLocaleString()}</td>
+            </tr>
+        `).join("");
+
+    el.innerHTML = `
+            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Phase 2 · Candidate Contracts</div>
+            <div class="overflow-x-auto rounded-lg border dark:border-gray-700">
+                <table class="w-full text-xs">
+                    <thead class="bg-gray-50 dark:bg-gray-700/50">
+                        <tr class="text-gray-500 dark:text-gray-400 uppercase text-[11px]">
+                            <th class="px-3 py-2 text-left">Expiry</th>
+                            <th class="px-3 py-2 text-right">DTE</th>
+                            <th class="px-3 py-2 text-right">Strike</th>
+                            <th class="px-3 py-2 text-right">Delta</th>
+                            <th class="px-3 py-2 text-right">Mid</th>
+                            <th class="px-3 py-2 text-right">Yield</th>
+                            <th class="px-3 py-2 text-right">Prob OTM</th>
+                            <th class="px-3 py-2 text-right">Spread</th>
+                            <th class="px-3 py-2 text-right">OI</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+            ${notes.length ? `<ul class="mt-3 list-disc pl-5 space-y-1">${notes.map(n => `<li class="text-xs text-gray-500 dark:text-gray-400">${n}</li>`).join("")}</ul>` : ""}
+        `;
+}
 
 function renderSDOpenTrades(trades) {
     const tbody = $("#sd-open-body");
@@ -98,30 +241,6 @@ function renderSDClosedTrades(trades) {
       <td class="px-3 py-2 whitespace-nowrap">${t.opened_at}</td>
       <td class="px-3 py-2 whitespace-nowrap">${t.closed_at || '—'}</td>
     </tr>`).join("");
-}
-
-function renderSDLots(lots) {
-    const tbody = $("#sd-lots-body");
-    const empty = $("#sd-lots-empty");
-    if (lots.length === 0) { empty.classList.remove("hidden"); return; }
-    tbody.innerHTML = lots.map(lot => {
-        const totalCost = lot.cost_per_share * lot.remaining_qty;
-        return `
-    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-      <td class="px-3 py-2 text-right">${lot.qty}</td>
-      <td class="px-3 py-2 text-right">${lot.remaining_qty}</td>
-      <td class="px-3 py-2 text-right">${fmtMoney(lot.cost_per_share)}</td>
-      <td class="px-3 py-2 text-right">${fmtMoney(totalCost)}</td>
-      <td class="px-3 py-2 text-right" data-sd-mktval="${lot.id}">…</td>
-      <td class="px-3 py-2 text-right" data-sd-upl="${lot.id}">…</td>
-      <td class="px-3 py-2 whitespace-nowrap">${lot.acquired_at}</td>
-      <td class="px-3 py-2">
-        <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold
-          ${lot.source === 'assignment' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}">
-          ${lot.source === 'assignment' ? 'Assignment' : 'Purchase'}</span>
-      </td>
-    </tr>`;
-    }).join("");
 }
 
 async function loadSDLotPrices(symbol, lots) {

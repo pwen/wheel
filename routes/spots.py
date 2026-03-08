@@ -124,6 +124,17 @@ def refresh_spot(symbol: str, session: Session = Depends(get_session)):
     return {"ok": True}
 
 
+@router.get("/spots/{symbol}/wheel-guidance")
+def spot_wheel_guidance(symbol: str, session: Session = Depends(get_session)):
+    from services.wheel_guidance import generate_symbol_wheel_guidance
+
+    symbol = symbol.upper()
+    try:
+        return generate_symbol_wheel_guidance(symbol=symbol, session=session)
+    except ValueError:
+        raise HTTPException(404, f"Symbol {symbol} not found")
+
+
 @router.get("/spots")
 def list_spots(session: Session = Depends(get_session)):
     return session.exec(select(Spot).order_by(Spot.symbol)).all()
