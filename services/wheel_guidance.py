@@ -187,7 +187,9 @@ def _build_leg_guidance(
             sentiment_weak = sentiment.get("label") in {"bearish", "weakening"}
             liq_ok = _candidate_liquidity_ok(best)
             prob_ok = (best.get("prob_otm") or 0) >= 68
-            delta_ok = abs(best.get("delta") or 0) <= 0.22
+            # Keep CSP selectivity aligned with regime lane instead of a fixed delta cap.
+            regime_csp_delta_cap = REGIME_RULES.get(regime, REGIME_RULES["sideways"])["CSP"]["delta_abs"][1]
+            delta_ok = abs(best.get("delta") or 0) <= (regime_csp_delta_cap + 0.02)
             yield_ok = (best.get("premium_yield_pct") or 0) >= 0.8
 
             if conservative_regime and sentiment_weak:

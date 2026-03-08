@@ -96,6 +96,17 @@ function renderSDWheelCard(data) {
             not_available: "Not Available",
         }[leg.recommendation] || "Review";
 
+        const summaryParts = [
+            `${recLabel}`,
+            `${leg.available_contracts ?? 0} contract(s) available`,
+            `DTE ${target.dte_min ?? "—"}-${target.dte_max ?? "—"}`,
+            `Delta ${target.delta_min_abs != null ? Number(target.delta_min_abs).toFixed(2) : "—"}-${target.delta_max_abs != null ? Number(target.delta_max_abs).toFixed(2) : "—"}`,
+        ];
+        if (flags && flags.length > 0) {
+            summaryParts.push("has warnings");
+        }
+        const oneLiner = summaryParts.join(" • ");
+
         const rows = candidates.slice(0, 2).map(c => `
             <tr class="border-t dark:border-gray-700">
                 <td class="px-3 py-2 text-sm font-medium">${c.expiry}</td>
@@ -113,51 +124,60 @@ function renderSDWheelCard(data) {
 
         return `
             <div class="rounded-lg border ${theme.border} ${theme.bg} p-4 space-y-3">
-                <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
                     <div class="font-semibold ${theme.text}">${title}</div>
                     <span class="px-2 py-0.5 rounded text-xs font-semibold ${recBadge}">${recLabel}</span>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Available</div>
-                        <div class="text-sm font-semibold">${leg.available_contracts ?? 0} contract(s)</div>
+                <details class="group rounded-lg border dark:border-gray-700 bg-white/60 dark:bg-gray-800/60">
+                    <summary class="list-none cursor-pointer px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center justify-between gap-3">
+                        <span class="truncate">${oneLiner}</span>
+                        <span class="text-[10px] text-gray-500 group-open:hidden">Expand</span>
+                        <span class="text-[10px] text-gray-500 hidden group-open:inline">Collapse</span>
+                    </summary>
+                    <div class="px-3 pb-3 space-y-3 border-t dark:border-gray-700">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                            <div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Available</div>
+                                <div class="text-sm font-semibold">${leg.available_contracts ?? 0} contract(s)</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target DTE</div>
+                                <div class="text-sm font-semibold">${target.dte_min ?? "—"}-${target.dte_max ?? "—"}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target Delta</div>
+                                <div class="text-sm font-semibold">${target.delta_min_abs != null ? Number(target.delta_min_abs).toFixed(2) : "—"}-${target.delta_max_abs != null ? Number(target.delta_max_abs).toFixed(2) : "—"}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Eligible</div>
+                                <div class="text-sm font-semibold">${leg.eligible ? "Yes" : "No"}</div>
+                            </div>
+                        </div>
+                        ${reasons ? `<div><div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold mb-1">Guidance</div><ul class="list-disc pl-5 space-y-1">${reasons}</ul></div>` : ""}
+                        ${flags ? `<div><div class="text-xs uppercase text-red-600 font-semibold mb-1">Warnings</div><ul class="list-disc pl-5 space-y-1">${flags}</ul></div>` : ""}
+                        ${rows ? `
+                            <div class="overflow-x-auto rounded-lg border dark:border-gray-700">
+                                <table class="w-full text-xs">
+                                    <thead class="bg-gray-50 dark:bg-gray-700/50">
+                                        <tr class="text-gray-500 dark:text-gray-400 uppercase text-[11px]">
+                                            <th class="px-3 py-2 text-left">Expiry</th>
+                                            <th class="px-3 py-2 text-right">DTE</th>
+                                            <th class="px-3 py-2 text-right">Strike</th>
+                                            <th class="px-3 py-2 text-right">Delta</th>
+                                            <th class="px-3 py-2 text-right">Mid</th>
+                                            <th class="px-3 py-2 text-right">Yield</th>
+                                            <th class="px-3 py-2 text-right">Prob OTM</th>
+                                            <th class="px-3 py-2 text-right">Spread</th>
+                                            <th class="px-3 py-2 text-right">OI</th>
+                                            <th class="px-3 py-2 text-right">Vol</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${rows}</tbody>
+                                </table>
+                            </div>`
+                        : ""}
                     </div>
-                    <div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target DTE</div>
-                        <div class="text-sm font-semibold">${target.dte_min ?? "—"}-${target.dte_max ?? "—"}</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Target Delta</div>
-                        <div class="text-sm font-semibold">${target.delta_min_abs != null ? Number(target.delta_min_abs).toFixed(2) : "—"}-${target.delta_max_abs != null ? Number(target.delta_max_abs).toFixed(2) : "—"}</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase">Eligible</div>
-                        <div class="text-sm font-semibold">${leg.eligible ? "Yes" : "No"}</div>
-                    </div>
-                </div>
-                ${reasons ? `<div><div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold mb-1">Guidance</div><ul class="list-disc pl-5 space-y-1">${reasons}</ul></div>` : ""}
-                ${flags ? `<div><div class="text-xs uppercase text-red-600 font-semibold mb-1">Warnings</div><ul class="list-disc pl-5 space-y-1">${flags}</ul></div>` : ""}
-                ${rows ? `
-                    <div class="overflow-x-auto rounded-lg border dark:border-gray-700">
-                        <table class="w-full text-xs">
-                            <thead class="bg-gray-50 dark:bg-gray-700/50">
-                                <tr class="text-gray-500 dark:text-gray-400 uppercase text-[11px]">
-                                    <th class="px-3 py-2 text-left">Expiry</th>
-                                    <th class="px-3 py-2 text-right">DTE</th>
-                                    <th class="px-3 py-2 text-right">Strike</th>
-                                    <th class="px-3 py-2 text-right">Delta</th>
-                                    <th class="px-3 py-2 text-right">Mid</th>
-                                    <th class="px-3 py-2 text-right">Yield</th>
-                                    <th class="px-3 py-2 text-right">Prob OTM</th>
-                                    <th class="px-3 py-2 text-right">Spread</th>
-                                    <th class="px-3 py-2 text-right">OI</th>
-                                    <th class="px-3 py-2 text-right">Vol</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rows}</tbody>
-                        </table>
-                    </div>`
-                : ""}
+                </details>
             </div>
         `;
     };
