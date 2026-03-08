@@ -39,11 +39,14 @@ async function loadSymbolDetail() {
         const cashReservedCsp = (data.open_trades || [])
             .filter(t => t.strategy_type === "CSP")
             .reduce((sum, t) => sum + (Number(t.strike) * Number(t.contracts) * Number(t.multiplier || 100)), 0);
-        renderSDTotals(data.totals, cashReservedCsp);
+        renderSDTotals(data.totals, cashReservedCsp, data.open_trades || []);
         loadWheelGuidance(symbol);
 
         if (data.lots.length > 0) {
             loadSDLotPrices(symbol, data.lots);
+        }
+        if (data.open_trades && data.open_trades.length > 0) {
+            loadSDOpenOptionMarks(data.open_trades);
         }
     } catch (e) {
         console.error("Symbol detail error:", e);
@@ -175,7 +178,7 @@ function renderSDWheelCard(data) {
                                     <tbody>${rows}</tbody>
                                 </table>
                             </div>`
-                        : ""}
+                : ""}
                     </div>
                 </details>
             </div>
@@ -250,6 +253,52 @@ function renderSDClosedTrades(trades) {
     </tr>`).join("");
 }
 
+async function loadSDOpenOptionMarks(openTrades) {
+    try {
+        const contracts = openTrades.map(t => ({
+            trade_id: t.id,
+            symbol: t.symbol,
+            expiry_date: t.expiry_date,
+            strike: Number(t.strike),
+            strategy_type: t.strategy_type,
+        }));
+
+        const res = await fetch("/api/option-prices", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(contracts),
+        });
+        if (!res.ok) return;
+
+        const quotes = await res.json();
+        const grossPremium = openTrades.reduce((sum, t) => sum + Number(t.total_premium || 0), 0);
+
+        let closeCost = 0;
+        let markedCount = 0;
+        for (const t of openTrades) {
+            const q = quotes[t.id];
+            if (!q || q.mid == null) continue;
+            closeCost += Number(q.mid) * Number(t.contracts || 0) * Number(t.multiplier || 100);
+            markedCount += 1;
+        }
+
+        const netEl = document.querySelector("#sd-totals [data-sd-net-open]");
+        if (!netEl) return;
+
+        if (markedCount === 0) {
+            netEl.textContent = "—";
+            return;
+        }
+
+        const netOpen = grossPremium - closeCost;
+        netEl.textContent = fmtMoney(netOpen);
+        netEl.classList.remove("text-green-600", "text-red-600");
+        netEl.classList.add(netOpen >= 0 ? "text-green-600" : "text-red-600");
+    } catch {
+        // Keep placeholder if quotes are unavailable.
+    }
+}
+
 async function loadSDLotPrices(symbol, lots) {
     try {
         const res = await fetch(`/api/prices?symbols=${encodeURIComponent(symbol)}`);
@@ -294,11 +343,13 @@ async function loadSDLotPrices(symbol, lots) {
     } catch { /* ignore */ }
 }
 
-function renderSDTotals(totals, cashReservedCsp = 0) {
+function renderSDTotals(totals, cashReservedCsp = 0, openTrades = []) {
     const optionsIncome = totals.total_premium_collected - totals.total_closing_cost;
     const hasShares = Number(totals.total_shares || 0) > 0;
     const initialMktValue = hasShares ? null : 0;
     const initialCommitment = hasShares ? null : cashReservedCsp;
+    const avgShareBasis = hasShares ? (Number(totals.total_share_cost || 0) / Number(totals.total_shares || 1)) : null;
+    const hasOpenTrades = (openTrades || []).length > 0;
 
     const totalsEl = $("#sd-totals");
     if (totalsEl) totalsEl.dataset.cashReserved = String(cashReservedCsp);
@@ -306,6 +357,7 @@ function renderSDTotals(totals, cashReservedCsp = 0) {
     const row1 = [
         { label: "Options Income", value: fmtMoney(optionsIncome), color: optionsIncome >= 0 ? "text-green-600" : "text-red-600" },
         { label: "Realized P/L", value: fmtMoney(totals.total_realized_pl), color: totals.total_realized_pl >= 0 ? "text-green-600" : "text-red-600" },
+        { label: "Net Premium (Open)", value: hasOpenTrades ? "…" : fmtMoney(0), attr: 'data-sd-net-open' },
         { label: "Open Trades", value: totals.open_trade_count },
         { label: "Closed Trades", value: totals.closed_trade_count },
         { label: "Cash Reserved (CSP)", value: fmtMoney(cashReservedCsp), color: "text-amber-700 dark:text-amber-400", attr: 'data-sd-cash-reserved' },
@@ -313,6 +365,7 @@ function renderSDTotals(totals, cashReservedCsp = 0) {
     ];
     const row2 = [
         { label: "Shares Held", value: totals.total_shares },
+        { label: "Avg Share Basis", value: avgShareBasis != null ? fmtMoney(avgShareBasis) : "—" },
         { label: "Market Value", value: initialMktValue != null ? fmtMoney(initialMktValue) : "…", attr: 'data-sd-mktval' },
         { label: "Cost Basis", value: fmtMoney(totals.total_share_cost) },
         { label: "Unrealized P/L", value: initialMktValue != null ? fmtMoney(initialMktValue - Number(totals.total_share_cost || 0)) : "…", attr: 'data-sd-share-pl', color: "" },
@@ -351,6 +404,21 @@ function renderSDSpotInfo(spot) {
         ? '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-teal-100 text-teal-700">ETF</span>'
         : '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-700">Stock</span>';
 
+    const roles = Array.isArray(spot.pairing_roles) ? spot.pairing_roles : [];
+    const roleBadges = roles.map(role => {
+        if (role === "core") {
+            return '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-700">Core</span>';
+        }
+        if (role === "proxy") {
+            return '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-violet-100 text-violet-700">Proxy</span>';
+        }
+        return '';
+    }).join(" ");
+
+    const roleSummary = roles.length
+        ? `<span class="text-gray-600 dark:text-gray-400 text-sm">Role:</span> <span class="text-sm capitalize">${roles.join(" / ")}</span>`
+        : "";
+
     const items = [
         spot.sector && `<span class="text-gray-600 dark:text-gray-400 text-sm">Sector:</span> <span class="text-sm">${spot.sector}</span>`,
         spot.industry && `<span class="text-gray-600 dark:text-gray-400 text-sm">Industry:</span> <span class="text-sm">${spot.industry}</span>`,
@@ -361,6 +429,7 @@ function renderSDSpotInfo(spot) {
         spot.avg_daily_volume && `<span class="text-gray-600 dark:text-gray-400 text-sm">Avg Vol:</span> <span class="text-sm">${fmtVol(spot.avg_daily_volume)}</span>`,
         spot.aum && `<span class="text-gray-600 dark:text-gray-400 text-sm">AUM:</span> <span class="text-sm">${fmtBigNum(spot.aum)}</span>`,
         spot.expense_ratio && `<span class="text-gray-600 dark:text-gray-400 text-sm">Expense:</span> <span class="text-sm">${(spot.expense_ratio * 100).toFixed(2)}%</span>`,
+        roleSummary,
     ].filter(Boolean);
 
     const optItems = [
@@ -374,6 +443,7 @@ function renderSDSpotInfo(spot) {
     <div class="flex items-center gap-2 mb-2">
       <span class="font-semibold">${spot.name}</span>
       ${typeBadge}
+            ${roleBadges}
     </div>
     <div class="flex flex-wrap gap-x-4 gap-y-1">
       ${items.join("")}

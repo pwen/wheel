@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from db import get_session
-from models import Spot, Trade, TradeStatus, ShareLot
+from models import Spot, Trade, TradeStatus, ShareLot, Pairing
 from services import populate_spot_info
 
 log = logging.getLogger(__name__)
@@ -77,6 +77,14 @@ def spot_detail(symbol: str, session: Session = Depends(get_session)):
     total_shares = sum(lot.remaining_qty for lot in lots)
     total_share_cost = sum(float(lot.cost_per_share) * lot.remaining_qty for lot in lots)
 
+    pairings = session.exec(select(Pairing).where(Pairing.symbol.ilike(symbol))).all()
+    pairing_roles = sorted({
+        (p.role.value if hasattr(p.role, "value") else str(p.role)).lower()
+        for p in pairings
+        if p.role is not None
+    })
+    pairing_asset_classes = sorted({p.asset_class for p in pairings})
+
     return {
         "symbol": symbol,
         "spot": {
@@ -95,6 +103,8 @@ def spot_detail(symbol: str, session: Session = Depends(get_session)):
             "open_interest": spot.open_interest,
             "implied_volatility": float(spot.implied_volatility) if spot.implied_volatility else None,
             "bid_ask_spread": float(spot.bid_ask_spread) if spot.bid_ask_spread else None,
+            "pairing_roles": pairing_roles,
+            "pairing_asset_classes": pairing_asset_classes,
             "updated_at": spot.updated_at.isoformat() if spot.updated_at else None,
         },
         "open_trades": open_trades,
