@@ -22,7 +22,6 @@ class LotCreate(BaseModel):
 
 class LotUpdate(BaseModel):
     qty: Optional[int] = None
-    remaining_qty: Optional[int] = None
     cost_per_share: Optional[Decimal] = None
     acquired_at: Optional[date] = None
 
@@ -44,6 +43,9 @@ def list_lots(session: Session = Depends(get_session)):
 
 @router.post("/lots", status_code=201)
 def create_lot(body: LotCreate, session: Session = Depends(get_session)):
+    if body.qty <= 0:
+        raise HTTPException(400, "qty must be > 0")
+
     symbol = body.symbol.upper()
     spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
     if not spot:
@@ -77,10 +79,29 @@ def update_lot(lot_id: int, body: LotUpdate, session: Session = Depends(get_sess
     if not lot:
         raise HTTPException(404, "Lot not found")
 
-    for field in ["qty", "remaining_qty", "cost_per_share", "acquired_at"]:
+    prev_qty = lot.qty
+    prev_remaining = lot.remaining_qty
+
+    for field in ["qty", "cost_per_share", "acquired_at"]:
         val = getattr(body, field)
         if val is not None:
             setattr(lot, field, val)
+
+    if body.qty is not None:
+        # Preserve already-consumed shares when correcting lot size.
+        consumed = max(prev_qty - prev_remaining, 0)
+        recalculated_remaining = body.qty - consumed
+        if recalculated_remaining < 0:
+            raise HTTPException(
+                400,
+                f"qty {body.qty} is below consumed shares ({consumed}) for this lot",
+            )
+        lot.remaining_qty = recalculated_remaining
+
+    if lot.qty < 0 or lot.remaining_qty < 0:
+        raise HTTPException(400, "qty and remaining_qty must be >= 0")
+    if lot.remaining_qty > lot.qty:
+        raise HTTPException(400, "remaining_qty cannot exceed qty")
 
     session.commit()
     session.refresh(lot)

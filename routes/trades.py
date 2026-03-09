@@ -223,6 +223,17 @@ def _sync_assignment_lot(trade: Trade, session: Session):
     ).first()
     if not lot:
         return
+    expected_qty = trade.contracts * trade.multiplier
+    consumed = max(lot.qty - lot.remaining_qty, 0)
+    recalculated_remaining = expected_qty - consumed
+    if recalculated_remaining < 0:
+        raise HTTPException(
+            400,
+            f"contracts imply {expected_qty} shares, below consumed shares ({consumed}) for linked lot",
+        )
+
+    lot.qty = expected_qty
+    lot.remaining_qty = recalculated_remaining
     lot.cost_per_share = trade.strike - trade.premium_per_share
     if trade.closed_at:
         lot.acquired_at = trade.closed_at
