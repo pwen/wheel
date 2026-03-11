@@ -1,34 +1,4 @@
-/* trade_detail.js — Per-trade detail page for open trades */
-
-const $ = (sel) => document.querySelector(sel);
-const fmt = (v, d = 2) => v != null ? Number(v).toFixed(d) : "—";
-const fmtMoney = (v) => {
-  if (v == null) return "—";
-  const n = Number(v);
-  const abs = Math.abs(n);
-  const formatted = abs >= 1000
-    ? abs.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-    : abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return (n < 0 ? "-$" : "$") + formatted;
-};
-const fmtPct = (v) => v != null ? `${Number(v).toFixed(1)}%` : "—";
-
-const STATUS_COLORS = {
-  open: "bg-green-100 text-green-700",
-  expired: "bg-gray-100 text-gray-600",
-  btc: "bg-yellow-100 text-yellow-700",
-  assigned: "bg-red-100 text-red-700",
-  rolled: "bg-blue-100 text-blue-700",
-};
-
-const STRAT_COLORS = {
-  CSP: "bg-purple-100 text-purple-700",
-  CC: "bg-sky-100 text-sky-700",
-};
-
-function badge(text, colorClass) {
-  return `<span class="px-2 py-0.5 rounded text-xs font-semibold ${colorClass}">${text}</span>`;
-}
+/* trade_detail.js — Entry point + open-trade rendering (shared utils in trade_shared.js) */
 
 document.addEventListener("DOMContentLoaded", async () => {
   const parts = window.location.pathname.split("/");
@@ -39,25 +9,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!res.ok) throw new Error("Failed to load trade");
     const t = await res.json();
 
-    // Also fetch current spot price
-    const priceRes = await fetch(`/api/prices?symbols=${encodeURIComponent(t.symbol)}`);
-    const prices = priceRes.ok ? await priceRes.json() : {};
-    const currentPrice = prices[t.symbol] || null;
+    const isOpen = t.status === "open";
 
-    // Store data for recommendation
-    window._tradeData = t;
-    window._currentPrice = currentPrice;
+    if (isOpen) {
+      // Fetch current price for open trade views
+      const priceRes = await fetch(`/api/prices?symbols=${encodeURIComponent(t.symbol)}`);
+      const prices = priceRes.ok ? await priceRes.json() : {};
+      const currentPrice = prices[t.symbol] || null;
 
-    renderHeader(t);
-    renderGlance(t, currentPrice);
-    renderRisk(t, currentPrice);
-    renderMarket(t, currentPrice);
-    renderEvents(t);
+      window._tradeData = t;
+      window._currentPrice = currentPrice;
 
-    // Hide recommendation section for closed trades
-    if (t.status !== "open") {
-      const recSection = $("#recommendation-section");
-      if (recSection) recSection.classList.add("hidden");
+      renderHeader(t);
+      renderOpenGlance(t, currentPrice);
+      renderRisk(t, currentPrice);
+      renderMarket(t, currentPrice);
+      renderEvents(t);
+    } else {
+      renderClosedView(t);
     }
 
     // VIX banner in header
@@ -73,15 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-function renderHeader(t) {
-  const stratBadge = badge(t.strategy_type, STRAT_COLORS[t.strategy_type] || "");
-  const statusBadge = badge(t.status.toUpperCase(), STATUS_COLORS[t.status] || "bg-gray-100 text-gray-600");
-  const symbolLink = `<a href="/symbol/${encodeURIComponent(t.symbol)}" class="text-indigo-600 hover:underline">${t.symbol}</a>`;
-  $("#td-header").innerHTML = `${symbolLink} ${fmt(t.strike, 0)}${t.strategy_type === "CSP" ? "P" : "C"} ${t.expiry_date} ${stratBadge} ${statusBadge}`;
-}
-
-
-function renderGlance(t, currentPrice) {
+function renderOpenGlance(t, currentPrice) {
   const el = $("#td-glance");
   const premiumCollected = Number(t.total_premium);
   const isOpen = t.status === "open";
@@ -148,47 +109,7 @@ function renderGlance(t, currentPrice) {
         <div class="text-lg font-semibold ${rocColor}">${returnOnCapital != null ? fmtPct(returnOnCapital) : '<span class="text-gray-400 text-sm">—</span>'}</div>
       </div>
       <div>
-        ${(() => {
-      const cash = Number(t.strike) * t.contracts * t.multiplier;
-      const rawYield = cash > 0 ? (premiumCollected / cash) * 100 : null;
-      const annYield = rawYield != null && totalDte > 0 ? rawYield * (365 / totalDte) : null;
-      const isCSP = t.strategy_type === "CSP";
-
-      // Yield quality tiers (based on 30-45 DTE norms)
-      const thresholds = isCSP
-        ? { thin: 1, decent: 3, strong: 5 }   // CSP: <1% thin, 1-3% decent, 3-5% strong, 5%+ fat
-        : { thin: 0.5, decent: 1.5, strong: 3 }; // CC: <0.5% thin, 0.5-1.5% decent, 1.5-3% strong, 3%+ fat
-      let tier, tierColor, tierDesc;
-      if (rawYield == null) { tier = ""; tierColor = ""; tierDesc = ""; }
-      else if (rawYield < thresholds.thin) { tier = "Thin"; tierColor = "text-gray-600"; tierDesc = "low IV, slim pickings"; }
-      else if (rawYield < thresholds.decent) { tier = "Decent"; tierColor = "text-blue-600"; tierDesc = "standard wheel income"; }
-      else if (rawYield < thresholds.strong) { tier = "Strong"; tierColor = "text-green-600"; tierDesc = "elevated IV, sweet spot"; }
-      else { tier = "Fat"; tierColor = "text-emerald-600 font-bold"; tierDesc = "rich premium, high risk priced in"; }
-
-      const guide = isCSP
-        ? `CSP guide (30-45 DTE):
-< 1% → Thin (low IV)
-1-3% → Decent
-3-5% → Strong (sweet spot)
-5%+ → Fat (high risk premium)`
-        : `CC guide (30-45 DTE):
-< 0.5% → Thin
-0.5-1.5% → Decent
-1.5-3% → Strong
-3%+ → Fat`;
-
-      return `
-            <div class="text-xs text-gray-600 uppercase flex items-center gap-1">
-              Premium Yield
-              <span class="relative group cursor-help">
-                <svg class="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
-                <span class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-pre-line w-52 z-50 normal-case font-normal">${guide}</span>
-              </span>
-            </div>
-            <div class="text-lg font-semibold ${tierColor}">${rawYield != null ? fmtPct(rawYield) : '—'}</div>
-            ${annYield != null ? `<div class="text-xs text-gray-600">${fmtPct(annYield)} annualized</div>` : ""}
-            ${tier ? `<div class="text-xs ${tierColor}">${tier} — ${tierDesc}</div>` : ""}`;
-    })()}
+        ${premiumYieldHtml(t)}
       </div>
       <div>
         <div class="text-xs text-gray-600 dark:text-gray-400 uppercase">Time Elapsed</div>
@@ -470,33 +391,6 @@ function renderMarket(t, currentPrice) {
         <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5-6H18m0 0v4.5m0-4.5-7.5 7.5"/></svg>
       </a>
     </div>`;
-}
-
-
-function renderEvents(t) {
-  const el = $("#td-events");
-  const events = t.events || [];
-
-  if (events.length === 0) {
-    el.innerHTML = `<p class="text-gray-400 text-sm">No events recorded.</p>`;
-    return;
-  }
-
-  const eventLabels = {
-    open: "Opened", close: "Closed", assignment: "Assigned",
-    exercise: "Exercised", roll_open: "Roll (new)", roll_close: "Roll (closed)", adjustment: "Adjusted",
-  };
-
-  const rows = events.map(e => `
-        <div class="flex items-center gap-3 py-2 border-b dark:border-gray-700 last:border-0">
-            <div class="w-2 h-2 rounded-full ${e.event_type === 'open' ? 'bg-green-500' : e.event_type === 'close' ? 'bg-gray-400' : e.event_type === 'assignment' ? 'bg-red-500' : 'bg-blue-500'}"></div>
-            <div class="text-sm font-medium w-24">${eventLabels[e.event_type] || e.event_type}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">${e.event_date}</div>
-            <div class="text-sm ml-auto">${e.qty} × ${fmtMoney(e.price)}</div>
-        </div>
-    `).join("");
-
-  el.innerHTML = rows;
 }
 
 

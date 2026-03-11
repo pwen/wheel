@@ -40,7 +40,14 @@ async function loadSymbolDetail() {
             .filter(t => t.strategy_type === "CSP")
             .reduce((sum, t) => sum + (Number(t.strike) * Number(t.contracts) * Number(t.multiplier || 100)), 0);
         renderSDTotals(data.totals, cashReservedCsp, data.open_trades || []);
-        loadWheelGuidance(symbol);
+
+        const roles = (data.spot && data.spot.pairing_roles) || [];
+        const isProxy = roles.includes("proxy");
+        const wheelSection = $("#sd-wheel-section");
+        if (isProxy && wheelSection) {
+            wheelSection.style.display = "";
+            loadWheelGuidance(symbol);
+        }
 
         if (data.lots.length > 0) {
             loadSDLotPrices(symbol, data.lots);
