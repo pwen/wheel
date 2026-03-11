@@ -124,6 +124,10 @@
                 {
                     "symbol": "KBA",
                     "note": "KraneShares Bosera MSCI China A"
+                },
+                {
+                    "symbol": "CQQQ",
+                    "note": "Invesco China Technology"
                 }
             ],
             "proxy": [
@@ -132,8 +136,8 @@
                     "note": "China Large-Cap, top options liquidity"
                 },
                 {
-                    "symbol": "CQQQ",
-                    "note": "Invesco China Technology, decent options"
+                    "symbol": "KWEB",
+                    "note": "KraneShares CSI China Internet, good options liquidity"
                 }
             ]
         },
@@ -220,6 +224,10 @@
                 {
                     "symbol": "IAU",
                     "note": "iShares Gold Trust"
+                },
+                {
+                    "symbol": "GLD",
+                    "note": "SPDR Gold Trust, largest gold ETF"
                 }
             ],
             "proxy": [
