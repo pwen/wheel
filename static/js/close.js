@@ -63,7 +63,7 @@ async function _fetchClosingSpotPrice(symbol, onDate) {
         );
         const data = await res.json();
         inputs.forEach(inp => {
-            if (data.price != null && !inp.value) inp.value = data.price;
+            if (data.price != null && !inp.value) inp.value = Number(data.price).toFixed(2);
             inp.placeholder = "";
         });
     } catch (e) {

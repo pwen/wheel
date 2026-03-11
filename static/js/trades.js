@@ -95,8 +95,9 @@ function renderClosedTrades(trades) {
       <td class="px-3 py-2 whitespace-nowrap">${t.opened_at}</td>
       <td class="px-3 py-2 whitespace-nowrap">${t.closed_at || "—"}</td>
       <td class="px-3 py-2 text-right">${t.days_in_trade}</td>
-      <td class="px-3 py-2 text-right">${fmtMoney(t.closing_cost)}</td>
-      <td class="px-3 py-2 text-right">${fmtMoney(t.closing_spot)}</td>
+      <td class="px-3 py-2 text-right ${t.closing_cost != null && Number(t.closing_cost) > Number(t.total_premium) ? 'text-red-600' : 'text-green-600'}">${fmtMoney(t.closing_cost)}</td>
+      <td class="px-3 py-2 text-right">${fmtMoney(t.spot_price_at_open)}</td>
+      <td class="px-3 py-2 text-right ${(() => { if (t.closing_spot == null || t.spot_price_at_open == null) return ''; const move = Number(t.closing_spot) - Number(t.spot_price_at_open); return move >= 0 ? 'text-green-600' : 'text-red-600'; })()}">${fmtMoney(t.closing_spot)}</td>
       <td class="px-3 py-2 text-right ${t.realized_pl != null ? (t.realized_pl >= 0 ? 'text-green-600' : 'text-red-600') : ''}">
         ${fmtMoney(t.realized_pl)}
       </td>
