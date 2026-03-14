@@ -589,9 +589,9 @@ async function renderSymbolEvents(t) {
       const info = IMPLICATIONS[ev.event_type] || { label: ev.event_type, icon: "📅", color: "border-gray-400", bgColor: "bg-gray-50 dark:bg-gray-800", implication: "" };
       const d = new Date(ev.event_date + "T00:00:00");
       const dateStr = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
-      const expiryD = new Date(t.expiry_date + "T00:00:00");
-      const daysBeforeExpiry = Math.ceil((expiryD - d) / 86400000);
-      const proximity = daysBeforeExpiry <= 7 ? '<span class="text-xs text-red-600 font-semibold ml-2">⚠ within 7d of expiry</span>' : "";
+      const endD = new Date((t.closed_at || t.expiry_date) + "T00:00:00");
+      const daysBeforeEnd = Math.ceil((endD - d) / 86400000);
+      const proximity = daysBeforeEnd <= 7 ? '<span class="text-xs text-red-600 font-semibold ml-2">⚠ within 7d of expiry</span>' : "";
 
       html += `<div class="border-l-4 ${info.color} ${info.bgColor} rounded-r-lg p-3">`;
       html += `<div class="flex items-center gap-2 mb-1">`;

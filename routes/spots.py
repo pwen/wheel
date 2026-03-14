@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 
 from db import get_session
 from models import Spot, Trade, TradeStatus, ShareLot, Pairing
+from models.spot import AssetType
 from services import populate_spot_info
 from services.events import seed_single_symbol_events
 
@@ -167,7 +168,7 @@ def create_spot(body: SpotCreate, session: Session = Depends(get_session)):
 
     # Auto-seed earnings & ex-dividend events for non-ETF symbols
     try:
-        if spot.asset_type != "etf":
+        if spot.asset_type != AssetType.ETF:
             seed_single_symbol_events(spot.symbol, date.today().year, session)
     except Exception:
         log.warning("Failed to auto-seed events for %s", spot.symbol)

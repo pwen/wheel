@@ -7,7 +7,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 import yfinance as yf
-from sqlmodel import Session, select
+from sqlmodel import Session, select, delete
 
 from models.market_event import MarketEvent, EventType, EventSource
 from models.spot import Spot, AssetType
@@ -150,18 +150,15 @@ def seed_macro_events(year: int, session: Session) -> dict:
     year_start = date(year, 1, 1)
     year_end = date(year, 12, 31)
 
-    # Delete all existing macro events for this year
-    existing = session.exec(
-        select(MarketEvent).where(
+    # Bulk-delete existing macro events for this year
+    session.exec(
+        delete(MarketEvent).where(
             MarketEvent.event_type.in_(_MACRO_TYPES),
             MarketEvent.event_date >= year_start,
             MarketEvent.event_date <= year_end,
             MarketEvent.symbol.is_(None),
         )
-    ).all()
-    deleted = len(existing)
-    for e in existing:
-        session.delete(e)
+    )
     session.flush()
 
     # Load seed data
@@ -258,17 +255,15 @@ def seed_symbol_events(year: int, session: Session) -> dict:
     year_start = date(year, 1, 1)
     year_end = date(year, 12, 31)
 
-    # Delete existing symbol events for this year
-    existing = session.exec(
-        select(MarketEvent).where(
+    # Bulk-delete existing symbol events for this year
+    session.exec(
+        delete(MarketEvent).where(
             MarketEvent.event_type.in_(_SYMBOL_EVENT_TYPES),
             MarketEvent.event_date >= year_start,
             MarketEvent.event_date <= year_end,
             MarketEvent.symbol.is_not(None),
         )
-    ).all()
-    for e in existing:
-        session.delete(e)
+    )
     session.flush()
 
     # Get all tracked symbols (skip ETFs — no earnings)
@@ -335,17 +330,15 @@ def seed_single_symbol_events(symbol: str, year: int, session: Session) -> int:
     year_start = date(year, 1, 1)
     year_end = date(year, 12, 31)
 
-    # Delete existing events for this symbol + year
-    existing = session.exec(
-        select(MarketEvent).where(
+    # Bulk-delete existing events for this symbol + year
+    session.exec(
+        delete(MarketEvent).where(
             MarketEvent.event_type.in_(_SYMBOL_EVENT_TYPES),
             MarketEvent.event_date >= year_start,
             MarketEvent.event_date <= year_end,
             MarketEvent.symbol == symbol,
         )
-    ).all()
-    for e in existing:
-        session.delete(e)
+    )
     session.flush()
 
     data = _fetch_symbol_dates(symbol, year)

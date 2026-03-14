@@ -200,12 +200,16 @@ _REGULATORY_TYPES = {
     "davos_wef", "wuzhen_wic",
 }
 
-_EARNINGS_TYPES = {"us_earnings", "us_ex_dividend"}
+_EARNINGS_TYPES = {"us_earnings"}
+
+_DIVIDEND_TYPES = {"us_ex_dividend"}
 
 
 def _get_event_category(event_type: str) -> str:
     if event_type in _EARNINGS_TYPES:
         return "earnings"
+    if event_type in _DIVIDEND_TYPES:
+        return "dividend"
     if event_type in _DATA_RELEASE_TYPES:
         return "data_release"
     if event_type in _POLICY_MEETING_TYPES:
@@ -277,6 +281,17 @@ _PAST_PROMPTS = {
         "- Sectors or companies that stand to benefit most\n"
         "- Emerging trends that could drive sector rotation\n"
         "- Specific names investors should be watching"
+    ),
+    "dividend": (
+        "Summarize this ex-dividend event in two sections:\n"
+        "WHAT HAPPENED:\n"
+        "- Dividend amount and yield at ex-date price\n"
+        "- How the stock moved on the ex-date (vs the expected dividend drop)\n"
+        "- Any changes to dividend policy (raise, cut, or special dividend)\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- For covered call sellers: was there early assignment risk and did it materialize\n"
+        "- For CSP sellers: how the ex-date drop affected proximity to strike\n"
+        "- Whether the dividend is sustainable based on payout ratio and cash flow"
     ),
     "rebalancing": (
         "Summarize this rebalancing/structural market event in two sections:\n"
@@ -358,6 +373,17 @@ _FUTURE_PROMPTS = {
         "- What announcements could move stocks\n"
         "- Names most likely to benefit from positive coverage\n"
         "- Whether to pre-position or watch from the sideline"
+    ),
+    "dividend": (
+        "Preview this upcoming ex-dividend event in two sections:\n"
+        "WHAT TO EXPECT:\n"
+        "- Expected dividend amount and current yield\n"
+        "- Ex-date and record date timing\n"
+        "- Whether the company has a history of dividend raises\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- For covered call sellers: early assignment risk if calls are ITM near ex-date\n"
+        "- For CSP sellers: factor the ex-date price drop into break-even analysis\n"
+        "- Whether to time option entries around the ex-date"
     ),
     "rebalancing": (
         "Preview this upcoming rebalancing/structural market event in two sections:\n"

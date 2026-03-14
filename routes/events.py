@@ -2,7 +2,7 @@ import logging
 from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
 from db import get_session
@@ -43,6 +43,7 @@ def list_events(
     event_type: Optional[EventType] = None,
     symbol: Optional[str] = None,
     region: Optional[str] = None,
+    limit: int = Query(default=200, ge=1, le=1000),
     session: Session = Depends(get_session),
 ):
     """Query market events with optional filters."""
@@ -59,6 +60,7 @@ def list_events(
     if region:
         stmt = stmt.where(MarketEvent.region == region.upper())
 
+    stmt = stmt.limit(limit)
     rows = session.exec(stmt).all()
     return [r.model_dump() for r in rows]
 
@@ -68,7 +70,6 @@ def event_summary(event_id: int, session: Session = Depends(get_session)):
     """Get an AI-generated summary of a specific event."""
     event = session.get(MarketEvent, event_id)
     if not event:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Event not found")
     summary = get_event_summary(
         event_title=event.title,

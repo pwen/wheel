@@ -1,5 +1,5 @@
 import enum
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional
 
 import sqlalchemy as sa
@@ -97,6 +97,9 @@ class EventSource(str, enum.Enum):
 
 
 class MarketEvent(SQLModel, table=True):
+    __table_args__ = (
+        sa.Index("ix_marketevent_type_date_symbol", "event_type", "event_date", "symbol"),
+    )
     model_config = {"use_enum_values": True}  # type: ignore[assignment]
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -109,5 +112,5 @@ class MarketEvent(SQLModel, table=True):
     url: Optional[str] = None
     impact: int = Field(default=2)
     source: EventSource = Field(default=EventSource.MANUAL, sa_type=sa.String)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
