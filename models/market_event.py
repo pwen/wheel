@@ -29,6 +29,29 @@ class EventType(str, enum.Enum):
     TWO_SESSIONS = "two_sessions"
     CN_TRADE = "cn_trade"
     CEWC = "cewc"
+    # EU
+    EU_ECB = "eu_ecb"
+    EU_CPI = "eu_cpi"
+    EU_GDP = "eu_gdp"
+    EU_PMI = "eu_pmi"
+    EU_ECB_MINUTES = "eu_ecb_minutes"
+    EU_TRADE = "eu_trade"
+    # Germany
+    DE_IFO = "de_ifo"
+    # Japan
+    JP_BOJ = "jp_boj"
+    JP_CPI = "jp_cpi"
+    JP_TANKAN = "jp_tankan"
+    # India
+    IN_RBI = "in_rbi"
+    IN_CPI = "in_cpi"
+    IN_GDP = "in_gdp"
+    # Brazil
+    BR_COPOM = "br_copom"
+    BR_CPI = "br_cpi"
+    # Mexico
+    MX_BANXICO = "mx_banxico"
+    MX_CPI = "mx_cpi"
 
 
 class EventSource(str, enum.Enum):
@@ -45,6 +68,8 @@ class MarketEvent(SQLModel, table=True):
     region: str = Field(default="US", index=True)
     title: str
     notes: Optional[str] = None
+    url: Optional[str] = None
+    impact: int = Field(default=2)
     source: EventSource = Field(default=EventSource.MANUAL, sa_type=sa.String)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

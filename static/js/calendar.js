@@ -23,6 +23,29 @@ const EVENT_TYPE_COLORS = {
     two_sessions: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400", label: "Two Sessions" },
     cn_trade: { bg: "bg-slate-100 dark:bg-slate-900/30", text: "text-slate-700 dark:text-slate-400", label: "CN Trade" },
     cewc: { bg: "bg-zinc-100 dark:bg-zinc-900/30", text: "text-zinc-700 dark:text-zinc-400", label: "CEWC" },
+    // EU
+    eu_ecb: { bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-800 dark:text-blue-300", label: "ECB" },
+    eu_cpi: { bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-800 dark:text-orange-300", label: "EU CPI" },
+    eu_gdp: { bg: "bg-indigo-100 dark:bg-indigo-900/30", text: "text-indigo-800 dark:text-indigo-300", label: "EU GDP" },
+    eu_pmi: { bg: "bg-emerald-100 dark:bg-emerald-900/30", text: "text-emerald-800 dark:text-emerald-300", label: "EU PMI" },
+    eu_ecb_minutes: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-800 dark:text-red-300", label: "ECB Min" },
+    eu_trade: { bg: "bg-slate-100 dark:bg-slate-900/30", text: "text-slate-800 dark:text-slate-300", label: "EU Trade" },
+    // Germany
+    de_ifo: { bg: "bg-amber-100 dark:bg-amber-900/30", text: "text-amber-800 dark:text-amber-300", label: "Ifo" },
+    // Japan
+    jp_boj: { bg: "bg-red-200 dark:bg-red-900/40", text: "text-red-800 dark:text-red-300", label: "BOJ" },
+    jp_cpi: { bg: "bg-orange-200 dark:bg-orange-900/40", text: "text-orange-800 dark:text-orange-300", label: "JP CPI" },
+    jp_tankan: { bg: "bg-pink-200 dark:bg-pink-900/40", text: "text-pink-800 dark:text-pink-300", label: "Tankan" },
+    // India
+    in_rbi: { bg: "bg-teal-200 dark:bg-teal-900/40", text: "text-teal-800 dark:text-teal-300", label: "RBI" },
+    in_cpi: { bg: "bg-cyan-200 dark:bg-cyan-900/40", text: "text-cyan-800 dark:text-cyan-300", label: "IN CPI" },
+    in_gdp: { bg: "bg-sky-200 dark:bg-sky-900/40", text: "text-sky-800 dark:text-sky-300", label: "IN GDP" },
+    // Brazil
+    br_copom: { bg: "bg-green-200 dark:bg-green-900/40", text: "text-green-800 dark:text-green-300", label: "Copom" },
+    br_cpi: { bg: "bg-lime-200 dark:bg-lime-900/40", text: "text-lime-800 dark:text-lime-300", label: "BR CPI" },
+    // Mexico
+    mx_banxico: { bg: "bg-violet-200 dark:bg-violet-900/40", text: "text-violet-800 dark:text-violet-300", label: "Banxico" },
+    mx_cpi: { bg: "bg-fuchsia-200 dark:bg-fuchsia-900/40", text: "text-fuchsia-800 dark:text-fuchsia-300", label: "MX CPI" },
 };
 
 let _calendarLoaded = false;
@@ -106,6 +129,8 @@ async function loadCalendarEvents() {
                 const symbolBadge = ev.symbol
                     ? `<span class="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">${ev.symbol}</span>`
                     : "";
+                const impactDots = "●".repeat(ev.impact || 2);
+                const impactColor = (ev.impact || 2) >= 3 ? "text-red-500" : (ev.impact || 2) >= 2 ? "text-yellow-500" : "text-gray-400";
                 const isPast = ev.event_date < today;
                 const opacity = isPast ? "opacity-50" : "";
 
@@ -113,6 +138,8 @@ async function loadCalendarEvents() {
                 html += `  <span class="w-28 text-sm text-gray-500 dark:text-gray-400 shrink-0">${dayStr}</span>`;
                 html += `  <span class="text-xs font-medium px-2 py-0.5 rounded ${type.bg} ${type.text} w-24 text-center shrink-0">${type.label}</span>`;
                 html += `  <span class="text-sm text-gray-900 dark:text-gray-100 flex-1">${ev.title}</span>`;
+                html += `  <span class="text-xs ${impactColor}" title="Impact: ${ev.impact || 2}/3">${impactDots}</span>`;
+                if (ev.url) html += `  <a href="${ev.url}" target="_blank" rel="noopener" class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400" title="Source"><svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>`;
                 html += `  <span class="flex items-center gap-1.5">${symbolBadge}${regionBadge}</span>`;
                 html += `</div>`;
             }

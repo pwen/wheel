@@ -27,6 +27,8 @@ def upgrade() -> None:
         sa.Column('region', sa.String(), nullable=False, server_default='US'),
         sa.Column('title', sa.String(), nullable=False),
         sa.Column('notes', sa.String(), nullable=True),
+        sa.Column('url', sa.String(), nullable=True),
+        sa.Column('impact', sa.Integer(), nullable=False, server_default='2'),
         sa.Column('source', sa.String(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),

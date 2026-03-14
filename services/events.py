@@ -23,6 +23,19 @@ _MACRO_TYPES = {
     EventType.CN_LPR, EventType.CN_GDP, EventType.CN_CPI,
     EventType.CN_PPI, EventType.CN_PMI, EventType.CAIXIN_PMI,
     EventType.TWO_SESSIONS, EventType.CN_TRADE, EventType.CEWC,
+    # EU
+    EventType.EU_ECB, EventType.EU_CPI, EventType.EU_GDP,
+    EventType.EU_PMI, EventType.EU_ECB_MINUTES, EventType.EU_TRADE,
+    # Germany
+    EventType.DE_IFO,
+    # Japan
+    EventType.JP_BOJ, EventType.JP_CPI, EventType.JP_TANKAN,
+    # India
+    EventType.IN_RBI, EventType.IN_CPI, EventType.IN_GDP,
+    # Brazil
+    EventType.BR_COPOM, EventType.BR_CPI,
+    # Mexico
+    EventType.MX_BANXICO, EventType.MX_CPI,
 }
 
 # JSON key → (EventType, display label)
@@ -46,6 +59,29 @@ _TYPE_MAP: dict[str, tuple[EventType, str]] = {
     "two_sessions": (EventType.TWO_SESSIONS, "Two Sessions"),
     "cn_trade": (EventType.CN_TRADE, "China Trade Balance"),
     "cewc": (EventType.CEWC, "CEWC"),
+    # EU
+    "eu_ecb": (EventType.EU_ECB, "ECB Rate Decision"),
+    "eu_cpi": (EventType.EU_CPI, "EU CPI (HICP Flash)"),
+    "eu_gdp": (EventType.EU_GDP, "EU GDP"),
+    "eu_pmi": (EventType.EU_PMI, "EU PMI (Composite Flash)"),
+    "eu_ecb_minutes": (EventType.EU_ECB_MINUTES, "ECB Meeting Minutes"),
+    "eu_trade": (EventType.EU_TRADE, "EU Trade Balance"),
+    # Germany
+    "de_ifo": (EventType.DE_IFO, "German Ifo Business Climate"),
+    # Japan
+    "jp_boj": (EventType.JP_BOJ, "BOJ Rate Decision"),
+    "jp_cpi": (EventType.JP_CPI, "Japan CPI"),
+    "jp_tankan": (EventType.JP_TANKAN, "Tankan Survey"),
+    # India
+    "in_rbi": (EventType.IN_RBI, "RBI Rate Decision"),
+    "in_cpi": (EventType.IN_CPI, "India CPI"),
+    "in_gdp": (EventType.IN_GDP, "India GDP"),
+    # Brazil
+    "br_copom": (EventType.BR_COPOM, "Copom Rate Decision"),
+    "br_cpi": (EventType.BR_CPI, "Brazil CPI (IPCA)"),
+    # Mexico
+    "mx_banxico": (EventType.MX_BANXICO, "Banxico Rate Decision"),
+    "mx_cpi": (EventType.MX_CPI, "Mexico CPI"),
 }
 
 
@@ -89,6 +125,8 @@ def seed_macro_events(year: int, session: Session) -> dict:
             counts[key] = 0
             continue
         region = year_data[key].get("region", "US")
+        impact = year_data[key].get("impact", 2)
+        url = year_data[key].get("url")
         count = 0
         for date_str in year_data[key]["dates"]:
             d = date.fromisoformat(date_str)
@@ -96,7 +134,7 @@ def seed_macro_events(year: int, session: Session) -> dict:
             session.add(MarketEvent(
                 event_type=etype, event_date=d,
                 title=title, source=EventSource.MANUAL,
-                region=region,
+                region=region, impact=impact, url=url,
             ))
             count += 1
         counts[key] = count

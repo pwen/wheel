@@ -17,6 +17,12 @@
 - Credentials: `wheel / wheel`, database: `wheel`
 - Migrations run automatically on app startup (Alembic in lifespan hook)
 - Manual migration: `DATABASE_URL=postgresql://wheel:wheel@localhost:5433/wheel uv run alembic upgrade head`
+- **In Docker**: `docker compose exec app /app/.venv/bin/python -m alembic upgrade head`
+- **Drop & rerun a migration** (e.g. after editing a migration file):
+  1. Drop the table: `docker compose exec db psql -U wheel -d wheel -c "DROP TABLE IF EXISTS <tablename>;"`
+  2. Stamp to the prior revision: `docker compose exec db psql -U wheel -d wheel -c "UPDATE alembic_version SET version_num = '<prior_revision>';"`
+  3. Re-run: `docker compose exec app /app/.venv/bin/python -m alembic upgrade head`
+  - If you accidentally delete the alembic_version row, re-insert it: `INSERT INTO alembic_version (version_num) VALUES ('<prior_revision>');`
 
 ## Deployment (Railway)
 - Deployed via **Dockerfile** builder (`railway.toml`)

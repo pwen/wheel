@@ -4,6 +4,8 @@
         "us_fomc": {
             "_note": "FOMC meeting conclusion dates. Source: federalreserve.gov",
             "region": "US",
+            "impact": 3,
+            "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
             "dates": [
                 "2026-01-28",
                 "2026-03-18",
@@ -18,6 +20,8 @@
         "us_cpi": {
             "_note": "CPI release dates (8:30am ET). Source: bls.gov",
             "region": "US",
+            "impact": 3,
+            "url": "https://www.bls.gov/cpi/",
             "dates": [
                 "2026-01-14",
                 "2026-02-12",
@@ -36,6 +40,8 @@
         "us_gdp": {
             "_note": "GDP advance estimate release dates. Source: bea.gov",
             "region": "US",
+            "impact": 2,
+            "url": "https://www.bea.gov/data/gdp/gross-domestic-product",
             "dates": [
                 "2026-01-29",
                 "2026-04-29",
@@ -46,6 +52,8 @@
         "us_opex": {
             "_note": "US Options expiration — 3rd Friday of each month",
             "region": "US",
+            "impact": 2,
+            "url": "https://www.cboe.com/options/expiration-calendar/",
             "dates": [
                 "2026-01-16",
                 "2026-02-20",
@@ -64,6 +72,8 @@
         "us_triple_witching": {
             "_note": "US Triple witching — 3rd Friday of Mar/Jun/Sep/Dec",
             "region": "US",
+            "impact": 3,
+            "url": "https://www.cboe.com/options/expiration-calendar/",
             "dates": [
                 "2026-03-20",
                 "2026-06-19",
@@ -74,6 +84,8 @@
         "us_jobs": {
             "_note": "Non-Farm Payrolls — 1st Friday of each month",
             "region": "US",
+            "impact": 3,
+            "url": "https://www.bls.gov/news.release/empsit.nr0.htm",
             "dates": [
                 "2026-01-02",
                 "2026-02-06",
@@ -92,6 +104,8 @@
         "us_pce": {
             "_note": "PCE Price Index release dates (Personal Income & Outlays). Source: bea.gov",
             "region": "US",
+            "impact": 3,
+            "url": "https://www.bea.gov/data/personal-consumption-expenditures-price-index",
             "dates": [
                 "2026-01-30",
                 "2026-02-27",
@@ -110,6 +124,8 @@
         "us_ppi": {
             "_note": "PPI release dates (8:30am ET). Source: bls.gov",
             "region": "US",
+            "impact": 2,
+            "url": "https://www.bls.gov/ppi/",
             "dates": [
                 "2026-01-13",
                 "2026-02-11",
@@ -128,6 +144,8 @@
         "cn_lpr": {
             "_note": "Loan Prime Rate announcement (20th of month, next biz day if weekend). Source: PBOC",
             "region": "CN",
+            "impact": 3,
+            "url": "http://www.pbc.gov.cn/en/3688110/3688172/index.html",
             "dates": [
                 "2026-01-20",
                 "2026-02-20",
@@ -146,6 +164,8 @@
         "cn_gdp": {
             "_note": "China GDP release (quarterly, mid-month). Source: NBS",
             "region": "CN",
+            "impact": 2,
+            "url": "https://www.stats.gov.cn/english/",
             "dates": [
                 "2026-01-16",
                 "2026-04-16",
@@ -156,6 +176,8 @@
         "cn_cpi": {
             "_note": "China CPI release (monthly, ~9th-12th). Source: NBS",
             "region": "CN",
+            "impact": 3,
+            "url": "https://www.stats.gov.cn/english/",
             "dates": [
                 "2026-01-09",
                 "2026-02-10",
@@ -174,6 +196,8 @@
         "cn_ppi": {
             "_note": "China PPI release (same day as CPI). Source: NBS",
             "region": "CN",
+            "impact": 2,
+            "url": "https://www.stats.gov.cn/english/",
             "dates": [
                 "2026-01-09",
                 "2026-02-10",
@@ -192,6 +216,8 @@
         "cn_pmi": {
             "_note": "Official NBS Manufacturing + Non-Manufacturing PMI (last biz day of month). Source: NBS",
             "region": "CN",
+            "impact": 2,
+            "url": "https://www.stats.gov.cn/english/",
             "dates": [
                 "2026-01-30",
                 "2026-02-27",
@@ -210,6 +236,8 @@
         "caixin_pmi": {
             "_note": "Caixin Manufacturing PMI (1st biz day of month, for prior month). Source: S&P Global / Caixin",
             "region": "CN",
+            "impact": 2,
+            "url": "https://www.pmi.spglobal.com/Public/Release/PressReleases",
             "dates": [
                 "2026-01-02",
                 "2026-02-02",
@@ -228,6 +256,8 @@
         "two_sessions": {
             "_note": "Two Sessions — CPPCC opens ~Mar 3, NPC opens ~Mar 5",
             "region": "CN",
+            "impact": 1,
+            "url": "http://www.npc.gov.cn/englishnpc/",
             "dates": [
                 "2026-03-03",
                 "2026-03-05"
@@ -236,6 +266,8 @@
         "cn_trade": {
             "_note": "China Trade Balance release (monthly, ~7th-13th). Source: General Administration of Customs",
             "region": "CN",
+            "impact": 2,
+            "url": "http://english.customs.gov.cn/Statics/Features/Statistics",
             "dates": [
                 "2026-01-13",
                 "2026-02-10",
@@ -254,9 +286,300 @@
         "cewc": {
             "_note": "Central Economic Work Conference — sets next year's economic priorities (mid-Dec)",
             "region": "CN",
+            "impact": 1,
+            "url": "https://english.www.gov.cn/",
             "dates": [
                 "2026-12-14",
                 "2026-12-15"
+            ]
+        },
+        "eu_ecb": {
+            "_note": "ECB Governing Council rate decision dates. Source: ecb.europa.eu",
+            "region": "EU",
+            "impact": 3,
+            "url": "https://www.ecb.europa.eu/press/govcdec/mopo/html/index.en.html",
+            "dates": [
+                "2026-01-22",
+                "2026-03-05",
+                "2026-04-16",
+                "2026-06-04",
+                "2026-07-16",
+                "2026-09-10",
+                "2026-10-22",
+                "2026-12-10"
+            ]
+        },
+        "eu_cpi": {
+            "_note": "Eurozone HICP flash estimate (end of month for current month). Source: Eurostat",
+            "region": "EU",
+            "impact": 3,
+            "url": "https://ec.europa.eu/eurostat/web/hicp",
+            "dates": [
+                "2026-01-07",
+                "2026-02-27",
+                "2026-03-31",
+                "2026-04-30",
+                "2026-05-29",
+                "2026-06-30",
+                "2026-07-31",
+                "2026-08-31",
+                "2026-09-30",
+                "2026-10-30",
+                "2026-11-30",
+                "2026-12-17"
+            ]
+        },
+        "eu_gdp": {
+            "_note": "Eurozone GDP flash estimate (quarterly). Source: Eurostat",
+            "region": "EU",
+            "impact": 2,
+            "url": "https://ec.europa.eu/eurostat/web/national-accounts",
+            "dates": [
+                "2026-01-30",
+                "2026-04-30",
+                "2026-07-31",
+                "2026-10-30"
+            ]
+        },
+        "eu_pmi": {
+            "_note": "S&P Global Eurozone Composite Flash PMI (~22nd-24th of month). Source: S&P Global",
+            "region": "EU",
+            "impact": 2,
+            "url": "https://www.pmi.spglobal.com/Public/Release/PressReleases",
+            "dates": [
+                "2026-01-23",
+                "2026-02-20",
+                "2026-03-23",
+                "2026-04-23",
+                "2026-05-22",
+                "2026-06-23",
+                "2026-07-23",
+                "2026-08-21",
+                "2026-09-23",
+                "2026-10-23",
+                "2026-11-20",
+                "2026-12-16"
+            ]
+        },
+        "eu_ecb_minutes": {
+            "_note": "ECB Meeting Minutes (~4 weeks after each rate decision). Source: ecb.europa.eu",
+            "region": "EU",
+            "impact": 1,
+            "url": "https://www.ecb.europa.eu/press/accounts/html/index.en.html",
+            "dates": [
+                "2026-02-19",
+                "2026-04-02",
+                "2026-05-14",
+                "2026-07-02",
+                "2026-08-13",
+                "2026-10-08",
+                "2026-11-19"
+            ]
+        },
+        "eu_trade": {
+            "_note": "Eurozone Trade Balance (~15th, 2-month lag). Source: Eurostat",
+            "region": "EU",
+            "impact": 2,
+            "url": "https://ec.europa.eu/eurostat/web/international-trade-in-goods",
+            "dates": [
+                "2026-01-15",
+                "2026-02-13",
+                "2026-03-13",
+                "2026-04-15",
+                "2026-05-15",
+                "2026-06-12",
+                "2026-07-15",
+                "2026-08-14",
+                "2026-09-15",
+                "2026-10-15",
+                "2026-11-13",
+                "2026-12-15"
+            ]
+        },
+        "de_ifo": {
+            "_note": "German Ifo Business Climate Index (~25th of month). Source: ifo Institute",
+            "region": "DE",
+            "impact": 2,
+            "url": "https://www.ifo.de/en/survey/ifo-business-climate-index",
+            "dates": [
+                "2026-01-26",
+                "2026-02-24",
+                "2026-03-25",
+                "2026-04-24",
+                "2026-05-25",
+                "2026-06-24",
+                "2026-07-27",
+                "2026-08-25",
+                "2026-09-24",
+                "2026-10-26",
+                "2026-11-24",
+                "2026-12-17"
+            ]
+        },
+        "jp_boj": {
+            "_note": "BOJ Monetary Policy Meeting conclusion dates. Source: boj.or.jp",
+            "region": "JP",
+            "impact": 3,
+            "url": "https://www.boj.or.jp/en/mopo/mpmdeci/index.htm",
+            "dates": [
+                "2026-01-24",
+                "2026-03-13",
+                "2026-05-01",
+                "2026-06-16",
+                "2026-07-17",
+                "2026-09-17",
+                "2026-10-29",
+                "2026-12-18"
+            ]
+        },
+        "jp_cpi": {
+            "_note": "Japan CPI release (~3rd-4th Friday of month). Source: stat.go.jp",
+            "region": "JP",
+            "impact": 2,
+            "url": "https://www.stat.go.jp/english/data/cpi/index.html",
+            "dates": [
+                "2026-01-23",
+                "2026-02-20",
+                "2026-03-20",
+                "2026-04-17",
+                "2026-05-22",
+                "2026-06-19",
+                "2026-07-17",
+                "2026-08-21",
+                "2026-09-18",
+                "2026-10-23",
+                "2026-11-20",
+                "2026-12-18"
+            ]
+        },
+        "jp_tankan": {
+            "_note": "BOJ Tankan Survey (quarterly, early Apr/Jul/Oct/Dec). Source: boj.or.jp",
+            "region": "JP",
+            "impact": 2,
+            "url": "https://www.boj.or.jp/en/statistics/tk/index.htm",
+            "dates": [
+                "2026-04-01",
+                "2026-07-01",
+                "2026-10-01",
+                "2026-12-14"
+            ]
+        },
+        "in_rbi": {
+            "_note": "RBI Monetary Policy Committee rate decision. Source: rbi.org.in",
+            "region": "IN",
+            "impact": 3,
+            "url": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+            "dates": [
+                "2026-02-06",
+                "2026-04-09",
+                "2026-06-05",
+                "2026-08-07",
+                "2026-10-02",
+                "2026-12-04"
+            ]
+        },
+        "in_cpi": {
+            "_note": "India CPI release (~12th of month). Source: mospi.gov.in",
+            "region": "IN",
+            "impact": 2,
+            "url": "https://www.mospi.gov.in/",
+            "dates": [
+                "2026-01-13",
+                "2026-02-12",
+                "2026-03-12",
+                "2026-04-14",
+                "2026-05-12",
+                "2026-06-12",
+                "2026-07-14",
+                "2026-08-12",
+                "2026-09-14",
+                "2026-10-13",
+                "2026-11-12",
+                "2026-12-14"
+            ]
+        },
+        "in_gdp": {
+            "_note": "India GDP advance/quarterly estimate. Source: mospi.gov.in",
+            "region": "IN",
+            "impact": 2,
+            "url": "https://www.mospi.gov.in/",
+            "dates": [
+                "2026-02-27",
+                "2026-05-29",
+                "2026-08-28",
+                "2026-11-27"
+            ]
+        },
+        "br_copom": {
+            "_note": "BCB Copom rate decision (conclusion day). Source: bcb.gov.br",
+            "region": "BR",
+            "impact": 3,
+            "url": "https://www.bcb.gov.br/en/monetarypolicy/copomstatements",
+            "dates": [
+                "2026-01-28",
+                "2026-03-18",
+                "2026-05-06",
+                "2026-06-17",
+                "2026-08-05",
+                "2026-09-16",
+                "2026-11-04",
+                "2026-12-09"
+            ]
+        },
+        "br_cpi": {
+            "_note": "Brazil IPCA (CPI) release (~10th of month). Source: ibge.gov.br",
+            "region": "BR",
+            "impact": 2,
+            "url": "https://www.ibge.gov.br/en/statistics/economic/prices-and-costs.html",
+            "dates": [
+                "2026-01-10",
+                "2026-02-12",
+                "2026-03-11",
+                "2026-04-09",
+                "2026-05-08",
+                "2026-06-10",
+                "2026-07-09",
+                "2026-08-07",
+                "2026-09-09",
+                "2026-10-08",
+                "2026-11-11",
+                "2026-12-09"
+            ]
+        },
+        "mx_banxico": {
+            "_note": "Banxico rate decision. Source: banxico.org.mx",
+            "region": "MX",
+            "impact": 3,
+            "url": "https://www.banxico.org.mx/publications-and-press/announcements-on-monetary-policy-decisions/index-en.html",
+            "dates": [
+                "2026-02-05",
+                "2026-03-26",
+                "2026-05-14",
+                "2026-06-25",
+                "2026-08-13",
+                "2026-09-24",
+                "2026-11-12",
+                "2026-12-17"
+            ]
+        },
+        "mx_cpi": {
+            "_note": "Mexico CPI (INPC) release (~9th of month). Source: inegi.org.mx",
+            "region": "MX",
+            "impact": 2,
+            "url": "https://www.inegi.org.mx/temas/inpc/",
+            "dates": [
+                "2026-01-08",
+                "2026-02-09",
+                "2026-03-09",
+                "2026-04-09",
+                "2026-05-07",
+                "2026-06-09",
+                "2026-07-09",
+                "2026-08-07",
+                "2026-09-08",
+                "2026-10-08",
+                "2026-11-09",
+                "2026-12-09"
             ]
         }
     }
