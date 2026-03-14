@@ -15,21 +15,37 @@ SEED_PATH = Path(__file__).resolve().parent.parent / "seeds" / "macro_events.jso
 
 # Macro event types — used to scope the delete-then-recreate
 _MACRO_TYPES = {
-    EventType.OPEX, EventType.TRIPLE_WITCHING, EventType.JOBS,
-    EventType.FOMC, EventType.CPI, EventType.GDP,
-    EventType.PCE, EventType.PPI,
+    # US
+    EventType.US_OPEX, EventType.US_TRIPLE_WITCHING, EventType.US_JOBS,
+    EventType.US_FOMC, EventType.US_CPI, EventType.US_GDP,
+    EventType.US_PCE, EventType.US_PPI,
+    # China
+    EventType.CN_LPR, EventType.CN_GDP, EventType.CN_CPI,
+    EventType.CN_PPI, EventType.CN_PMI, EventType.CAIXIN_PMI,
+    EventType.TWO_SESSIONS, EventType.CN_TRADE, EventType.CEWC,
 }
 
 # JSON key → (EventType, display label)
 _TYPE_MAP: dict[str, tuple[EventType, str]] = {
-    "fomc": (EventType.FOMC, "FOMC Meeting"),
-    "cpi": (EventType.CPI, "CPI Release"),
-    "gdp": (EventType.GDP, "GDP Advance Estimate"),
-    "opex": (EventType.OPEX, "OpEx"),
-    "triple_witching": (EventType.TRIPLE_WITCHING, "Triple Witching"),
-    "jobs": (EventType.JOBS, "Jobs Report (NFP)"),
-    "pce": (EventType.PCE, "PCE Price Index"),
-    "ppi": (EventType.PPI, "PPI Release"),
+    # US
+    "us_fomc": (EventType.US_FOMC, "FOMC Meeting"),
+    "us_cpi": (EventType.US_CPI, "US CPI Release"),
+    "us_gdp": (EventType.US_GDP, "US GDP Advance Estimate"),
+    "us_opex": (EventType.US_OPEX, "US OpEx"),
+    "us_triple_witching": (EventType.US_TRIPLE_WITCHING, "US Triple Witching"),
+    "us_jobs": (EventType.US_JOBS, "US Jobs Report (NFP)"),
+    "us_pce": (EventType.US_PCE, "US PCE Price Index"),
+    "us_ppi": (EventType.US_PPI, "US PPI Release"),
+    # China
+    "cn_lpr": (EventType.CN_LPR, "LPR (Loan Prime Rate)"),
+    "cn_gdp": (EventType.CN_GDP, "China GDP"),
+    "cn_cpi": (EventType.CN_CPI, "China CPI"),
+    "cn_ppi": (EventType.CN_PPI, "China PPI"),
+    "cn_pmi": (EventType.CN_PMI, "NBS PMI"),
+    "caixin_pmi": (EventType.CAIXIN_PMI, "Caixin PMI"),
+    "two_sessions": (EventType.TWO_SESSIONS, "Two Sessions"),
+    "cn_trade": (EventType.CN_TRADE, "China Trade Balance"),
+    "cewc": (EventType.CEWC, "CEWC"),
 }
 
 

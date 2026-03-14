@@ -7,16 +7,28 @@ from sqlmodel import Field, SQLModel
 
 
 class EventType(str, enum.Enum):
-    EARNINGS = "earnings"
-    EX_DIVIDEND = "ex_dividend"
-    OPEX = "opex"
-    TRIPLE_WITCHING = "triple_witching"
-    FOMC = "fomc"
-    CPI = "cpi"
-    JOBS = "jobs"
-    GDP = "gdp"
-    PCE = "pce"
-    PPI = "ppi"
+    # US — per-symbol
+    US_EARNINGS = "us_earnings"
+    US_EX_DIVIDEND = "us_ex_dividend"
+    # US — macro
+    US_OPEX = "us_opex"
+    US_TRIPLE_WITCHING = "us_triple_witching"
+    US_FOMC = "us_fomc"
+    US_CPI = "us_cpi"
+    US_JOBS = "us_jobs"
+    US_GDP = "us_gdp"
+    US_PCE = "us_pce"
+    US_PPI = "us_ppi"
+    # China
+    CN_LPR = "cn_lpr"
+    CN_GDP = "cn_gdp"
+    CN_CPI = "cn_cpi"
+    CN_PPI = "cn_ppi"
+    CN_PMI = "cn_pmi"
+    CAIXIN_PMI = "caixin_pmi"
+    TWO_SESSIONS = "two_sessions"
+    CN_TRADE = "cn_trade"
+    CEWC = "cewc"
 
 
 class EventSource(str, enum.Enum):
