@@ -97,6 +97,8 @@ class EventSource(str, enum.Enum):
 
 
 class MarketEvent(SQLModel, table=True):
+    model_config = {"use_enum_values": True}  # type: ignore[assignment]
+
     id: Optional[int] = Field(default=None, primary_key=True)
     event_type: EventType = Field(index=True, sa_type=sa.String)
     event_date: date = Field(index=True)
