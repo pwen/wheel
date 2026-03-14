@@ -112,5 +112,6 @@ class MarketEvent(SQLModel, table=True):
     url: Optional[str] = None
     impact: int = Field(default=2)
     source: EventSource = Field(default=EventSource.MANUAL, sa_type=sa.String)
+    ai_summary: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

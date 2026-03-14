@@ -67,14 +67,21 @@ def list_events(
 
 @router.get("/events/{event_id}/summary")
 def event_summary(event_id: int, session: Session = Depends(get_session)):
-    """Get an AI-generated summary of a specific event."""
+    """Get an AI-generated summary of a specific event. Cached after first call."""
     event = session.get(MarketEvent, event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
+
+    if event.ai_summary:
+        return {"event_id": event_id, "summary": event.ai_summary}
+
     summary = get_event_summary(
         event_title=event.title,
         event_type=event.event_type,
         event_date=str(event.event_date),
         region=event.region,
     )
+    event.ai_summary = summary
+    session.add(event)
+    session.commit()
     return {"event_id": event_id, "summary": summary}
