@@ -822,6 +822,243 @@
                 "2026-11-20"
             ]
         },
+        "nvidia_gtc": {
+            "_note": "NVIDIA GPU Technology Conference. Biggest AI hardware event of the year.",
+            "region": "US",
+            "impact": 3,
+            "url": "https://www.nvidia.com/gtc/",
+            "dates": [
+                "2026-03-17",
+                "2026-03-18",
+                "2026-03-19",
+                "2026-03-20"
+            ]
+        },
+        "computex": {
+            "_note": "Computex Taipei — AI hardware ecosystem, server/chip roadmaps from NVIDIA/AMD/Intel.",
+            "region": "GLOBAL",
+            "impact": 2,
+            "url": "https://www.computextaipei.com.tw/",
+            "dates": [
+                "2026-06-02",
+                "2026-06-03",
+                "2026-06-04",
+                "2026-06-05",
+                "2026-06-06"
+            ]
+        },
+        "semicon_west": {
+            "_note": "SEMICON West — semiconductor equipment, fab capacity, export control implications.",
+            "region": "US",
+            "impact": 2,
+            "url": "https://www.semiconwest.org/",
+            "dates": [
+                "2026-07-14",
+                "2026-07-15",
+                "2026-07-16"
+            ]
+        },
+        "hot_chips": {
+            "_note": "Hot Chips — next-gen chip architecture symposium. Stanford, CA.",
+            "region": "US",
+            "impact": 2,
+            "url": "https://hotchips.org/",
+            "dates": [
+                "2026-08-23",
+                "2026-08-24",
+                "2026-08-25"
+            ]
+        },
+        "us_bis_export": {
+            "_note": "US Bureau of Industry and Security — semiconductor export control rules review. Typically Oct.",
+            "region": "US",
+            "impact": 3,
+            "url": "https://www.bis.gov/",
+            "dates": [
+                "2026-10-15"
+            ]
+        },
+        "ceraweek": {
+            "_note": "CERAWeek by S&P Global — world's largest energy conference. Houston, TX.",
+            "region": "US",
+            "impact": 3,
+            "url": "https://ceraweek.com/",
+            "dates": [
+                "2026-03-09",
+                "2026-03-10",
+                "2026-03-11",
+                "2026-03-12",
+                "2026-03-13"
+            ]
+        },
+        "iea_weo": {
+            "_note": "IEA World Energy Outlook — definitive global energy supply/demand forecast. Published Oct.",
+            "region": "GLOBAL",
+            "impact": 3,
+            "url": "https://www.iea.org/reports/world-energy-outlook-2026",
+            "dates": [
+                "2026-10-14"
+            ]
+        },
+        "ferc_meeting": {
+            "_note": "Federal Energy Regulatory Commission open meetings (~3rd Thu monthly). Grid interconnection, transmission.",
+            "region": "US",
+            "impact": 2,
+            "url": "https://www.ferc.gov/news-events/events/open-meetings",
+            "dates": [
+                "2026-01-15",
+                "2026-02-19",
+                "2026-03-19",
+                "2026-04-16",
+                "2026-05-21",
+                "2026-06-18",
+                "2026-07-16",
+                "2026-08-20",
+                "2026-09-17",
+                "2026-10-15",
+                "2026-11-19",
+                "2026-12-17"
+            ]
+        },
+        "un_cop": {
+            "_note": "UN COP Climate Conference — COP31. Global climate policy, renewable mandates.",
+            "region": "GLOBAL",
+            "impact": 3,
+            "url": "https://unfccc.int/",
+            "dates": [
+                "2026-11-09",
+                "2026-11-10",
+                "2026-11-11",
+                "2026-11-12",
+                "2026-11-13",
+                "2026-11-14",
+                "2026-11-15",
+                "2026-11-16",
+                "2026-11-17",
+                "2026-11-18",
+                "2026-11-19",
+                "2026-11-20"
+            ]
+        },
+        "davos_wef": {
+            "_note": "World Economic Forum Annual Meeting — Davos, Switzerland. AI, energy, geopolitics.",
+            "region": "GLOBAL",
+            "impact": 3,
+            "url": "https://www.weforum.org/events/world-economic-forum-annual-meeting-2026/",
+            "dates": [
+                "2026-01-19",
+                "2026-01-20",
+                "2026-01-21",
+                "2026-01-22",
+                "2026-01-23"
+            ]
+        },
+        "google_io": {
+            "_note": "Google I/O developer conference — AI model releases, cloud, Android.",
+            "region": "US",
+            "impact": 2,
+            "url": "https://io.google/",
+            "dates": [
+                "2026-05-12",
+                "2026-05-13"
+            ]
+        },
+        "aws_reinvent": {
+            "_note": "Amazon re:Invent — AWS AI services, custom chips (Trainium/Graviton), cloud.",
+            "region": "US",
+            "impact": 2,
+            "url": "https://reinvent.awsevents.com/",
+            "dates": [
+                "2026-12-01",
+                "2026-12-02",
+                "2026-12-03",
+                "2026-12-04",
+                "2026-12-05"
+            ]
+        },
+        "ms_build": {
+            "_note": "Microsoft Build — Azure AI, Copilot, data center expansion.",
+            "region": "US",
+            "impact": 2,
+            "url": "https://build.microsoft.com/",
+            "dates": [
+                "2026-05-19",
+                "2026-05-20",
+                "2026-05-21"
+            ]
+        },
+        "huawei_connect": {
+            "_note": "Huawei Connect — Huawei's flagship event. AI (Ascend chips), cloud, 5G. Shanghai.",
+            "region": "CN",
+            "impact": 3,
+            "url": "https://www.huaweiconnect.com/",
+            "dates": [
+                "2026-09-22",
+                "2026-09-23",
+                "2026-09-24"
+            ]
+        },
+        "cn_auto_show": {
+            "_note": "Beijing International Automotive Exhibition (Auto China 2026). Biennial, alternates Beijing/Shanghai.",
+            "region": "CN",
+            "impact": 3,
+            "url": "https://www.autochinashow.org/",
+            "dates": [
+                "2026-04-25",
+                "2026-04-26",
+                "2026-04-27",
+                "2026-04-28",
+                "2026-04-29",
+                "2026-04-30",
+                "2026-05-01",
+                "2026-05-02",
+                "2026-05-03",
+                "2026-05-04"
+            ]
+        },
+        "baidu_world": {
+            "_note": "Baidu World — Baidu's AI conference. Ernie Bot, autonomous driving, AI cloud.",
+            "region": "CN",
+            "impact": 2,
+            "url": "https://create.baidu.com/",
+            "dates": [
+                "2026-10-15",
+                "2026-10-16"
+            ]
+        },
+        "zhongguancun": {
+            "_note": "Zhongguancun Forum — Beijing's premier tech policy forum. AI, chips, self-sufficiency.",
+            "region": "CN",
+            "impact": 2,
+            "url": "https://www.zgcforum.com.cn/",
+            "dates": [
+                "2026-05-25",
+                "2026-05-26",
+                "2026-05-27",
+                "2026-05-28",
+                "2026-05-29"
+            ]
+        },
+        "catl_innovation": {
+            "_note": "CATL Innovation Day — next-gen battery technology reveals (sodium-ion, condensed matter).",
+            "region": "CN",
+            "impact": 2,
+            "url": "https://www.catl.com/",
+            "dates": [
+                "2026-06-25"
+            ]
+        },
+        "world_battery_expo": {
+            "_note": "World Battery & Energy Storage Industry Expo — Changsha, China's biggest battery trade show.",
+            "region": "CN",
+            "impact": 2,
+            "url": "https://www.battery-expo.com/",
+            "dates": [
+                "2026-11-10",
+                "2026-11-11",
+                "2026-11-12"
+            ]
+        },
         "mx_cpi": {
             "_note": "Mexico CPI (INPC) release (~9th of month). Source: inegi.org.mx",
             "region": "MX",
