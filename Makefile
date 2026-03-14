@@ -34,3 +34,5 @@ db-upgrade: ## Apply pending migrations
 
 db-downgrade: ## Roll back the last migration
 	DATABASE_URL=postgresql://wheel:wheel@localhost:5433/wheel uv run alembic downgrade -1
+
+

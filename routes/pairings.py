@@ -9,7 +9,7 @@ from models import Pairing, PairingRole, Spot, ShareLot, Trade, TradeStatus, Str
 
 router = APIRouter(tags=["pairings"])
 
-SEED_PATH = Path(__file__).resolve().parent.parent / "services" / "pairings_seed.json"
+SEED_PATH = Path(__file__).resolve().parent.parent / "seeds" / "pairings_seed.json"
 
 
 # ---- CRUD ----

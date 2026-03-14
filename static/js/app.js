@@ -21,7 +21,7 @@ function toggleTheme() {
 window._sharedVixData = null;
 
 // URL state management
-const TAB_PATHS = { recap: "/recap", dashboard: "/dashboard", trades: "/trades", holdings: "/lots", spots: "/holdings" };
+const TAB_PATHS = { recap: "/recap", dashboard: "/dashboard", trades: "/trades", holdings: "/lots", spots: "/holdings", calendar: "/calendar" };
 const PATH_TO_TAB = Object.fromEntries(Object.entries(TAB_PATHS).map(([k, v]) => [v, k]));
 PATH_TO_TAB["/"] = "dashboard";
 PATH_TO_TAB["/spots"] = "spots";
@@ -98,7 +98,7 @@ function restoreFromURL() {
 }
 
 // All tab names
-const ALL_TABS = ["recap", "dashboard", "trades", "holdings", "spots"];
+const ALL_TABS = ["recap", "dashboard", "trades", "holdings", "spots", "calendar"];
 
 // Tabs
 function switchTab(tab) {
@@ -119,6 +119,7 @@ function switchTab(tab) {
     if (tab === "recap") initRecap();
     if (tab === "dashboard") initDashboard();
     if (tab === "spots") { initSpots(); initAllocations(); }
+    if (tab === "calendar") initCalendar();
 }
 
 // Holdings sub-view toggle (By Allocation / Spots / Pairings)

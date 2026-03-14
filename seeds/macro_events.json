@@ -1,0 +1,47 @@
+{
+  "_description": "Macro economic event dates for the wheel strategy calendar. Computed dates (opex, triple_witching, jobs) are generated automatically — only FOMC, CPI, and GDP need manual entry each year. Each event type has a region field.",
+  "2026": {
+    "fomc": {
+      "_note": "FOMC meeting conclusion dates (rate decision announced). Source: federalreserve.gov",
+      "region": "US",
+      "dates": [
+        "2026-01-28",
+        "2026-03-18",
+        "2026-05-06",
+        "2026-06-17",
+        "2026-07-29",
+        "2026-09-16",
+        "2026-10-28",
+        "2026-12-09"
+      ]
+    },
+    "cpi": {
+      "_note": "CPI release dates (8:30am ET). Source: bls.gov schedule",
+      "region": "US",
+      "dates": [
+        "2026-01-14",
+        "2026-02-12",
+        "2026-03-11",
+        "2026-04-14",
+        "2026-05-12",
+        "2026-06-10",
+        "2026-07-14",
+        "2026-08-12",
+        "2026-09-16",
+        "2026-10-13",
+        "2026-11-12",
+        "2026-12-10"
+      ]
+    },
+    "gdp": {
+      "_note": "GDP advance estimate release dates. Source: bea.gov",
+      "region": "US",
+      "dates": [
+        "2026-01-29",
+        "2026-04-29",
+        "2026-07-29",
+        "2026-10-28"
+      ]
+    }
+  }
+}

@@ -80,6 +80,9 @@
             <button
                 class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 data-tab="spots">Holdings</button>
+            <button
+                class="tab-btn px-4 py-2 text-base font-medium border-b-2 border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                data-tab="calendar">Calendar</button>
         </div>
     </div>
 
@@ -263,6 +266,33 @@
                 </div>
             </div>
         </div>
+
+        <!-- Calendar tab -->
+        <div id="tab-calendar" class="hidden">
+            <div class="max-w-5xl mx-auto space-y-6">
+                <!-- Seed controls -->
+                <div class="flex items-center gap-3">
+                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Year:</label>
+                    <input id="cal-seed-year" type="number" min="2025" max="2100"
+                        class="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md
+                               bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <button id="cal-seed-btn"
+                        class="px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                        Seed / Reset Macro Events
+                    </button>
+                    <span id="cal-seed-status" class="text-sm text-gray-500 dark:text-gray-400"></span>
+                </div>
+                <!-- Events list -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        Upcoming Events</h3>
+                    <div id="cal-events-list"
+                        class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-hidden">
+                        <p class="text-gray-400 dark:text-gray-500 text-sm p-4">Loading…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     {% include "partials/trade_modal.html" %}
@@ -283,6 +313,7 @@
     <script src="/static/js/spots.js"></script>
     <script src="/static/js/allocations.js"></script>
     <script src="/static/js/pairings.js"></script>
+    <script src="/static/js/calendar.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 
