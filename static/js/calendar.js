@@ -49,12 +49,14 @@ const EVENT_TYPE_COLORS = {
 };
 
 let _calendarLoaded = false;
+let _selectedDate = null;     // "YYYY-MM-DD"
+let _viewMonth = null;        // Date object (1st of displayed month)
+let _monthEvents = {};        // { "YYYY-MM-DD": [event, …] }
 
 function initCalendar() {
     if (_calendarLoaded) return;
     _calendarLoaded = true;
 
-    // Default year to current
     const yearInput = $("#cal-seed-year");
     yearInput.value = new Date().getFullYear();
 
@@ -70,83 +72,222 @@ function initCalendar() {
         try {
             const r = await fetch(`/api/events/seed-macro?year=${year}`, { method: "POST" });
             const data = await r.json();
-            const total = (data.opex || 0) + (data.triple_witching || 0) + (data.jobs || 0)
-                + (data.fomc || 0) + (data.cpi || 0) + (data.gdp || 0);
+            const total = Object.entries(data).filter(([k]) => k !== "deleted" && k !== "warning").reduce((s, [, v]) => s + v, 0);
             status.textContent = `✓ ${total} events seeded (${data.deleted || 0} replaced)`;
             status.className = "text-sm text-green-600 dark:text-green-400";
-            loadCalendarEvents();
+            renderAll();
         } catch (e) {
             status.textContent = "Failed: " + e.message;
             status.className = "text-sm text-red-600 dark:text-red-400";
         } finally {
             btn.disabled = false;
-            btn.textContent = "Seed / Reset Macro Events";
+            btn.textContent = "Seed / Reset";
         }
     });
 
-    loadCalendarEvents();
+    // Month nav
+    $("#cal-prev-month").addEventListener("click", () => {
+        _viewMonth.setMonth(_viewMonth.getMonth() - 1);
+        loadMonthAndRender();
+    });
+    $("#cal-next-month").addEventListener("click", () => {
+        _viewMonth.setMonth(_viewMonth.getMonth() + 1);
+        loadMonthAndRender();
+    });
+
+    // Init to today
+    const now = new Date();
+    _selectedDate = fmtDate(now);
+    _viewMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    renderWeekBar();
+    loadMonthAndRender();
 }
 
-async function loadCalendarEvents() {
-    const container = $("#cal-events-list");
-    container.innerHTML = '<p class="text-gray-400 dark:text-gray-500 text-sm p-4">Loading…</p>';
+// ---- helpers ----
+function fmtDate(d) {
+    return d.toISOString().split("T")[0];
+}
+function parseDate(s) {
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d);
+}
+
+// ---- Week bar ----
+function renderWeekBar() {
+    const container = $("#cal-week-bar");
+    const now = new Date();
+    const day = now.getDay();
+    const mondayOff = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOff);
+
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    let html = "";
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const ds = fmtDate(d);
+        const isToday = ds === fmtDate(now);
+        const isSelected = ds === _selectedDate;
+        const base = "flex flex-col items-center py-2 rounded-lg cursor-pointer transition-colors text-center";
+        const colors = isSelected
+            ? "bg-indigo-600 text-white"
+            : isToday
+                ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
+                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700";
+        const border = isToday && !isSelected ? "border border-indigo-400" : "border border-gray-200 dark:border-gray-700";
+        html += `<div class="${base} ${colors} ${border}" data-date="${ds}" onclick="selectCalendarDay('${ds}')">`;
+        html += `  <span class="text-[10px] uppercase font-semibold">${dayNames[i]}</span>`;
+        html += `  <span class="text-lg font-bold">${d.toLocaleDateString("en-US", { month: "short", day: "2-digit" })}</span>`;
+        html += `</div>`;
+    }
+    container.innerHTML = html;
+}
+
+// ---- Month grid ----
+async function loadMonthAndRender() {
+    const y = _viewMonth.getFullYear();
+    const m = _viewMonth.getMonth();
+    const start = fmtDate(new Date(y, m, 1));
+    const end = fmtDate(new Date(y, m + 1, 0));
 
     try {
-        // Fetch events from today onward, up to 12 months
-        const today = new Date().toISOString().split("T")[0];
-        const endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + 1);
-        const end = endDate.toISOString().split("T")[0];
-
-        const r = await fetch(`/api/events?start=${today}&end=${end}`);
+        const r = await fetch(`/api/events?start=${start}&end=${end}`);
         const events = await r.json();
-
-        if (!events.length) {
-            container.innerHTML = '<p class="text-gray-400 dark:text-gray-500 text-sm p-4">No upcoming events. Use the button above to seed macro events.</p>';
-            return;
-        }
-
-        // Group by month
-        const grouped = {};
+        _monthEvents = {};
         for (const ev of events) {
-            const d = new Date(ev.event_date + "T00:00:00");
-            const key = d.toLocaleDateString("en-US", { year: "numeric", month: "long" });
-            if (!grouped[key]) grouped[key] = [];
-            grouped[key].push(ev);
+            if (!_monthEvents[ev.event_date]) _monthEvents[ev.event_date] = [];
+            _monthEvents[ev.event_date].push(ev);
         }
+    } catch {
+        _monthEvents = {};
+    }
 
-        let html = "";
-        for (const [month, evts] of Object.entries(grouped)) {
-            html += `<div class="border-b dark:border-gray-700 last:border-b-0">`;
-            html += `<div class="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">${month}</div>`;
-            for (const ev of evts) {
-                const d = new Date(ev.event_date + "T00:00:00");
-                const dayStr = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-                const type = EVENT_TYPE_COLORS[ev.event_type] || { bg: "bg-gray-100 dark:bg-gray-700", text: "text-gray-600 dark:text-gray-400", label: ev.event_type };
-                const regionBadge = ev.region && ev.region !== "US"
-                    ? `<span class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">${ev.region}</span>`
-                    : "";
-                const symbolBadge = ev.symbol
-                    ? `<span class="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">${ev.symbol}</span>`
-                    : "";
-                const impactDots = "●".repeat(ev.impact || 2);
-                const impactColor = (ev.impact || 2) >= 3 ? "text-red-500" : (ev.impact || 2) >= 2 ? "text-yellow-500" : "text-gray-400";
-                const isPast = ev.event_date < today;
-                const opacity = isPast ? "opacity-50" : "";
+    renderMonthGrid();
+    renderDayEvents();
+}
 
-                html += `<div class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/30 ${opacity}">`;
-                html += `  <span class="w-28 text-sm text-gray-500 dark:text-gray-400 shrink-0">${dayStr}</span>`;
-                html += `  <span class="text-xs font-medium px-2 py-0.5 rounded ${type.bg} ${type.text} w-24 text-center shrink-0">${type.label}</span>`;
-                html += `  <span class="text-sm text-gray-900 dark:text-gray-100 flex-1">${ev.title}</span>`;
-                html += `  <span class="text-xs ${impactColor}" title="Impact: ${ev.impact || 2}/3">${impactDots}</span>`;
-                if (ev.url) html += `  <a href="${ev.url}" target="_blank" rel="noopener" class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400" title="Source"><svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>`;
-                html += `  <span class="flex items-center gap-1.5">${symbolBadge}${regionBadge}</span>`;
-                html += `</div>`;
+function renderMonthGrid() {
+    const y = _viewMonth.getFullYear();
+    const m = _viewMonth.getMonth();
+    const title = new Date(y, m, 1).toLocaleDateString("en-US", { year: "numeric", month: "long" });
+    $("#cal-month-title").textContent = title;
+
+    const firstDay = new Date(y, m, 1).getDay(); // 0=Sun
+    const startOffset = firstDay === 0 ? 6 : firstDay - 1; // Mon=0
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const todayStr = fmtDate(new Date());
+
+    const dayHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    let html = dayHeaders.map(d =>
+        `<div class="bg-gray-50 dark:bg-gray-700/50 text-center text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase py-1.5">${d}</div>`
+    ).join("");
+
+    // Prev month filler
+    const prevMonthDays = new Date(y, m, 0).getDate();
+    for (let i = startOffset - 1; i >= 0; i--) {
+        const day = prevMonthDays - i;
+        html += `<div class="bg-gray-50 dark:bg-gray-900/30 py-2 px-1 text-center text-xs text-gray-300 dark:text-gray-600">${day}</div>`;
+    }
+
+    // Current month days
+    for (let d = 1; d <= daysInMonth; d++) {
+        const ds = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const evts = _monthEvents[ds] || [];
+        const hasEvents = evts.length > 0;
+        const isToday = ds === todayStr;
+        const isSelected = ds === _selectedDate;
+
+        let bg = "bg-white dark:bg-gray-800";
+        if (isSelected) bg = "bg-indigo-600/20 dark:bg-indigo-500/20";
+        else if (hasEvents) bg = "bg-indigo-50 dark:bg-indigo-900/20";
+
+        let border = "border border-transparent";
+        if (isSelected) border = "border-2 border-indigo-500";
+        else if (isToday) border = "border border-indigo-400";
+        else if (hasEvents) border = "border border-indigo-300 dark:border-indigo-700";
+
+        const textColor = isToday ? "text-indigo-600 dark:text-indigo-400 font-bold" : "text-gray-700 dark:text-gray-300";
+
+        html += `<div class="${bg} ${border} py-2 px-1 text-center cursor-pointer rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors" onclick="selectCalendarDay('${ds}')">`;
+        html += `  <span class="text-sm ${textColor}">${d}</span>`;
+        if (hasEvents) {
+            const maxDots = Math.min(evts.length, 4);
+            html += `<div class="flex justify-center gap-0.5 mt-0.5">`;
+            for (let i = 0; i < maxDots; i++) {
+                const type = EVENT_TYPE_COLORS[evts[i].event_type];
+                const dotColor = type ? type.text.split(" ")[0] : "text-indigo-500";
+                html += `<span class="w-1 h-1 rounded-full ${dotColor.replace("text-", "bg-")}"></span>`;
             }
+            if (evts.length > 4) html += `<span class="text-[8px] text-gray-400">+${evts.length - 4}</span>`;
             html += `</div>`;
         }
-        container.innerHTML = html;
-    } catch (e) {
-        container.innerHTML = `<p class="text-red-500 text-sm p-4">Failed to load events: ${e.message}</p>`;
+        html += `</div>`;
     }
+
+    // Next month filler
+    const totalCells = startOffset + daysInMonth;
+    const remaining = (7 - (totalCells % 7)) % 7;
+    for (let d = 1; d <= remaining; d++) {
+        html += `<div class="bg-gray-50 dark:bg-gray-900/30 py-2 px-1 text-center text-xs text-gray-300 dark:text-gray-600">${d}</div>`;
+    }
+
+    $("#cal-grid").innerHTML = html;
+}
+
+// ---- Day events ----
+function selectCalendarDay(dateStr) {
+    _selectedDate = dateStr;
+    // If selected day is in a different month, navigate there
+    const d = parseDate(dateStr);
+    if (d.getFullYear() !== _viewMonth.getFullYear() || d.getMonth() !== _viewMonth.getMonth()) {
+        _viewMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+        loadMonthAndRender();
+    } else {
+        renderMonthGrid();
+        renderDayEvents();
+    }
+    renderWeekBar();
+}
+
+function renderDayEvents() {
+    const container = $("#cal-day-events");
+    const titleEl = $("#cal-day-title");
+    const d = parseDate(_selectedDate);
+    titleEl.textContent = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
+    const evts = _monthEvents[_selectedDate] || [];
+    if (!evts.length) {
+        container.innerHTML = '<p class="text-gray-400 dark:text-gray-500 text-sm p-4">No events on this day</p>';
+        return;
+    }
+
+    let html = "";
+    for (const ev of evts) {
+        const type = EVENT_TYPE_COLORS[ev.event_type] || { bg: "bg-gray-100 dark:bg-gray-700", text: "text-gray-600 dark:text-gray-400", label: ev.event_type };
+        const regionBadge = ev.region && ev.region !== "US"
+            ? `<span class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">${ev.region}</span>`
+            : "";
+        const symbolBadge = ev.symbol
+            ? `<span class="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">${ev.symbol}</span>`
+            : "";
+        const impactDots = "●".repeat(ev.impact || 2);
+        const impactColor = (ev.impact || 2) >= 3 ? "text-red-500" : (ev.impact || 2) >= 2 ? "text-yellow-500" : "text-gray-400";
+
+        html += `<div class="flex items-center gap-2 px-4 py-2.5 border-b dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/30">`;
+        html += `  <span class="text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${type.bg} ${type.text} shrink-0">${type.label}</span>`;
+        html += `  <span class="text-xs ${impactColor} shrink-0" title="Impact: ${ev.impact || 2}/3">${impactDots}</span>`;
+        html += `  <span class="text-sm text-gray-900 dark:text-gray-100 flex-1">${ev.title}</span>`;
+        if (ev.url) html += `  <a href="${ev.url}" target="_blank" rel="noopener" class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 shrink-0" title="Source"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>`;
+        html += `  <span class="flex items-center gap-1.5 shrink-0">${symbolBadge}${regionBadge}</span>`;
+        html += `</div>`;
+    }
+    container.innerHTML = html;
+}
+
+// Render everything fresh
+async function renderAll() {
+    renderWeekBar();
+    await loadMonthAndRender();
 }

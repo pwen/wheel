@@ -206,11 +206,14 @@
                 <!-- Sub-view toggle -->
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex gap-2">
-                        <button class="spots-view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white"
+                        <button
+                            class="spots-view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white"
                             data-view="allocations">By Allocation</button>
-                        <button class="spots-view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                        <button
+                            class="spots-view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                             data-view="spots">Spots</button>
-                        <button class="spots-view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                        <button
+                            class="spots-view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                             data-view="pairings">Pairings</button>
                     </div>
                     <input id="spots-search" type="text" placeholder="Filter by symbol or name…" class="hidden px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md
@@ -219,41 +222,41 @@
                 </div>
                 <!-- Spots flat view -->
                 <div id="spots-flat-view" class="hidden">
-                <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50">
-                    <table id="spots-table" class="min-w-full text-sm">
-                        <thead>
-                            <tr
-                                class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-600 dark:text-gray-400 uppercase">
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
-                                    data-spot-sort="symbol">Symbol</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
-                                    data-spot-sort="name">Name</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
-                                    data-spot-sort="asset_type">Type</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
-                                    data-spot-sort="sector">Sector</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
-                                    data-spot-sort="pe_ratio">P/E</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
-                                    data-spot-sort="beta">Beta</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
-                                    data-spot-sort="expense_ratio">Exp Ratio</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
-                                    data-spot-sort="price">Price</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
-                                    data-spot-sort="shares">Shares</th>
-                                <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
-                                    data-spot-sort="market_value">Mkt Value</th>
-                            </tr>
-                        </thead>
-                        <tbody id="spots-body" class="divide-y divide-gray-100 dark:divide-gray-700">
-                            <tr>
-                                <td colspan="10" class="px-3 py-4 text-gray-400 dark:text-gray-500 text-sm">Loading…
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                    <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50">
+                        <table id="spots-table" class="min-w-full text-sm">
+                            <thead>
+                                <tr
+                                    class="bg-gray-50 dark:bg-gray-700 text-left text-xs text-gray-600 dark:text-gray-400 uppercase">
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
+                                        data-spot-sort="symbol">Symbol</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
+                                        data-spot-sort="name">Name</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
+                                        data-spot-sort="asset_type">Type</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200"
+                                        data-spot-sort="sector">Sector</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
+                                        data-spot-sort="pe_ratio">P/E</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
+                                        data-spot-sort="beta">Beta</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
+                                        data-spot-sort="expense_ratio">Exp Ratio</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
+                                        data-spot-sort="price">Price</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
+                                        data-spot-sort="shares">Shares</th>
+                                    <th class="px-3 py-2 cursor-pointer hover:text-gray-900 dark:hover:text-gray-200 text-right"
+                                        data-spot-sort="market_value">Mkt Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="spots-body" class="divide-y divide-gray-100 dark:divide-gray-700">
+                                <tr>
+                                    <td colspan="10" class="px-3 py-4 text-gray-400 dark:text-gray-500 text-sm">Loading…
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <!-- Allocations grouped view -->
                 <div id="spots-alloc-view">
@@ -269,26 +272,74 @@
 
         <!-- Calendar tab -->
         <div id="tab-calendar" class="hidden">
-            <div class="max-w-5xl mx-auto space-y-6">
-                <!-- Seed controls -->
-                <div class="flex items-center gap-3">
-                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Year:</label>
-                    <input id="cal-seed-year" type="number" min="2025" max="2100"
-                        class="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md
-                               bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                    <button id="cal-seed-btn"
-                        class="px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
-                        Seed / Reset Macro Events
-                    </button>
-                    <span id="cal-seed-status" class="text-sm text-gray-500 dark:text-gray-400"></span>
-                </div>
-                <!-- Events list -->
+            <div class="max-w-5xl mx-auto space-y-4">
+                <!-- Seed controls (collapsible) -->
+                <details class="group">
+                    <summary
+                        class="text-xs text-gray-400 dark:text-gray-500 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 select-none">
+                        Seed / Reset Events
+                    </summary>
+                    <div class="flex items-center gap-3 mt-2">
+                        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Year:</label>
+                        <input id="cal-seed-year" type="number" min="2025" max="2100" class="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md
+                                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                        <button id="cal-seed-btn"
+                            class="px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                            Seed / Reset
+                        </button>
+                        <span id="cal-seed-status" class="text-sm text-gray-500 dark:text-gray-400"></span>
+                    </div>
+                </details>
+
+                <!-- Quick select: current week -->
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-3">
-                        Upcoming Events</h3>
-                    <div id="cal-events-list"
+                    <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">This
+                        Week</h3>
+                    <div id="cal-week-bar" class="grid grid-cols-7 gap-1"></div>
+                </div>
+
+                <!-- Monthly calendar grid -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <button id="cal-prev-month"
+                            class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <h3 id="cal-month-title"
+                            class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide"></h3>
+                        <button id="cal-next-month"
+                            class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="cal-grid"
+                        class="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    </div>
+                    <div class="flex items-center gap-4 mt-2 text-xs text-gray-400 dark:text-gray-500">
+                        <span class="flex items-center gap-1"><span
+                                class="w-3 h-3 rounded bg-indigo-500/30 border border-indigo-400"></span> events</span>
+                        <span class="flex items-center gap-1"><span
+                                class="w-3 h-3 rounded bg-indigo-600 border border-indigo-400"></span> today</span>
+                        <span class="flex items-center gap-1"><span
+                                class="w-3 h-3 rounded bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600"></span>
+                            no events</span>
+                    </div>
+                </div>
+
+                <!-- Day events detail -->
+                <div>
+                    <h3 id="cal-day-title"
+                        class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                    </h3>
+                    <div id="cal-day-events"
                         class="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-hidden">
-                        <p class="text-gray-400 dark:text-gray-500 text-sm p-4">Loading…</p>
+                        <p class="text-gray-400 dark:text-gray-500 text-sm p-4">Select a day to view events</p>
                     </div>
                 </div>
             </div>
