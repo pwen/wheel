@@ -143,3 +143,32 @@ function wireSpotsSearch() {
     if (!input) return;
     input.addEventListener("input", () => renderSpots());
 }
+
+function wireSeedSymbolEvents() {
+    const btn = $("#seed-symbol-events-btn");
+    if (!btn) return;
+
+    const yearInput = $("#seed-symbol-year");
+    if (yearInput) yearInput.value = new Date().getFullYear();
+
+    btn.addEventListener("click", async () => {
+        const year = yearInput ? parseInt(yearInput.value) : new Date().getFullYear();
+        if (!year || year < 2025 || year > 2100) return;
+        const status = $("#seed-symbol-status");
+        btn.disabled = true;
+        btn.textContent = "Seeding…";
+        status.textContent = "";
+        try {
+            const r = await fetch(`/api/events/seed-symbols?year=${year}`, { method: "POST" });
+            const data = await r.json();
+            status.textContent = `✓ ${data.total} events for ${data.symbols} symbols`;
+            status.className = "text-xs text-green-600 dark:text-green-400";
+        } catch (e) {
+            status.textContent = "Failed: " + e.message;
+            status.className = "text-xs text-red-600 dark:text-red-400";
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Seed Symbol Events";
+        }
+    });
+}

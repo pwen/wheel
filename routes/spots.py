@@ -11,6 +11,7 @@ from sqlmodel import Session, select
 from db import get_session
 from models import Spot, Trade, TradeStatus, ShareLot, Pairing
 from services import populate_spot_info
+from services.events import seed_single_symbol_events
 
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["spots"])
@@ -125,12 +126,18 @@ def spot_detail(symbol: str, session: Session = Depends(get_session)):
 
 @router.post("/spots/{symbol}/refresh")
 def refresh_spot(symbol: str, session: Session = Depends(get_session)):
-    """Re-fetch spot metadata from yfinance."""
+    """Re-fetch spot metadata and symbol events from yfinance."""
     symbol = symbol.upper()
     spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
     if not spot:
         raise HTTPException(404, f"Symbol {symbol} not found")
     populate_spot_info(spot, session)
+
+    try:
+        seed_single_symbol_events(symbol, date.today().year, session)
+    except Exception:
+        log.warning("Failed to refresh events for %s", symbol)
+
     return {"ok": True}
 
 
@@ -157,6 +164,14 @@ def create_spot(body: SpotCreate, session: Session = Depends(get_session)):
     session.add(spot)
     session.commit()
     session.refresh(spot)
+
+    # Auto-seed earnings & ex-dividend events for non-ETF symbols
+    try:
+        if spot.asset_type != "etf":
+            seed_single_symbol_events(spot.symbol, date.today().year, session)
+    except Exception:
+        log.warning("Failed to auto-seed events for %s", spot.symbol)
+
     return spot
 
 

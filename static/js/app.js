@@ -138,11 +138,9 @@ function switchSpotsView(view) {
     const flatEl = document.getElementById("spots-flat-view");
     const allocEl = document.getElementById("spots-alloc-view");
     const pairingsEl = document.getElementById("spots-pairings-view");
-    const searchEl = document.getElementById("spots-search");
     if (flatEl) flatEl.classList.toggle("hidden", view !== "spots");
     if (allocEl) allocEl.classList.toggle("hidden", view !== "allocations");
     if (pairingsEl) pairingsEl.classList.toggle("hidden", view !== "pairings");
-    if (searchEl) searchEl.classList.toggle("hidden", view !== "spots");
 
     if (view === "allocations") initAllocations();
     if (view === "pairings") initPairingsView();
@@ -154,6 +152,8 @@ $$(".spots-view-btn").forEach(btn => {
         updateURL(true);
     });
 });
+
+wireSeedSymbolEvents();
 
 $$(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {

@@ -10,7 +10,7 @@ import yfinance as yf
 from sqlmodel import Session, select
 
 from models.market_event import MarketEvent, EventType, EventSource
-from models.spot import Spot
+from models.spot import Spot, AssetType
 
 log = logging.getLogger(__name__)
 
@@ -271,8 +271,8 @@ def seed_symbol_events(year: int, session: Session) -> dict:
         session.delete(e)
     session.flush()
 
-    # Get all tracked symbols
-    spots = session.exec(select(Spot)).all()
+    # Get all tracked symbols (skip ETFs — no earnings)
+    spots = session.exec(select(Spot).where(Spot.asset_type != AssetType.ETF)).all()
     if not spots:
         session.commit()
         return {"total": 0, "symbols": 0}
@@ -330,12 +330,50 @@ def seed_symbol_events(year: int, session: Session) -> dict:
     return {"total": total, "symbols": len(symbols), "with_events": symbols_with_events}
 
 
-def seed_all_events(year: int, session: Session) -> dict:
-    """Seed both macro and symbol events for a year."""
-    macro = seed_macro_events(year, session)
-    symbol = seed_symbol_events(year, session)
-    return {
-        "macro": macro["total"],
-        "symbol": symbol["total"],
-        "total": macro["total"] + symbol["total"],
-    }
+def seed_single_symbol_events(symbol: str, year: int, session: Session) -> int:
+    """Fetch and seed events for a single symbol. Returns count of events created."""
+    year_start = date(year, 1, 1)
+    year_end = date(year, 12, 31)
+
+    # Delete existing events for this symbol + year
+    existing = session.exec(
+        select(MarketEvent).where(
+            MarketEvent.event_type.in_(_SYMBOL_EVENT_TYPES),
+            MarketEvent.event_date >= year_start,
+            MarketEvent.event_date <= year_end,
+            MarketEvent.symbol == symbol,
+        )
+    ).all()
+    for e in existing:
+        session.delete(e)
+    session.flush()
+
+    data = _fetch_symbol_dates(symbol, year)
+    total = 0
+
+    for d in data["earnings"]:
+        session.add(MarketEvent(
+            event_type=EventType.US_EARNINGS,
+            event_date=d,
+            symbol=symbol,
+            title=f"{symbol} Earnings",
+            source=EventSource.YFINANCE,
+            region="US",
+            impact=3,
+        ))
+        total += 1
+
+    for d in data["dividends"]:
+        session.add(MarketEvent(
+            event_type=EventType.US_EX_DIVIDEND,
+            event_date=d,
+            symbol=symbol,
+            title=f"{symbol} Ex-Dividend",
+            source=EventSource.YFINANCE,
+            region="US",
+            impact=2,
+        ))
+        total += 1
+
+    session.commit()
+    return total

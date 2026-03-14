@@ -216,9 +216,22 @@
                             class="spots-view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                             data-view="pairings">Pairings</button>
                     </div>
-                    <input id="spots-search" type="text" placeholder="Filter by symbol or name…" class="hidden px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md
+                    <div class="flex items-center gap-2">
+                        <input id="seed-symbol-year" type="number" min="2025" max="2100" class="w-20 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-md
+                                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                        <button id="seed-symbol-events-btn"
+                            class="px-3 py-1.5 text-xs font-medium rounded-md bg-amber-600 text-white hover:bg-amber-700 transition-colors whitespace-nowrap"
+                            title="Fetch earnings & ex-dividend dates for all tracked symbols">
+                            Seed Symbol Events
+                        </button>
+                        <span id="seed-symbol-status" class="text-xs text-gray-500 dark:text-gray-400"></span>
+                    </div>
+                </div>
+                <!-- Search filter -->
+                <div class="mb-3">
+                    <input id="spots-search" type="text" placeholder="Filter by symbol or name…" class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md
                                bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                               focus:ring-indigo-500 focus:border-indigo-500 w-64">
+                               focus:ring-indigo-500 focus:border-indigo-500 w-full max-w-sm">
                 </div>
                 <!-- Spots flat view -->
                 <div id="spots-flat-view" class="hidden">
