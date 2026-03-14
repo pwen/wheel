@@ -17,6 +17,7 @@ SEED_PATH = Path(__file__).resolve().parent.parent / "seeds" / "macro_events.jso
 _MACRO_TYPES = {
     EventType.OPEX, EventType.TRIPLE_WITCHING, EventType.JOBS,
     EventType.FOMC, EventType.CPI, EventType.GDP,
+    EventType.PCE, EventType.PPI,
 }
 
 # JSON key → (EventType, display label)
@@ -27,6 +28,8 @@ _TYPE_MAP: dict[str, tuple[EventType, str]] = {
     "opex": (EventType.OPEX, "OpEx"),
     "triple_witching": (EventType.TRIPLE_WITCHING, "Triple Witching"),
     "jobs": (EventType.JOBS, "Jobs Report (NFP)"),
+    "pce": (EventType.PCE, "PCE Price Index"),
+    "ppi": (EventType.PPI, "PPI Release"),
 }
 
 

@@ -15,6 +15,8 @@ class EventType(str, enum.Enum):
     CPI = "cpi"
     JOBS = "jobs"
     GDP = "gdp"
+    PCE = "pce"
+    PPI = "ppi"
 
 
 class EventSource(str, enum.Enum):
