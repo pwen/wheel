@@ -161,3 +161,211 @@ Be direct and opinionated. No disclaimers."""
     } if usage else None
 
     return resp.choices[0].message.content, tokens
+
+
+# ── Event summary categories and prompts ─────────────────────────
+
+_DATA_RELEASE_TYPES = {
+    "us_cpi", "us_gdp", "us_pce", "us_ppi", "us_jobs", "us_ism_mfg",
+    "us_ism_svc", "us_retail_sales", "us_consumer_conf", "us_jolts",
+    "us_michigan", "cn_cpi", "cn_ppi", "cn_gdp", "cn_pmi", "caixin_pmi",
+    "cn_trade", "cn_lpr", "eu_cpi", "eu_gdp", "eu_pmi", "eu_trade",
+    "de_ifo", "jp_cpi", "jp_tankan", "in_cpi", "in_gdp", "br_cpi",
+    "mx_cpi", "wgc_demand",
+}
+
+_POLICY_MEETING_TYPES = {
+    "us_fomc", "eu_ecb", "eu_ecb_minutes", "jp_boj", "in_rbi",
+    "br_copom", "mx_banxico", "opec_meeting", "two_sessions", "cewc",
+    "g7_summit", "us_jackson_hole",
+}
+
+_CONFERENCE_PRODUCT_TYPES = {
+    "nvidia_gtc", "ces", "google_io", "ms_build", "aws_reinvent",
+    "computex", "waic_shanghai", "baidu_world", "huawei_connect",
+}
+
+_TRADE_SHOW_TYPES = {
+    "cn_auto_show", "semicon_west", "hot_chips", "ceraweek",
+    "world_battery_expo", "catl_innovation", "zhongguancun",
+}
+
+_REBALANCING_TYPES = {
+    "us_opex", "us_triple_witching", "us_russell_recon",
+    "us_sp500_rebal", "comex_gold_delivery",
+}
+
+_REGULATORY_TYPES = {
+    "us_bis_export", "ferc_meeting", "un_cop", "ai_safety_summit",
+    "davos_wef", "wuzhen_wic",
+}
+
+
+def _get_event_category(event_type: str) -> str:
+    if event_type in _DATA_RELEASE_TYPES:
+        return "data_release"
+    if event_type in _POLICY_MEETING_TYPES:
+        return "policy_meeting"
+    if event_type in _CONFERENCE_PRODUCT_TYPES:
+        return "conference"
+    if event_type in _TRADE_SHOW_TYPES:
+        return "trade_show"
+    if event_type in _REBALANCING_TYPES:
+        return "rebalancing"
+    if event_type in _REGULATORY_TYPES:
+        return "regulatory"
+    return "general"
+
+
+# Past-event prompts by category
+_PAST_PROMPTS = {
+    "data_release": (
+        "Summarize this data release:\n"
+        "1. **Actual vs consensus** — what was the headline number vs expectations? Any notable revisions?\n"
+        "2. **Breakdown** — which sub-components were strong or weak?\n"
+        "3. **Market reaction** — how did equities, bonds, and FX move in the hours after?\n"
+        "4. **Forward signal** — what does this data imply for the next Fed/PBOC move or economic trajectory?"
+    ),
+    "policy_meeting": (
+        "Summarize this policy meeting:\n"
+        "1. **Decision** — what was the rate decision or policy action? Was it unanimous?\n"
+        "2. **Forward guidance** — any shift in tone, dot plots, or language about future moves?\n"
+        "3. **Market reaction** — how did equities, bonds, and FX react to the decision and press conference?\n"
+        "4. **Key quote** — the single most important line from the statement or presser."
+    ),
+    "conference": (
+        "Summarize this tech conference/product event:\n"
+        "1. **Key announcements** — new products, models, chips, or services revealed?\n"
+        "2. **Competitive implications** — who benefits, who loses? Any moat shifts?\n"
+        "3. **Stock impact** — how did the company's stock and key competitors/suppliers move?\n"
+        "4. **Investor signal** — what does this mean for the AI/tech capex cycle?"
+    ),
+    "trade_show": (
+        "Summarize this trade show/expo:\n"
+        "1. **Top trends** — what themes dominated the exhibition floor?\n"
+        "2. **Notable debuts** — any breakthrough technologies or products shown for the first time?\n"
+        "3. **Supply chain signals** — any insights on capacity, pricing, or bottlenecks?\n"
+        "4. **Investment angle** — which sectors or companies stand to benefit most?"
+    ),
+    "rebalancing": (
+        "Summarize this rebalancing/structural market event:\n"
+        "1. **Flow summary** — estimated volume, notable additions/deletions, or positioning shifts?\n"
+        "2. **Price impact** — any outsized moves in affected names or sectors?\n"
+        "3. **Execution** — did the rebalance go smoothly or were there dislocations?\n"
+        "4. **Takeaway** — any lasting implications for affected names?"
+    ),
+    "regulatory": (
+        "Summarize this regulatory/policy event:\n"
+        "1. **Key decisions** — what rules, restrictions, or frameworks were announced?\n"
+        "2. **Who's affected** — which companies, sectors, or countries face the biggest impact?\n"
+        "3. **Market reaction** — how did affected stocks/sectors move?\n"
+        "4. **Enforcement timeline** — when do the rules take effect and what's the compliance outlook?"
+    ),
+}
+
+# Future-event prompts by category
+_FUTURE_PROMPTS = {
+    "data_release": (
+        "Preview this upcoming data release:\n"
+        "1. **Consensus estimate** — what is the market expecting for the headline number?\n"
+        "2. **Range of outcomes** — what would be a hot vs cold print?\n"
+        "3. **What matters most** — which sub-component would drive the biggest reaction?\n"
+        "4. **Scenario analysis** — bullish vs bearish case for equities."
+    ),
+    "policy_meeting": (
+        "Preview this upcoming policy meeting:\n"
+        "1. **Expected decision** — what rate move or policy action is priced in?\n"
+        "2. **Key question** — the single most important thing markets want answered.\n"
+        "3. **Hawkish vs dovish risk** — what language or actions would surprise in either direction?\n"
+        "4. **Trade setup** — how are markets positioned going in?"
+    ),
+    "conference": (
+        "Preview this upcoming tech conference/product event:\n"
+        "1. **Expected announcements** — what products, updates, or partnerships are rumored/expected?\n"
+        "2. **Key question** — the single biggest thing investors want to hear.\n"
+        "3. **Stock setup** — how is the stock positioned? Is good news priced in?\n"
+        "4. **Watch list** — which competitors or suppliers could also be affected?"
+    ),
+    "trade_show": (
+        "Preview this upcoming trade show/expo:\n"
+        "1. **Key exhibitors** — who are the most important companies presenting?\n"
+        "2. **Themes to watch** — what technology or industry trends will dominate?\n"
+        "3. **Market context** — how is the sector performing heading into this event?\n"
+        "4. **Investment angle** — what announcements could move stocks?"
+    ),
+    "rebalancing": (
+        "Preview this upcoming rebalancing/structural market event:\n"
+        "1. **Historical pattern** — how have markets behaved around this event in prior years?\n"
+        "2. **Expected additions/deletions** — any names likely to be affected?\n"
+        "3. **Volume expectations** — how much flow is expected?\n"
+        "4. **Positioning** — any pre-positioning trades worth noting?"
+    ),
+    "regulatory": (
+        "Preview this upcoming regulatory/policy event:\n"
+        "1. **Agenda** — what topics or rules are expected to be discussed?\n"
+        "2. **Key risk** — what outcome would be most disruptive to markets?\n"
+        "3. **Affected sectors** — which companies or industries have the most at stake?\n"
+        "4. **Likely outcome** — consensus expectation for the result."
+    ),
+}
+
+_GENERAL_PAST_PROMPT = (
+    "Summarize what happened at this event. Focus on:\n"
+    "1. **Key outcomes** — what was decided, released, or revealed?\n"
+    "2. **Market impact** — how did markets react?\n"
+    "3. **Investor takeaways** — what should an equity investor remember going forward?\n"
+    "4. **Surprises** — anything unexpected?"
+)
+
+_GENERAL_FUTURE_PROMPT = (
+    "Preview this upcoming event. Focus on:\n"
+    "1. **What to expect** — consensus expectations or scheduled agenda\n"
+    "2. **Key things to watch** — what signals matter most?\n"
+    "3. **Market positioning** — how are markets positioned heading in?\n"
+    "4. **Risk scenarios** — bullish vs bearish outcomes for equities?"
+)
+
+
+def get_event_summary(event_title: str, event_type: str, event_date: str, region: str) -> str:
+    """Call Perplexity to get a category-aware AI summary of a macro event."""
+    client = get_perplexity_client()
+    if not client:
+        return "Perplexity API key not configured."
+
+    today = date.today().isoformat()
+    event_d = date.fromisoformat(event_date)
+    is_past = event_d < date.today()
+    category = _get_event_category(event_type)
+
+    if is_past:
+        time_context = f"This event already occurred on {event_date}."
+        task = _PAST_PROMPTS.get(category, _GENERAL_PAST_PROMPT)
+    else:
+        time_context = f"This event is upcoming on {event_date} (today is {today})."
+        task = _FUTURE_PROMPTS.get(category, _GENERAL_FUTURE_PROMPT)
+
+    prompt = f"""{time_context}
+
+Event: {event_title}
+Type: {event_type}
+Region: {region}
+Date: {event_date}
+
+{task}
+
+Keep it concise (3-5 bullet points max). Write for an experienced investor, not a beginner. No fluff."""
+
+    try:
+        resp = client.chat.completions.create(
+            model="sonar",
+            messages=[
+                {"role": "system", "content": "You are a senior macro strategist. Give concise, actionable event summaries for equity investors. Use bullet points. No disclaimers."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=600,
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).exception("Perplexity event summary failed")
+        return f"Error: {e}"

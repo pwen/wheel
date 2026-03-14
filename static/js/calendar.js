@@ -108,8 +108,7 @@ function initCalendar() {
         try {
             const r = await fetch(`/api/events/seed-macro?year=${year}`, { method: "POST" });
             const data = await r.json();
-            const total = Object.entries(data).filter(([k]) => k !== "deleted" && k !== "warning").reduce((s, [, v]) => s + v, 0);
-            status.textContent = `✓ ${total} events seeded (${data.deleted || 0} replaced)`;
+            status.textContent = `✓ ${data.total} events seeded`;
             status.className = "text-sm text-green-600 dark:text-green-400";
             renderAll();
         } catch (e) {
@@ -317,6 +316,7 @@ function renderDayEvents() {
     html += `<th class="text-left px-4 py-2 font-semibold">Event</th>`;
     html += `<th class="text-left px-3 py-2 font-semibold">Country</th>`;
     html += `<th class="text-left px-3 py-2 font-semibold">Impact</th>`;
+    html += `<th class="px-2 py-2 w-8"></th>`;
     html += `</tr></thead><tbody>`;
 
     for (const ev of evts) {
@@ -328,11 +328,15 @@ function renderDayEvents() {
 
         const linkIcon = ev.url ? ` <a href="${ev.url}" target="_blank" rel="noopener" class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 inline-block align-middle ml-1" title="Source"><svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>` : "";
 
+        const aiBtn = `<button onclick="window._fetchEventSummary(${ev.id}, this)" class="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors" title="AI Summary"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg></button>`;
+
         html += `<tr class="border-b dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/30">`;
         html += `<td class="px-4 py-2.5"><span class="text-gray-900 dark:text-gray-100">${ev.title}</span>${linkIcon}</td>`;
         html += `<td class="px-3 py-2.5 whitespace-nowrap"><span class="mr-1">${flag}</span><span class="text-gray-600 dark:text-gray-400 text-xs">${ev.region}</span></td>`;
         html += `<td class="px-3 py-2.5"><span class="${impactColor} text-xs font-medium">${impactLabel}</span></td>`;
+        html += `<td class="px-2 py-2.5 text-center">${aiBtn}</td>`;
         html += `</tr>`;
+        html += `<tr id="ai-summary-${ev.id}" class="hidden"><td colspan="4" class="px-4 py-3 bg-purple-50 dark:bg-purple-900/20 text-sm text-gray-700 dark:text-gray-300"></td></tr>`;
     }
     html += `</tbody></table>`;
     container.innerHTML = html;
@@ -343,3 +347,46 @@ async function renderAll() {
     renderWeekBar();
     await loadMonthAndRender();
 }
+
+// AI Summary — fetch and toggle
+window._fetchEventSummary = async function (eventId, btn) {
+    const row = document.getElementById(`ai-summary-${eventId}`);
+    if (!row) return;
+
+    // Toggle: if already visible, collapse
+    if (!row.classList.contains("hidden")) {
+        row.classList.add("hidden");
+        return;
+    }
+
+    const cell = row.querySelector("td");
+
+    // If already loaded, just show
+    if (cell.dataset.loaded) {
+        row.classList.remove("hidden");
+        return;
+    }
+
+    // Loading state
+    btn.disabled = true;
+    btn.classList.add("animate-pulse");
+    cell.innerHTML = '<span class="text-purple-500 dark:text-purple-400 text-xs">Loading AI summary…</span>';
+    row.classList.remove("hidden");
+
+    try {
+        const r = await fetch(`/api/events/${eventId}/summary`);
+        const data = await r.json();
+        // Render markdown-like bullet points
+        const formatted = data.summary
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n- /g, '\n• ')
+            .replace(/\n/g, '<br>');
+        cell.innerHTML = `<div class="prose prose-sm dark:prose-invert max-w-none leading-relaxed">${formatted}</div>`;
+        cell.dataset.loaded = "1";
+    } catch (e) {
+        cell.innerHTML = `<span class="text-red-500 text-xs">Failed to load summary</span>`;
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove("animate-pulse");
+    }
+};

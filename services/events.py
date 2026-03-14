@@ -161,26 +161,23 @@ def seed_macro_events(year: int, session: Session) -> dict:
         session.delete(e)
     session.flush()
 
-    counts: dict[str, int] = {"deleted": deleted}
-
     # Load seed data
     seed_data = json.loads(SEED_PATH.read_text())
     year_key = str(year)
     if year_key not in seed_data:
         log.warning("No seed data found for year %d in %s", year, SEED_PATH)
         session.commit()
-        return {**counts, "warning": f"No seed data for {year}"}
+        return {"total": 0, "warning": f"No seed data for {year}"}
 
     year_data = seed_data[year_key]
 
+    total = 0
     for key, (etype, label) in _TYPE_MAP.items():
         if key not in year_data:
-            counts[key] = 0
             continue
         region = year_data[key].get("region", "US")
         impact = year_data[key].get("impact", 2)
         url = year_data[key].get("url")
-        count = 0
         for date_str in year_data[key]["dates"]:
             d = date.fromisoformat(date_str)
             title = f"{d.strftime('%b')} {label}"
@@ -189,8 +186,7 @@ def seed_macro_events(year: int, session: Session) -> dict:
                 title=title, source=EventSource.MANUAL,
                 region=region, impact=impact, url=url,
             ))
-            count += 1
-        counts[key] = count
+            total += 1
 
     session.commit()
-    return counts
+    return {"total": total}

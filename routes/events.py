@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 from db import get_session
 from models.market_event import MarketEvent, EventType
 from services.events import seed_macro_events
+from services.openai import get_event_summary
 
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["events"])
@@ -48,3 +49,19 @@ def list_events(
 
     rows = session.exec(stmt).all()
     return [r.model_dump() for r in rows]
+
+
+@router.get("/events/{event_id}/summary")
+def event_summary(event_id: int, session: Session = Depends(get_session)):
+    """Get an AI-generated summary of a specific event."""
+    event = session.get(MarketEvent, event_id)
+    if not event:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Event not found")
+    summary = get_event_summary(
+        event_title=event.title,
+        event_type=event.event_type,
+        event_date=str(event.event_date),
+        region=event.region,
+    )
+    return {"event_id": event_id, "summary": summary}
