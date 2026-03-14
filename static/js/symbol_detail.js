@@ -509,9 +509,14 @@ async function loadSDEvents(symbol) {
             return;
         }
 
+
         const EVENT_TYPE_LABELS = {
             us_earnings: "Earnings",
             us_ex_dividend: "Ex-Dividend",
+        };
+        const EVENT_TYPE_TOOLTIPS = {
+            us_earnings: "Earnings cause IV spike before the report and IV crush after. Selling options before earnings captures inflated premium, but the stock can gap sharply on a miss \u2014 risking assignment on CSPs or losing shares on CCs.",
+            us_ex_dividend: "If you sold a CC and the stock goes ex-dividend, the call buyer may exercise early to capture the dividend \u2014 you lose your shares plus the dividend. For CSPs, ex-dividend causes a price drop equal to the dividend, moving you closer to assignment.",
         };
         const IMPACT_LABELS = { 1: "Low", 2: "Medium", 3: "High" };
         const IMPACT_COLORS = {
@@ -519,7 +524,7 @@ async function loadSDEvents(symbol) {
             2: "text-yellow-500",
             3: "text-red-500",
         };
-        const todayMs = new Date().setHours(0,0,0,0);
+        const todayMs = new Date().setHours(0, 0, 0, 0);
 
         let html = '<div class="space-y-2">';
         for (const ev of events) {
@@ -534,8 +539,10 @@ async function loadSDEvents(symbol) {
             const opacity = isPast ? "opacity-50" : "";
 
             html += `<div class="flex items-center justify-between py-1.5 border-b dark:border-gray-700 last:border-b-0 ${opacity}">`;
+            const tooltip = (EVENT_TYPE_TOOLTIPS[ev.event_type] || "").replace(/"/g, "&quot;");
             html += `<div class="flex items-center gap-3">`;
             html += `<span class="text-sm font-medium text-gray-900 dark:text-gray-100">${label}</span>`;
+            if (tooltip) html += `<span class="cursor-help text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" title="${tooltip}">\u24d8</span>`;
             html += `<span class="text-xs text-gray-500 dark:text-gray-400">${dateStr}</span>`;
             html += `</div>`;
             html += `<div class="flex items-center gap-3">`;

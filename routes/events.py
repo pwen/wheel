@@ -46,7 +46,7 @@ def list_events(
     session: Session = Depends(get_session),
 ):
     """Query market events with optional filters."""
-    stmt = select(MarketEvent).order_by(MarketEvent.event_date)
+    stmt = select(MarketEvent).order_by(MarketEvent.event_date.desc())
 
     if start:
         stmt = stmt.where(MarketEvent.event_date >= start)

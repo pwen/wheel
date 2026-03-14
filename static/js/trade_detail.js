@@ -25,8 +25,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       renderRisk(t, currentPrice);
       renderMarket(t, currentPrice);
       renderEvents(t);
+      renderSymbolEvents(t);
     } else {
       renderClosedView(t);
+    }
+
+    if (!isOpen) {
+      renderSymbolEvents(t);
     }
 
     // VIX banner in header
@@ -537,4 +542,71 @@ function renderRecommendation(text, tokens) {
   }
 
   el.innerHTML = html;
+}
+
+
+/* ---------- Symbol Events (earnings / ex-div during trade window) ---------- */
+async function renderSymbolEvents(t) {
+  const el = $("#td-symbol-events");
+  const section = $("#stock-events-section");
+  if (!el || !section) return;
+
+  const start = t.opened_at;
+  const end = t.closed_at || t.expiry_date;
+
+  try {
+    const res = await fetch(`/api/events?symbol=${encodeURIComponent(t.symbol)}&start=${start}&end=${end}`);
+    if (!res.ok) throw new Error("fetch failed");
+    const events = await res.json();
+
+    if (events.length === 0) return;
+
+    const isCSP = t.strategy_type === "CSP";
+
+    const IMPLICATIONS = {
+      us_earnings: {
+        label: "Earnings",
+        icon: "📊",
+        color: "border-amber-500",
+        bgColor: "bg-amber-50 dark:bg-amber-900/20",
+        implication: isCSP
+          ? "IV crush after earnings will help your CSP decay faster, but a bad report could gap the stock below your strike and trigger assignment."
+          : "IV crush after earnings will help your CC decay faster, but a big beat could gap the stock above your strike and your shares get called away.",
+      },
+      us_ex_dividend: {
+        label: "Ex-Dividend",
+        icon: "💵",
+        color: "border-blue-500",
+        bgColor: "bg-blue-50 dark:bg-blue-900/20",
+        implication: isCSP
+          ? "The stock drops by the dividend amount on ex-date, moving it closer to your strike. Factor this into your break-even calculation."
+          : "If your CC is in-the-money near the ex-date, the buyer may exercise early to capture the dividend \u2014 you lose your shares plus the dividend payment.",
+      },
+    };
+
+    let html = '<div class="space-y-3">';
+    for (const ev of events) {
+      const info = IMPLICATIONS[ev.event_type] || { label: ev.event_type, icon: "📅", color: "border-gray-400", bgColor: "bg-gray-50 dark:bg-gray-800", implication: "" };
+      const d = new Date(ev.event_date + "T00:00:00");
+      const dateStr = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+      const expiryD = new Date(t.expiry_date + "T00:00:00");
+      const daysBeforeExpiry = Math.ceil((expiryD - d) / 86400000);
+      const proximity = daysBeforeExpiry <= 7 ? '<span class="text-xs text-red-600 font-semibold ml-2">⚠ within 7d of expiry</span>' : "";
+
+      html += `<div class="border-l-4 ${info.color} ${info.bgColor} rounded-r-lg p-3">`;
+      html += `<div class="flex items-center gap-2 mb-1">`;
+      html += `<span>${info.icon}</span>`;
+      html += `<span class="font-semibold text-sm">${info.label}</span>`;
+      html += `<span class="text-xs text-gray-500">${dateStr}</span>`;
+      html += proximity;
+      html += `</div>`;
+      html += `<p class="text-sm text-gray-700 dark:text-gray-300">${info.implication}</p>`;
+      html += `</div>`;
+    }
+    html += '</div>';
+    el.innerHTML = html;
+    section.classList.remove("hidden");
+  } catch {
+    // silently hide if fetch fails
+  }
 }
