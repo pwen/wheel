@@ -376,12 +376,8 @@ window._fetchEventSummary = async function (eventId, btn) {
     try {
         const r = await fetch(`/api/events/${eventId}/summary`);
         const data = await r.json();
-        // Render markdown-like bullet points
-        const formatted = data.summary
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n- /g, '\n• ')
-            .replace(/\n/g, '<br>');
-        cell.innerHTML = `<div class="prose prose-sm dark:prose-invert max-w-none leading-relaxed">${formatted}</div>`;
+        const formatted = data.summary.replace(/\\n/g, '<br>');
+        cell.innerHTML = `<div class="text-sm leading-relaxed text-gray-700 dark:text-gray-300">${formatted}</div>`;
         cell.dataset.loaded = "1";
     } catch (e) {
         cell.innerHTML = `<span class="text-red-500 text-xs">Failed to load summary</span>`;

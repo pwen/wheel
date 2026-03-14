@@ -145,7 +145,7 @@
             "_note": "Loan Prime Rate announcement (20th of month, next biz day if weekend). Source: PBOC",
             "region": "CN",
             "impact": 3,
-            "url": "http://www.pbc.gov.cn/en/3688110/3688172/index.html",
+            "url": "http://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/index.html",
             "dates": [
                 "2026-01-20",
                 "2026-02-20",
@@ -165,7 +165,7 @@
             "_note": "China GDP release (quarterly, mid-month). Source: NBS",
             "region": "CN",
             "impact": 3,
-            "url": "https://www.stats.gov.cn/english/",
+            "url": "https://www.stats.gov.cn/sj/zxfb/",
             "dates": [
                 "2026-01-16",
                 "2026-04-16",
@@ -177,7 +177,7 @@
             "_note": "China CPI release (monthly, ~9th-12th). Source: NBS",
             "region": "CN",
             "impact": 2,
-            "url": "https://www.stats.gov.cn/english/",
+            "url": "https://www.stats.gov.cn/sj/zxfb/",
             "dates": [
                 "2026-01-09",
                 "2026-02-10",
@@ -197,7 +197,7 @@
             "_note": "China PPI release (same day as CPI). Source: NBS",
             "region": "CN",
             "impact": 1,
-            "url": "https://www.stats.gov.cn/english/",
+            "url": "https://www.stats.gov.cn/sj/zxfb/",
             "dates": [
                 "2026-01-09",
                 "2026-02-10",
@@ -217,7 +217,7 @@
             "_note": "Official NBS Manufacturing + Non-Manufacturing PMI (last biz day of month). Source: NBS",
             "region": "CN",
             "impact": 2,
-            "url": "https://www.stats.gov.cn/english/",
+            "url": "https://www.stats.gov.cn/sj/zxfb/",
             "dates": [
                 "2026-01-30",
                 "2026-02-27",
@@ -237,7 +237,7 @@
             "_note": "Caixin Manufacturing PMI (1st biz day of month, for prior month). Source: S&P Global / Caixin",
             "region": "CN",
             "impact": 2,
-            "url": "https://www.pmi.spglobal.com/Public/Release/PressReleases",
+            "url": "https://pmi.caixin.com/",
             "dates": [
                 "2026-01-02",
                 "2026-02-02",
@@ -257,7 +257,7 @@
             "_note": "Two Sessions — CPPCC opens ~Mar 3, NPC opens ~Mar 5",
             "region": "CN",
             "impact": 3,
-            "url": "http://www.npc.gov.cn/englishnpc/",
+            "url": "http://www.npc.gov.cn/",
             "dates": [
                 "2026-03-03",
                 "2026-03-05"
@@ -267,7 +267,7 @@
             "_note": "China Trade Balance release (monthly, ~7th-13th). Source: General Administration of Customs",
             "region": "CN",
             "impact": 2,
-            "url": "http://english.customs.gov.cn/Statics/Features/Statistics",
+            "url": "http://www.customs.gov.cn/customs/302249/zfxxgk/2799825/302274/index.html",
             "dates": [
                 "2026-01-13",
                 "2026-02-10",
@@ -287,7 +287,7 @@
             "_note": "Central Economic Work Conference — sets next year's economic priorities (mid-Dec)",
             "region": "CN",
             "impact": 3,
-            "url": "https://english.www.gov.cn/",
+            "url": "https://www.gov.cn/",
             "dates": [
                 "2026-12-14",
                 "2026-12-15"
@@ -991,7 +991,7 @@
             "_note": "Huawei Connect — Huawei's flagship event. AI (Ascend chips), cloud, 5G. Shanghai.",
             "region": "CN",
             "impact": 2,
-            "url": "https://www.huaweiconnect.com/",
+            "url": "https://www.huaweiconnect.com/cn/",
             "dates": [
                 "2026-09-22",
                 "2026-09-23",
@@ -1002,7 +1002,7 @@
             "_note": "Beijing International Automotive Exhibition (Auto China 2026). Biennial, alternates Beijing/Shanghai.",
             "region": "CN",
             "impact": 2,
-            "url": "https://www.autochinashow.org/",
+            "url": "https://www.autochinashow.org/cn/",
             "dates": [
                 "2026-04-25",
                 "2026-04-26",
@@ -1043,7 +1043,7 @@
             "_note": "CATL Innovation Day — next-gen battery technology reveals (sodium-ion, condensed matter).",
             "region": "CN",
             "impact": 2,
-            "url": "https://www.catl.com/",
+            "url": "https://www.catl.com/news/",
             "dates": [
                 "2026-06-25"
             ]

@@ -220,109 +220,165 @@ def _get_event_category(event_type: str) -> str:
 # Past-event prompts by category
 _PAST_PROMPTS = {
     "data_release": (
-        "Summarize this data release:\n"
-        "1. **Actual vs consensus** — what was the headline number vs expectations? Any notable revisions?\n"
-        "2. **Breakdown** — which sub-components were strong or weak?\n"
-        "3. **Market reaction** — how did equities, bonds, and FX move in the hours after?\n"
-        "4. **Forward signal** — what does this data imply for the next Fed/PBOC move or economic trajectory?"
+        "Summarize this data release in two sections:\n"
+        "WHAT HAPPENED:\n"
+        "- Headline number vs consensus expectation, and any notable revisions to prior data\n"
+        "- Which sub-components were strong or weak\n"
+        "- How equities, bonds, and FX moved in the hours after release\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- What this means for the next Fed/PBOC move or rate path\n"
+        "- Sectors or trades that benefit or get hurt from this print\n"
+        "- What to position for going forward"
     ),
     "policy_meeting": (
-        "Summarize this policy meeting:\n"
-        "1. **Decision** — what was the rate decision or policy action? Was it unanimous?\n"
-        "2. **Forward guidance** — any shift in tone, dot plots, or language about future moves?\n"
-        "3. **Market reaction** — how did equities, bonds, and FX react to the decision and press conference?\n"
-        "4. **Key quote** — the single most important line from the statement or presser."
+        "Summarize this policy meeting in two sections:\n"
+        "WHAT HAPPENED:\n"
+        "- The rate decision or policy action, and whether it was unanimous\n"
+        "- Any shift in forward guidance, dot plots, or tone\n"
+        "- The single most important line from the statement or press conference\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- How this changes the rate path for the next 6 months\n"
+        "- Which asset classes or sectors are repriced by this decision\n"
+        "- What the next meeting is likely to bring"
     ),
     "conference": (
-        "Summarize this tech conference/product event:\n"
-        "1. **Key announcements** — new products, models, chips, or services revealed?\n"
-        "2. **Competitive implications** — who benefits, who loses? Any moat shifts?\n"
-        "3. **Stock impact** — how did the company's stock and key competitors/suppliers move?\n"
-        "4. **Investor signal** — what does this mean for the AI/tech capex cycle?"
+        "Summarize this tech conference/product event in two sections:\n"
+        "WHAT HAPPENED:\n"
+        "- Key products, models, chips, or services announced\n"
+        "- The single most important reveal and why it matters\n"
+        "- How the company's stock and key competitors/suppliers moved\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- Who gains or loses competitive ground from these announcements\n"
+        "- What this means for the AI/tech capex cycle and supply chain\n"
+        "- Specific stocks or sectors to watch as a result"
     ),
     "trade_show": (
-        "Summarize this trade show/expo:\n"
-        "1. **Top trends** — what themes dominated the exhibition floor?\n"
-        "2. **Notable debuts** — any breakthrough technologies or products shown for the first time?\n"
-        "3. **Supply chain signals** — any insights on capacity, pricing, or bottlenecks?\n"
-        "4. **Investment angle** — which sectors or companies stand to benefit most?"
+        "Summarize this trade show/expo in two sections:\n"
+        "WHAT HAPPENED:\n"
+        "- Dominant themes on the exhibition floor\n"
+        "- Breakthrough technologies or products shown for the first time\n"
+        "- Any insights on capacity, pricing, or supply chain bottlenecks\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- Sectors or companies that stand to benefit most\n"
+        "- Emerging trends that could drive sector rotation\n"
+        "- Specific names investors should be watching"
     ),
     "rebalancing": (
-        "Summarize this rebalancing/structural market event:\n"
-        "1. **Flow summary** — estimated volume, notable additions/deletions, or positioning shifts?\n"
-        "2. **Price impact** — any outsized moves in affected names or sectors?\n"
-        "3. **Execution** — did the rebalance go smoothly or were there dislocations?\n"
-        "4. **Takeaway** — any lasting implications for affected names?"
+        "Summarize this rebalancing/structural market event in two sections:\n"
+        "WHAT HAPPENED:\n"
+        "- Estimated volume and notable additions or deletions\n"
+        "- Outsized price moves in affected names or sectors\n"
+        "- Whether the rebalance went smoothly or caused dislocations\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- Names with lasting flow implications after the rebalance\n"
+        "- Any mispricing or mean-reversion opportunities created\n"
+        "- Whether to fade or ride the post-rebalance moves"
     ),
     "regulatory": (
-        "Summarize this regulatory/policy event:\n"
-        "1. **Key decisions** — what rules, restrictions, or frameworks were announced?\n"
-        "2. **Who's affected** — which companies, sectors, or countries face the biggest impact?\n"
-        "3. **Market reaction** — how did affected stocks/sectors move?\n"
-        "4. **Enforcement timeline** — when do the rules take effect and what's the compliance outlook?"
+        "Summarize this regulatory/policy event in two sections:\n"
+        "WHAT HAPPENED:\n"
+        "- What rules, restrictions, or frameworks were announced\n"
+        "- Which companies, sectors, or countries are most affected\n"
+        "- How affected stocks and sectors moved on the news\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- Which stocks face the biggest headwind or tailwind\n"
+        "- Enforcement timeline and compliance outlook\n"
+        "- How to position around this regulatory shift"
     ),
 }
 
 # Future-event prompts by category
 _FUTURE_PROMPTS = {
     "data_release": (
-        "Preview this upcoming data release:\n"
-        "1. **Consensus estimate** — what is the market expecting for the headline number?\n"
-        "2. **Range of outcomes** — what would be a hot vs cold print?\n"
-        "3. **What matters most** — which sub-component would drive the biggest reaction?\n"
-        "4. **Scenario analysis** — bullish vs bearish case for equities."
+        "Preview this upcoming data release in two sections:\n"
+        "WHAT TO EXPECT:\n"
+        "- Consensus estimate for the headline number\n"
+        "- What would constitute a hot vs cold print\n"
+        "- Which sub-component would drive the biggest market reaction\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- How equities are likely to react in bullish vs bearish scenarios\n"
+        "- Sectors most sensitive to this data point\n"
+        "- How to position ahead of the release"
     ),
     "policy_meeting": (
-        "Preview this upcoming policy meeting:\n"
-        "1. **Expected decision** — what rate move or policy action is priced in?\n"
-        "2. **Key question** — the single most important thing markets want answered.\n"
-        "3. **Hawkish vs dovish risk** — what language or actions would surprise in either direction?\n"
-        "4. **Trade setup** — how are markets positioned going in?"
+        "Preview this upcoming policy meeting in two sections:\n"
+        "WHAT TO EXPECT:\n"
+        "- What rate move or policy action is priced in\n"
+        "- The single most important question markets want answered\n"
+        "- What language or action would surprise in either direction\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- How equities are positioned going into the meeting\n"
+        "- Which sectors benefit from a hawkish vs dovish outcome\n"
+        "- Whether to add or reduce risk ahead of this"
     ),
     "conference": (
-        "Preview this upcoming tech conference/product event:\n"
-        "1. **Expected announcements** — what products, updates, or partnerships are rumored/expected?\n"
-        "2. **Key question** — the single biggest thing investors want to hear.\n"
-        "3. **Stock setup** — how is the stock positioned? Is good news priced in?\n"
-        "4. **Watch list** — which competitors or suppliers could also be affected?"
+        "Preview this upcoming tech conference/product event in two sections:\n"
+        "WHAT TO EXPECT:\n"
+        "- Products, updates, or partnerships rumored or expected\n"
+        "- The single biggest thing investors are watching for\n"
+        "- Whether good news is already priced into the stock\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- Competitors or suppliers that could also be affected\n"
+        "- Whether to buy ahead or wait for the event\n"
+        "- Catalysts that would meaningfully change the stock's trajectory"
     ),
     "trade_show": (
-        "Preview this upcoming trade show/expo:\n"
-        "1. **Key exhibitors** — who are the most important companies presenting?\n"
-        "2. **Themes to watch** — what technology or industry trends will dominate?\n"
-        "3. **Market context** — how is the sector performing heading into this event?\n"
-        "4. **Investment angle** — what announcements could move stocks?"
+        "Preview this upcoming trade show/expo in two sections:\n"
+        "WHAT TO EXPECT:\n"
+        "- Most important companies presenting\n"
+        "- Technology or industry trends that will dominate\n"
+        "- How the sector is performing heading into the event\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- What announcements could move stocks\n"
+        "- Names most likely to benefit from positive coverage\n"
+        "- Whether to pre-position or watch from the sideline"
     ),
     "rebalancing": (
-        "Preview this upcoming rebalancing/structural market event:\n"
-        "1. **Historical pattern** — how have markets behaved around this event in prior years?\n"
-        "2. **Expected additions/deletions** — any names likely to be affected?\n"
-        "3. **Volume expectations** — how much flow is expected?\n"
-        "4. **Positioning** — any pre-positioning trades worth noting?"
+        "Preview this upcoming rebalancing/structural market event in two sections:\n"
+        "WHAT TO EXPECT:\n"
+        "- How markets have behaved around this event in prior years\n"
+        "- Names likely to be added or deleted\n"
+        "- Expected volume and flow magnitude\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- Pre-positioning trades worth considering\n"
+        "- Whether to avoid or lean into volatility around the rebalance\n"
+        "- Historical edge or pattern traders can exploit"
     ),
     "regulatory": (
-        "Preview this upcoming regulatory/policy event:\n"
-        "1. **Agenda** — what topics or rules are expected to be discussed?\n"
-        "2. **Key risk** — what outcome would be most disruptive to markets?\n"
-        "3. **Affected sectors** — which companies or industries have the most at stake?\n"
-        "4. **Likely outcome** — consensus expectation for the result."
+        "Preview this upcoming regulatory/policy event in two sections:\n"
+        "WHAT TO EXPECT:\n"
+        "- Topics or rules expected to be discussed\n"
+        "- Consensus expectation for the outcome\n"
+        "- What outcome would be most disruptive to markets\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- Companies or industries with the most at stake\n"
+        "- How to hedge or position for a negative surprise\n"
+        "- Likely timeline for any new rules to take effect"
     ),
 }
 
 _GENERAL_PAST_PROMPT = (
-    "Summarize what happened at this event. Focus on:\n"
-    "1. **Key outcomes** — what was decided, released, or revealed?\n"
-    "2. **Market impact** — how did markets react?\n"
-    "3. **Investor takeaways** — what should an equity investor remember going forward?\n"
-    "4. **Surprises** — anything unexpected?"
+    "Summarize what happened at this event in two sections:\n"
+    "WHAT HAPPENED:\n"
+    "- Key outcomes, decisions, or announcements\n"
+    "- How markets reacted\n"
+    "- Anything unexpected vs expectations\n\n"
+    "INVESTOR IMPLICATIONS:\n"
+    "- What this means for equity investors going forward\n"
+    "- Sectors or trades affected\n"
+    "- How to position as a result"
 )
 
 _GENERAL_FUTURE_PROMPT = (
-    "Preview this upcoming event. Focus on:\n"
-    "1. **What to expect** — consensus expectations or scheduled agenda\n"
-    "2. **Key things to watch** — what signals matter most?\n"
-    "3. **Market positioning** — how are markets positioned heading in?\n"
-    "4. **Risk scenarios** — bullish vs bearish outcomes for equities?"
+    "Preview this upcoming event in two sections:\n"
+    "WHAT TO EXPECT:\n"
+    "- Consensus expectations or scheduled agenda\n"
+    "- Key signals to watch for\n"
+    "- What would surprise the market\n\n"
+    "INVESTOR IMPLICATIONS:\n"
+    "- Bullish vs bearish scenarios for equities\n"
+    "- How to position ahead of this event\n"
+    "- Sectors or names most sensitive to the outcome"
 )
 
 
@@ -353,13 +409,28 @@ Date: {event_date}
 
 {task}
 
-Keep it concise (3-5 bullet points max). Write for an experienced investor, not a beginner. No fluff."""
+Respond in exactly two sections. Use 2-3 short sentences per section, not bullet points. Write in plain text only — no bold, no italics, no markdown, no numbered lists, no citation footnotes like [1] or [2]. Write for an experienced equity investor. Be concrete and specific."""
 
     try:
         resp = client.chat.completions.create(
             model="sonar",
             messages=[
-                {"role": "system", "content": "You are a senior macro strategist. Give concise, actionable event summaries for equity investors. Use bullet points. No disclaimers."},
+                {"role": "system", "content": (
+                    "You are a senior macro strategist writing event briefs for an experienced equity investor "
+                    "focused on US and Chinese markets.\n\n"
+                    "RESPONSE FORMAT (follow exactly every time):\n"
+                    "- Two sections separated by a blank line.\n"
+                    "- For past events, use headers: WHAT HAPPENED and INVESTOR IMPLICATIONS.\n"
+                    "- For future events, use headers: WHAT TO EXPECT and INVESTOR IMPLICATIONS.\n"
+                    "- Write each section as 2-3 concise sentences in paragraph form. No bullet points, no numbered lists.\n"
+                    "- Keep total response under 150 words.\n\n"
+                    "STYLE RULES (never break these):\n"
+                    "- Plain text only. No bold, no italics, no asterisks, no markdown of any kind.\n"
+                    "- Never include citation footnotes like [1], [2], or [3].\n"
+                    "- Never include disclaimers, caveats, or \"this is not financial advice\" language.\n"
+                    "- Be specific — name actual numbers, stocks, sectors, or policy changes. No vague generalities.\n"
+                    "- Write like a morning research note, not a Wikipedia article."
+                )},
                 {"role": "user", "content": prompt},
             ],
             max_tokens=600,
