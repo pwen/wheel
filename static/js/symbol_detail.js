@@ -55,6 +55,8 @@ async function loadSymbolDetail() {
         if (data.open_trades && data.open_trades.length > 0) {
             loadSDOpenOptionMarks(data.open_trades);
         }
+
+        loadSDEvents(symbol);
     } catch (e) {
         console.error("Symbol detail error:", e);
     }
@@ -477,8 +479,74 @@ async function refreshSpotInfo() {
                 const data = await detRes.json();
                 renderSDSpotInfo(data.spot);
             }
+            // Refresh events too
+            loadSDEvents(symbol);
         }
     } catch { /* ignore */ }
     btn.textContent = "Refresh";
     btn.disabled = false;
+}
+
+
+async function loadSDEvents(symbol) {
+    const el = $("#sd-events");
+    if (!el) return;
+
+    try {
+        const now = new Date();
+        const start = new Date(now);
+        start.setMonth(start.getMonth() - 6);
+        const end = new Date(now);
+        end.setMonth(end.getMonth() + 6);
+        const startStr = start.toISOString().split("T")[0];
+        const endStr = end.toISOString().split("T")[0];
+        const res = await fetch(`/api/events?symbol=${encodeURIComponent(symbol)}&start=${startStr}&end=${endStr}`);
+        if (!res.ok) throw new Error("Failed to load events");
+        const events = await res.json();
+
+        if (events.length === 0) {
+            el.innerHTML = '<p class="text-gray-400 text-sm">No events found — click Refresh to fetch from yfinance.</p>';
+            return;
+        }
+
+        const EVENT_TYPE_LABELS = {
+            us_earnings: "Earnings",
+            us_ex_dividend: "Ex-Dividend",
+        };
+        const IMPACT_LABELS = { 1: "Low", 2: "Medium", 3: "High" };
+        const IMPACT_COLORS = {
+            1: "text-gray-400",
+            2: "text-yellow-500",
+            3: "text-red-500",
+        };
+        const todayMs = new Date().setHours(0,0,0,0);
+
+        let html = '<div class="space-y-2">';
+        for (const ev of events) {
+            const label = EVENT_TYPE_LABELS[ev.event_type] || ev.event_type;
+            const d = new Date(ev.event_date + "T00:00:00");
+            const dateStr = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+            const daysAway = Math.ceil((d - todayMs) / 86400000);
+            const isPast = daysAway < 0;
+            const daysLabel = daysAway === 0 ? "Today" : daysAway === 1 ? "Tomorrow" : isPast ? `${Math.abs(daysAway)}d ago` : `in ${daysAway}d`;
+            const impact = ev.impact || 2;
+            const impactColor = IMPACT_COLORS[impact] || IMPACT_COLORS[2];
+            const opacity = isPast ? "opacity-50" : "";
+
+            html += `<div class="flex items-center justify-between py-1.5 border-b dark:border-gray-700 last:border-b-0 ${opacity}">`;
+            html += `<div class="flex items-center gap-3">`;
+            html += `<span class="text-sm font-medium text-gray-900 dark:text-gray-100">${label}</span>`;
+            html += `<span class="text-xs text-gray-500 dark:text-gray-400">${dateStr}</span>`;
+            html += `</div>`;
+            html += `<div class="flex items-center gap-3">`;
+            html += `<span class="text-xs ${impactColor} font-medium">${IMPACT_LABELS[impact]}</span>`;
+            html += `<span class="text-xs text-gray-500 dark:text-gray-400">${daysLabel}</span>`;
+            html += `</div>`;
+            html += `</div>`;
+        }
+        html += '</div>';
+        el.innerHTML = html;
+    } catch {
+        el.innerHTML = '<p class="text-gray-400 text-sm">Failed to load events.</p>';
+    }
 }
