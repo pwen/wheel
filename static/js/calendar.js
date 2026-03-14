@@ -88,6 +88,7 @@ let _calendarLoaded = false;
 let _selectedDate = null;     // "YYYY-MM-DD"
 let _viewMonth = null;        // Date object (1st of displayed month)
 let _monthEvents = {};        // { "YYYY-MM-DD": [event, …] }
+let _monthCache = {};         // { "YYYY-MM": { "YYYY-MM-DD": [event, …] } }
 
 function initCalendar() {
     if (_calendarLoaded) return;
@@ -184,19 +185,26 @@ function renderWeekBar() {
 async function loadMonthAndRender() {
     const y = _viewMonth.getFullYear();
     const m = _viewMonth.getMonth();
-    const start = fmtDate(new Date(y, m, 1));
-    const end = fmtDate(new Date(y, m + 1, 0));
+    const cacheKey = `${y}-${String(m + 1).padStart(2, "0")}`;
 
-    try {
-        const r = await fetch(`/api/events?start=${start}&end=${end}`);
-        const events = await r.json();
-        _monthEvents = {};
-        for (const ev of events) {
-            if (!_monthEvents[ev.event_date]) _monthEvents[ev.event_date] = [];
-            _monthEvents[ev.event_date].push(ev);
+    if (_monthCache[cacheKey]) {
+        _monthEvents = _monthCache[cacheKey];
+    } else {
+        const start = fmtDate(new Date(y, m, 1));
+        const end = fmtDate(new Date(y, m + 1, 0));
+
+        try {
+            const r = await fetch(`/api/events?start=${start}&end=${end}`);
+            const events = await r.json();
+            _monthEvents = {};
+            for (const ev of events) {
+                if (!_monthEvents[ev.event_date]) _monthEvents[ev.event_date] = [];
+                _monthEvents[ev.event_date].push(ev);
+            }
+        } catch {
+            _monthEvents = {};
         }
-    } catch {
-        _monthEvents = {};
+        _monthCache[cacheKey] = _monthEvents;
     }
 
     renderMonthGrid();
@@ -350,6 +358,7 @@ function renderDayEvents() {
 
 // Render everything fresh
 async function renderAll() {
+    _monthCache = {};  // invalidate cache after seeding
     renderWeekBar();
     await loadMonthAndRender();
 }
