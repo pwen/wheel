@@ -376,7 +376,9 @@ window._fetchEventSummary = async function (eventId, btn) {
     try {
         const r = await fetch(`/api/events/${eventId}/summary`);
         const data = await r.json();
-        const formatted = data.summary.replace(/\\n/g, '<br>');
+        const formatted = data.summary
+            .replace(/^(WHAT HAPPENED|WHAT TO EXPECT|INVESTOR IMPLICATIONS)$/gm, '<div class="font-semibold text-gray-900 dark:text-gray-100 mt-3 mb-1">$1</div>')
+            .replace(/\n/g, '<br>');
         cell.innerHTML = `<div class="text-sm leading-relaxed text-gray-700 dark:text-gray-300">${formatted}</div>`;
         cell.dataset.loaded = "1";
     } catch (e) {
