@@ -562,6 +562,266 @@
                 "2026-12-17"
             ]
         },
+        "us_ism_mfg": {
+            "_note": "ISM Manufacturing PMI (1st biz day of month). Source: ismworld.org",
+            "region": "US",
+            "impact": 3,
+            "url": "https://www.ismworld.org/supply-management-news-and-reports/reports/ism-report-on-business/",
+            "dates": [
+                "2026-01-02",
+                "2026-02-02",
+                "2026-03-02",
+                "2026-04-01",
+                "2026-05-01",
+                "2026-06-01",
+                "2026-07-01",
+                "2026-08-03",
+                "2026-09-01",
+                "2026-10-01",
+                "2026-11-02",
+                "2026-12-01"
+            ]
+        },
+        "us_ism_svc": {
+            "_note": "ISM Services PMI (3rd biz day of month). Source: ismworld.org",
+            "region": "US",
+            "impact": 3,
+            "url": "https://www.ismworld.org/supply-management-news-and-reports/reports/ism-report-on-business/",
+            "dates": [
+                "2026-01-06",
+                "2026-02-05",
+                "2026-03-04",
+                "2026-04-03",
+                "2026-05-05",
+                "2026-06-03",
+                "2026-07-06",
+                "2026-08-05",
+                "2026-09-03",
+                "2026-10-05",
+                "2026-11-04",
+                "2026-12-03"
+            ]
+        },
+        "us_retail_sales": {
+            "_note": "US Retail Sales (~15th of month). Source: census.gov",
+            "region": "US",
+            "impact": 3,
+            "url": "https://www.census.gov/retail/index.html",
+            "dates": [
+                "2026-01-16",
+                "2026-02-14",
+                "2026-03-17",
+                "2026-04-16",
+                "2026-05-15",
+                "2026-06-16",
+                "2026-07-16",
+                "2026-08-14",
+                "2026-09-16",
+                "2026-10-16",
+                "2026-11-17",
+                "2026-12-16"
+            ]
+        },
+        "us_consumer_conf": {
+            "_note": "Conference Board Consumer Confidence (last Tue of month). Source: conference-board.org",
+            "region": "US",
+            "impact": 3,
+            "url": "https://www.conference-board.org/topics/consumer-confidence",
+            "dates": [
+                "2026-01-27",
+                "2026-02-24",
+                "2026-03-31",
+                "2026-04-28",
+                "2026-05-26",
+                "2026-06-30",
+                "2026-07-28",
+                "2026-08-25",
+                "2026-09-29",
+                "2026-10-27",
+                "2026-11-24",
+                "2026-12-29"
+            ]
+        },
+        "us_jolts": {
+            "_note": "JOLTS Job Openings (~1 month lag, released ~first week). Source: bls.gov",
+            "region": "US",
+            "impact": 3,
+            "url": "https://www.bls.gov/jlt/",
+            "dates": [
+                "2026-01-07",
+                "2026-02-04",
+                "2026-03-10",
+                "2026-04-07",
+                "2026-05-05",
+                "2026-06-02",
+                "2026-07-07",
+                "2026-08-04",
+                "2026-09-02",
+                "2026-10-06",
+                "2026-11-04",
+                "2026-12-08"
+            ]
+        },
+        "us_jackson_hole": {
+            "_note": "Jackson Hole Economic Symposium (late August). Source: kansascityfed.org",
+            "region": "US",
+            "impact": 3,
+            "url": "https://www.kansascityfed.org/research/jackson-hole-economic-symposium/",
+            "dates": [
+                "2026-08-27",
+                "2026-08-28",
+                "2026-08-29"
+            ]
+        },
+        "us_michigan": {
+            "_note": "Michigan Consumer Sentiment — preliminary (~2nd Fri) and final (~4th Fri). Source: umich.edu",
+            "region": "US",
+            "impact": 2,
+            "url": "https://data.sca.isr.umich.edu/",
+            "dates": [
+                "2026-01-16",
+                "2026-01-30",
+                "2026-02-13",
+                "2026-02-27",
+                "2026-03-13",
+                "2026-03-27",
+                "2026-04-10",
+                "2026-04-24",
+                "2026-05-15",
+                "2026-05-29",
+                "2026-06-12",
+                "2026-06-26",
+                "2026-07-10",
+                "2026-07-24",
+                "2026-08-14",
+                "2026-08-28",
+                "2026-09-11",
+                "2026-09-25",
+                "2026-10-16",
+                "2026-10-30",
+                "2026-11-13",
+                "2026-11-25",
+                "2026-12-11",
+                "2026-12-23"
+            ]
+        },
+        "us_russell_recon": {
+            "_note": "Russell index annual reconstitution (last Friday in June). Source: ftserussell.com",
+            "region": "US",
+            "impact": 2,
+            "url": "https://www.lseg.com/en/ftse-russell/russell-reconstitution",
+            "dates": [
+                "2026-06-26"
+            ]
+        },
+        "us_sp500_rebal": {
+            "_note": "S&P 500 quarterly rebalancing (3rd Fri of Mar/Jun/Sep/Dec, coincides with triple witching)",
+            "region": "US",
+            "impact": 2,
+            "url": "https://www.spglobal.com/spdji/en/indices/equity/sp-500/",
+            "dates": [
+                "2026-03-20",
+                "2026-06-19",
+                "2026-09-18",
+                "2026-12-18"
+            ]
+        },
+        "opec_meeting": {
+            "_note": "OPEC+ ministerial meetings. Source: opec.org",
+            "region": "OPEC",
+            "impact": 3,
+            "url": "https://www.opec.org/opec_web/en/press_room/702.htm",
+            "dates": [
+                "2026-02-01",
+                "2026-04-02",
+                "2026-06-04",
+                "2026-08-06",
+                "2026-10-01",
+                "2026-12-03"
+            ]
+        },
+        "comex_gold_delivery": {
+            "_note": "COMEX gold futures active delivery months — last business day. Active months: Feb/Apr/Jun/Aug/Oct/Dec",
+            "region": "US",
+            "impact": 2,
+            "url": "https://www.cmegroup.com/markets/metals/precious/gold.contractSpecs.html",
+            "dates": [
+                "2026-02-27",
+                "2026-04-30",
+                "2026-06-30",
+                "2026-08-31",
+                "2026-10-30",
+                "2026-12-31"
+            ]
+        },
+        "wgc_demand": {
+            "_note": "World Gold Council Gold Demand Trends — quarterly report. Source: gold.org",
+            "region": "GLOBAL",
+            "impact": 2,
+            "url": "https://www.gold.org/goldhub/research/gold-demand-trends",
+            "dates": [
+                "2026-01-29",
+                "2026-04-29",
+                "2026-07-29",
+                "2026-10-28"
+            ]
+        },
+        "ai_safety_summit": {
+            "_note": "AI Safety Summit — global AI governance. Hosted by different nations each year.",
+            "region": "GLOBAL",
+            "impact": 2,
+            "url": "https://www.aisafetysummit.gov/",
+            "dates": [
+                "2026-11-10",
+                "2026-11-11"
+            ]
+        },
+        "g7_summit": {
+            "_note": "G7 Summit — tech/trade/AI policy coordination among major democracies.",
+            "region": "GLOBAL",
+            "impact": 3,
+            "url": "https://www.g7germany.de/",
+            "dates": [
+                "2026-06-13",
+                "2026-06-14",
+                "2026-06-15"
+            ]
+        },
+        "waic_shanghai": {
+            "_note": "World Artificial Intelligence Conference — China's flagship AI event. Shanghai, typically early July.",
+            "region": "CN",
+            "impact": 2,
+            "url": "https://www.worldaic.com.cn/",
+            "dates": [
+                "2026-07-08",
+                "2026-07-09",
+                "2026-07-10",
+                "2026-07-11"
+            ]
+        },
+        "ces": {
+            "_note": "CES — Consumer Electronics Show, Las Vegas. Major AI & tech product launches.",
+            "region": "US",
+            "impact": 2,
+            "url": "https://www.ces.tech/",
+            "dates": [
+                "2026-01-06",
+                "2026-01-07",
+                "2026-01-08",
+                "2026-01-09"
+            ]
+        },
+        "wuzhen_wic": {
+            "_note": "Wuzhen World Internet Conference — China's internet/tech policy showcase. Typically mid-November.",
+            "region": "CN",
+            "impact": 2,
+            "url": "https://www.wicinternet.org/",
+            "dates": [
+                "2026-11-18",
+                "2026-11-19",
+                "2026-11-20"
+            ]
+        },
         "mx_cpi": {
             "_note": "Mexico CPI (INPC) release (~9th of month). Source: inegi.org.mx",
             "region": "MX",

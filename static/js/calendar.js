@@ -13,6 +13,23 @@ const EVENT_TYPE_COLORS = {
     us_gdp: { bg: "bg-indigo-100 dark:bg-indigo-900/30", text: "text-indigo-700 dark:text-indigo-400", label: "US GDP" },
     us_pce: { bg: "bg-pink-100 dark:bg-pink-900/30", text: "text-pink-700 dark:text-pink-400", label: "US PCE" },
     us_ppi: { bg: "bg-cyan-100 dark:bg-cyan-900/30", text: "text-cyan-700 dark:text-cyan-400", label: "US PPI" },
+    us_ism_mfg: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400", label: "ISM Mfg" },
+    us_ism_svc: { bg: "bg-rose-100 dark:bg-rose-900/30", text: "text-rose-700 dark:text-rose-400", label: "ISM Svc" },
+    us_retail_sales: { bg: "bg-violet-100 dark:bg-violet-900/30", text: "text-violet-700 dark:text-violet-400", label: "Retail" },
+    us_consumer_conf: { bg: "bg-fuchsia-100 dark:bg-fuchsia-900/30", text: "text-fuchsia-700 dark:text-fuchsia-400", label: "Cons Conf" },
+    us_jolts: { bg: "bg-sky-100 dark:bg-sky-900/30", text: "text-sky-700 dark:text-sky-400", label: "JOLTS" },
+    us_jackson_hole: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400", label: "Jackson Hole" },
+    us_michigan: { bg: "bg-lime-100 dark:bg-lime-900/30", text: "text-lime-700 dark:text-lime-400", label: "Michigan" },
+    us_russell_recon: { bg: "bg-emerald-100 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400", label: "Russell" },
+    us_sp500_rebal: { bg: "bg-blue-200 dark:bg-blue-900/40", text: "text-blue-700 dark:text-blue-400", label: "S&P Rebal" },
+    opec_meeting: { bg: "bg-stone-200 dark:bg-stone-900/40", text: "text-stone-700 dark:text-stone-400", label: "OPEC+" },
+    comex_gold_delivery: { bg: "bg-amber-200 dark:bg-amber-900/40", text: "text-amber-700 dark:text-amber-400", label: "COMEX Gold" },
+    wgc_demand: { bg: "bg-yellow-200 dark:bg-yellow-900/40", text: "text-yellow-700 dark:text-yellow-400", label: "WGC Demand" },
+    ai_safety_summit: { bg: "bg-purple-200 dark:bg-purple-900/40", text: "text-purple-700 dark:text-purple-400", label: "AI Safety" },
+    g7_summit: { bg: "bg-blue-200 dark:bg-blue-900/40", text: "text-blue-700 dark:text-blue-400", label: "G7" },
+    waic_shanghai: { bg: "bg-red-200 dark:bg-red-900/40", text: "text-red-700 dark:text-red-400", label: "WAIC" },
+    ces: { bg: "bg-indigo-200 dark:bg-indigo-900/40", text: "text-indigo-700 dark:text-indigo-400", label: "CES" },
+    wuzhen_wic: { bg: "bg-teal-200 dark:bg-teal-900/40", text: "text-teal-700 dark:text-teal-400", label: "Wuzhen" },
     // China
     cn_lpr: { bg: "bg-rose-100 dark:bg-rose-900/30", text: "text-rose-700 dark:text-rose-400", label: "LPR" },
     cn_gdp: { bg: "bg-violet-100 dark:bg-violet-900/30", text: "text-violet-700 dark:text-violet-400", label: "CN GDP" },
@@ -266,6 +283,8 @@ function renderDayEvents() {
     const REGION_FLAGS = {
         US: "\u{1F1FA}\u{1F1F8}", CN: "\u{1F1E8}\u{1F1F3}", EU: "\u{1F1EA}\u{1F1FA}", DE: "\u{1F1E9}\u{1F1EA}",
         JP: "\u{1F1EF}\u{1F1F5}", IN: "\u{1F1EE}\u{1F1F3}", BR: "\u{1F1E7}\u{1F1F7}", MX: "\u{1F1F2}\u{1F1FD}",
+        OPEC: "\u{1F6E2}\u{FE0F}",
+        GLOBAL: "\u{1F310}",
     };
     const IMPACT_LABELS = { 1: "Low", 2: "Medium", 3: "High" };
     const IMPACT_COLORS = {
