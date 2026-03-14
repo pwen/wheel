@@ -124,7 +124,7 @@
         "us_ppi": {
             "_note": "PPI release dates (8:30am ET). Source: bls.gov",
             "region": "US",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.bls.gov/ppi/",
             "dates": [
                 "2026-01-13",
@@ -164,7 +164,7 @@
         "cn_gdp": {
             "_note": "China GDP release (quarterly, mid-month). Source: NBS",
             "region": "CN",
-            "impact": 2,
+            "impact": 3,
             "url": "https://www.stats.gov.cn/english/",
             "dates": [
                 "2026-01-16",
@@ -196,7 +196,7 @@
         "cn_ppi": {
             "_note": "China PPI release (same day as CPI). Source: NBS",
             "region": "CN",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.stats.gov.cn/english/",
             "dates": [
                 "2026-01-09",
@@ -256,7 +256,7 @@
         "two_sessions": {
             "_note": "Two Sessions — CPPCC opens ~Mar 3, NPC opens ~Mar 5",
             "region": "CN",
-            "impact": 1,
+            "impact": 3,
             "url": "http://www.npc.gov.cn/englishnpc/",
             "dates": [
                 "2026-03-03",
@@ -286,7 +286,7 @@
         "cewc": {
             "_note": "Central Economic Work Conference — sets next year's economic priorities (mid-Dec)",
             "region": "CN",
-            "impact": 1,
+            "impact": 3,
             "url": "https://english.www.gov.cn/",
             "dates": [
                 "2026-12-14",
@@ -312,7 +312,7 @@
         "eu_cpi": {
             "_note": "Eurozone HICP flash estimate (end of month for current month). Source: Eurostat",
             "region": "EU",
-            "impact": 3,
+            "impact": 1,
             "url": "https://ec.europa.eu/eurostat/web/hicp",
             "dates": [
                 "2026-01-07",
@@ -332,7 +332,7 @@
         "eu_gdp": {
             "_note": "Eurozone GDP flash estimate (quarterly). Source: Eurostat",
             "region": "EU",
-            "impact": 2,
+            "impact": 1,
             "url": "https://ec.europa.eu/eurostat/web/national-accounts",
             "dates": [
                 "2026-01-30",
@@ -344,7 +344,7 @@
         "eu_pmi": {
             "_note": "S&P Global Eurozone Composite Flash PMI (~22nd-24th of month). Source: S&P Global",
             "region": "EU",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.pmi.spglobal.com/Public/Release/PressReleases",
             "dates": [
                 "2026-01-23",
@@ -379,7 +379,7 @@
         "eu_trade": {
             "_note": "Eurozone Trade Balance (~15th, 2-month lag). Source: Eurostat",
             "region": "EU",
-            "impact": 2,
+            "impact": 1,
             "url": "https://ec.europa.eu/eurostat/web/international-trade-in-goods",
             "dates": [
                 "2026-01-15",
@@ -399,7 +399,7 @@
         "de_ifo": {
             "_note": "German Ifo Business Climate Index (~25th of month). Source: ifo Institute",
             "region": "DE",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.ifo.de/en/survey/ifo-business-climate-index",
             "dates": [
                 "2026-01-26",
@@ -435,7 +435,7 @@
         "jp_cpi": {
             "_note": "Japan CPI release (~3rd-4th Friday of month). Source: stat.go.jp",
             "region": "JP",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.stat.go.jp/english/data/cpi/index.html",
             "dates": [
                 "2026-01-23",
@@ -455,7 +455,7 @@
         "jp_tankan": {
             "_note": "BOJ Tankan Survey (quarterly, early Apr/Jul/Oct/Dec). Source: boj.or.jp",
             "region": "JP",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.boj.or.jp/en/statistics/tk/index.htm",
             "dates": [
                 "2026-04-01",
@@ -467,7 +467,7 @@
         "in_rbi": {
             "_note": "RBI Monetary Policy Committee rate decision. Source: rbi.org.in",
             "region": "IN",
-            "impact": 3,
+            "impact": 1,
             "url": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
             "dates": [
                 "2026-02-06",
@@ -481,7 +481,7 @@
         "in_cpi": {
             "_note": "India CPI release (~12th of month). Source: mospi.gov.in",
             "region": "IN",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.mospi.gov.in/",
             "dates": [
                 "2026-01-13",
@@ -501,7 +501,7 @@
         "in_gdp": {
             "_note": "India GDP advance/quarterly estimate. Source: mospi.gov.in",
             "region": "IN",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.mospi.gov.in/",
             "dates": [
                 "2026-02-27",
@@ -513,7 +513,7 @@
         "br_copom": {
             "_note": "BCB Copom rate decision (conclusion day). Source: bcb.gov.br",
             "region": "BR",
-            "impact": 3,
+            "impact": 1,
             "url": "https://www.bcb.gov.br/en/monetarypolicy/copomstatements",
             "dates": [
                 "2026-01-28",
@@ -529,7 +529,7 @@
         "br_cpi": {
             "_note": "Brazil IPCA (CPI) release (~10th of month). Source: ibge.gov.br",
             "region": "BR",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.ibge.gov.br/en/statistics/economic/prices-and-costs.html",
             "dates": [
                 "2026-01-10",
@@ -549,7 +549,7 @@
         "mx_banxico": {
             "_note": "Banxico rate decision. Source: banxico.org.mx",
             "region": "MX",
-            "impact": 3,
+            "impact": 1,
             "url": "https://www.banxico.org.mx/publications-and-press/announcements-on-monetary-policy-decisions/index-en.html",
             "dates": [
                 "2026-02-05",
@@ -676,7 +676,7 @@
         "us_michigan": {
             "_note": "Michigan Consumer Sentiment — preliminary (~2nd Fri) and final (~4th Fri). Source: umich.edu",
             "region": "US",
-            "impact": 2,
+            "impact": 1,
             "url": "https://data.sca.isr.umich.edu/",
             "dates": [
                 "2026-01-16",
@@ -743,7 +743,7 @@
         "comex_gold_delivery": {
             "_note": "COMEX gold futures active delivery months — last business day. Active months: Feb/Apr/Jun/Aug/Oct/Dec",
             "region": "US",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.cmegroup.com/markets/metals/precious/gold.contractSpecs.html",
             "dates": [
                 "2026-02-27",
@@ -757,7 +757,7 @@
         "wgc_demand": {
             "_note": "World Gold Council Gold Demand Trends — quarterly report. Source: gold.org",
             "region": "GLOBAL",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.gold.org/goldhub/research/gold-demand-trends",
             "dates": [
                 "2026-01-29",
@@ -769,7 +769,7 @@
         "ai_safety_summit": {
             "_note": "AI Safety Summit — global AI governance. Hosted by different nations each year.",
             "region": "GLOBAL",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.aisafetysummit.gov/",
             "dates": [
                 "2026-11-10",
@@ -802,7 +802,7 @@
         "ces": {
             "_note": "CES — Consumer Electronics Show, Las Vegas. Major AI & tech product launches.",
             "region": "US",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.ces.tech/",
             "dates": [
                 "2026-01-06",
@@ -814,7 +814,7 @@
         "wuzhen_wic": {
             "_note": "Wuzhen World Internet Conference — China's internet/tech policy showcase. Typically mid-November.",
             "region": "CN",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.wicinternet.org/",
             "dates": [
                 "2026-11-18",
@@ -850,7 +850,7 @@
         "semicon_west": {
             "_note": "SEMICON West — semiconductor equipment, fab capacity, export control implications.",
             "region": "US",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.semiconwest.org/",
             "dates": [
                 "2026-07-14",
@@ -861,7 +861,7 @@
         "hot_chips": {
             "_note": "Hot Chips — next-gen chip architecture symposium. Stanford, CA.",
             "region": "US",
-            "impact": 2,
+            "impact": 1,
             "url": "https://hotchips.org/",
             "dates": [
                 "2026-08-23",
@@ -894,7 +894,7 @@
         "iea_weo": {
             "_note": "IEA World Energy Outlook — definitive global energy supply/demand forecast. Published Oct.",
             "region": "GLOBAL",
-            "impact": 3,
+            "impact": 1,
             "url": "https://www.iea.org/reports/world-energy-outlook-2026",
             "dates": [
                 "2026-10-14"
@@ -903,7 +903,7 @@
         "ferc_meeting": {
             "_note": "Federal Energy Regulatory Commission open meetings (~3rd Thu monthly). Grid interconnection, transmission.",
             "region": "US",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.ferc.gov/news-events/events/open-meetings",
             "dates": [
                 "2026-01-15",
@@ -923,7 +923,7 @@
         "un_cop": {
             "_note": "UN COP Climate Conference — COP31. Global climate policy, renewable mandates.",
             "region": "GLOBAL",
-            "impact": 3,
+            "impact": 1,
             "url": "https://unfccc.int/",
             "dates": [
                 "2026-11-09",
@@ -943,7 +943,7 @@
         "davos_wef": {
             "_note": "World Economic Forum Annual Meeting — Davos, Switzerland. AI, energy, geopolitics.",
             "region": "GLOBAL",
-            "impact": 3,
+            "impact": 1,
             "url": "https://www.weforum.org/events/world-economic-forum-annual-meeting-2026/",
             "dates": [
                 "2026-01-19",
@@ -1029,7 +1029,7 @@
         "zhongguancun": {
             "_note": "Zhongguancun Forum — Beijing's premier tech policy forum. AI, chips, self-sufficiency.",
             "region": "CN",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.zgcforum.com.cn/",
             "dates": [
                 "2026-05-25",
@@ -1051,7 +1051,7 @@
         "world_battery_expo": {
             "_note": "World Battery & Energy Storage Industry Expo — Changsha, China's biggest battery trade show.",
             "region": "CN",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.battery-expo.com/",
             "dates": [
                 "2026-11-10",
@@ -1062,7 +1062,7 @@
         "mx_cpi": {
             "_note": "Mexico CPI (INPC) release (~9th of month). Source: inegi.org.mx",
             "region": "MX",
-            "impact": 2,
+            "impact": 1,
             "url": "https://www.inegi.org.mx/temas/inpc/",
             "dates": [
                 "2026-01-08",
