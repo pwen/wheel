@@ -1,47 +1,93 @@
 {
-  "_description": "Macro economic event dates for the wheel strategy calendar. Computed dates (opex, triple_witching, jobs) are generated automatically — only FOMC, CPI, and GDP need manual entry each year. Each event type has a region field.",
-  "2026": {
-    "fomc": {
-      "_note": "FOMC meeting conclusion dates (rate decision announced). Source: federalreserve.gov",
-      "region": "US",
-      "dates": [
-        "2026-01-28",
-        "2026-03-18",
-        "2026-05-06",
-        "2026-06-17",
-        "2026-07-29",
-        "2026-09-16",
-        "2026-10-28",
-        "2026-12-09"
-      ]
-    },
-    "cpi": {
-      "_note": "CPI release dates (8:30am ET). Source: bls.gov schedule",
-      "region": "US",
-      "dates": [
-        "2026-01-14",
-        "2026-02-12",
-        "2026-03-11",
-        "2026-04-14",
-        "2026-05-12",
-        "2026-06-10",
-        "2026-07-14",
-        "2026-08-12",
-        "2026-09-16",
-        "2026-10-13",
-        "2026-11-12",
-        "2026-12-10"
-      ]
-    },
-    "gdp": {
-      "_note": "GDP advance estimate release dates. Source: bea.gov",
-      "region": "US",
-      "dates": [
-        "2026-01-29",
-        "2026-04-29",
-        "2026-07-29",
-        "2026-10-28"
-      ]
+    "_description": "Macro economic event dates for the wheel strategy calendar. All dates are static per year — add a new year key each January.",
+    "2026": {
+        "fomc": {
+            "_note": "FOMC meeting conclusion dates. Source: federalreserve.gov",
+            "region": "US",
+            "dates": [
+                "2026-01-28",
+                "2026-03-18",
+                "2026-05-06",
+                "2026-06-17",
+                "2026-07-29",
+                "2026-09-16",
+                "2026-10-28",
+                "2026-12-09"
+            ]
+        },
+        "cpi": {
+            "_note": "CPI release dates (8:30am ET). Source: bls.gov",
+            "region": "US",
+            "dates": [
+                "2026-01-14",
+                "2026-02-12",
+                "2026-03-11",
+                "2026-04-14",
+                "2026-05-12",
+                "2026-06-10",
+                "2026-07-14",
+                "2026-08-12",
+                "2026-09-16",
+                "2026-10-13",
+                "2026-11-12",
+                "2026-12-10"
+            ]
+        },
+        "gdp": {
+            "_note": "GDP advance estimate release dates. Source: bea.gov",
+            "region": "US",
+            "dates": [
+                "2026-01-29",
+                "2026-04-29",
+                "2026-07-29",
+                "2026-10-28"
+            ]
+        },
+        "opex": {
+            "_note": "Options expiration — 3rd Friday of each month",
+            "region": "US",
+            "dates": [
+                "2026-01-16",
+                "2026-02-20",
+                "2026-03-20",
+                "2026-04-17",
+                "2026-05-15",
+                "2026-06-19",
+                "2026-07-17",
+                "2026-08-21",
+                "2026-09-18",
+                "2026-10-16",
+                "2026-11-20",
+                "2026-12-18"
+            ]
+        },
+        "triple_witching": {
+            "_note": "Triple witching — 3rd Friday of Mar/Jun/Sep/Dec",
+            "region": "US",
+            "dates": [
+                "2026-03-20",
+                "2026-06-19",
+                "2026-09-18",
+                "2026-12-18"
+            ]
+        },
+        "jobs": {
+            "_note": "Non-Farm Payrolls — 1st Friday of each month",
+            "region": "US",
+            "dates": [
+                "2026-01-02",
+                "2026-02-06",
+                "2026-03-06",
+                "2026-04-03",
+                "2026-05-01",
+                "2026-06-05",
+                "2026-07-03",
+                "2026-08-07",
+                "2026-09-04",
+                "2026-10-02",
+                "2026-11-06",
+                "2026-12-04"
+            ]
+        }
     }
-  }
 }
