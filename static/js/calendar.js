@@ -263,26 +263,40 @@ function renderDayEvents() {
         return;
     }
 
-    let html = "";
+    const REGION_FLAGS = {
+        US: "\u{1F1FA}\u{1F1F8}", CN: "\u{1F1E8}\u{1F1F3}", EU: "\u{1F1EA}\u{1F1FA}", DE: "\u{1F1E9}\u{1F1EA}",
+        JP: "\u{1F1EF}\u{1F1F5}", IN: "\u{1F1EE}\u{1F1F3}", BR: "\u{1F1E7}\u{1F1F7}", MX: "\u{1F1F2}\u{1F1FD}",
+    };
+    const IMPACT_LABELS = { 1: "Low", 2: "Medium", 3: "High" };
+    const IMPACT_COLORS = {
+        1: "text-gray-400 dark:text-gray-500",
+        2: "text-yellow-500 dark:text-yellow-400",
+        3: "text-red-500 dark:text-red-400",
+    };
+
+    let html = `<table class="w-full text-sm">`;
+    html += `<thead><tr class="text-xs text-gray-500 dark:text-gray-400 uppercase border-b dark:border-gray-700">`;
+    html += `<th class="text-left px-4 py-2 font-semibold">Event</th>`;
+    html += `<th class="text-left px-3 py-2 font-semibold">Country</th>`;
+    html += `<th class="text-left px-3 py-2 font-semibold">Impact</th>`;
+    html += `</tr></thead><tbody>`;
+
     for (const ev of evts) {
         const type = EVENT_TYPE_COLORS[ev.event_type] || { bg: "bg-gray-100 dark:bg-gray-700", text: "text-gray-600 dark:text-gray-400", label: ev.event_type };
-        const regionBadge = ev.region && ev.region !== "US"
-            ? `<span class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">${ev.region}</span>`
-            : "";
-        const symbolBadge = ev.symbol
-            ? `<span class="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">${ev.symbol}</span>`
-            : "";
-        const impactDots = "●".repeat(ev.impact || 2);
-        const impactColor = (ev.impact || 2) >= 3 ? "text-red-500" : (ev.impact || 2) >= 2 ? "text-yellow-500" : "text-gray-400";
+        const flag = REGION_FLAGS[ev.region] || "";
+        const impact = ev.impact || 2;
+        const impactLabel = IMPACT_LABELS[impact] || "Medium";
+        const impactColor = IMPACT_COLORS[impact] || IMPACT_COLORS[2];
 
-        html += `<div class="flex items-center gap-2 px-4 py-2.5 border-b dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/30">`;
-        html += `  <span class="text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${type.bg} ${type.text} shrink-0">${type.label}</span>`;
-        html += `  <span class="text-xs ${impactColor} shrink-0" title="Impact: ${ev.impact || 2}/3">${impactDots}</span>`;
-        html += `  <span class="text-sm text-gray-900 dark:text-gray-100 flex-1">${ev.title}</span>`;
-        if (ev.url) html += `  <a href="${ev.url}" target="_blank" rel="noopener" class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 shrink-0" title="Source"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>`;
-        html += `  <span class="flex items-center gap-1.5 shrink-0">${symbolBadge}${regionBadge}</span>`;
-        html += `</div>`;
+        const linkIcon = ev.url ? ` <a href="${ev.url}" target="_blank" rel="noopener" class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 inline-block align-middle ml-1" title="Source"><svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>` : "";
+
+        html += `<tr class="border-b dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/30">`;
+        html += `<td class="px-4 py-2.5"><span class="text-gray-900 dark:text-gray-100">${ev.title}</span>${linkIcon}</td>`;
+        html += `<td class="px-3 py-2.5 whitespace-nowrap"><span class="mr-1">${flag}</span><span class="text-gray-600 dark:text-gray-400 text-xs">${ev.region}</span></td>`;
+        html += `<td class="px-3 py-2.5"><span class="${impactColor} text-xs font-medium">${impactLabel}</span></td>`;
+        html += `</tr>`;
     }
+    html += `</tbody></table>`;
     container.innerHTML = html;
 }
 
