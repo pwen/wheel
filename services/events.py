@@ -2,12 +2,15 @@
 
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from pathlib import Path
 
+import yfinance as yf
 from sqlmodel import Session, select
 
 from models.market_event import MarketEvent, EventType, EventSource
+from models.spot import Spot
 
 log = logging.getLogger(__name__)
 
@@ -190,3 +193,149 @@ def seed_macro_events(year: int, session: Session) -> dict:
 
     session.commit()
     return {"total": total}
+
+
+# ---------------------------------------------------------------------------
+# Symbol events — per-symbol (earnings, ex-dividend) via yfinance
+# ---------------------------------------------------------------------------
+
+_SYMBOL_EVENT_TYPES = {EventType.US_EARNINGS, EventType.US_EX_DIVIDEND}
+
+
+def _fetch_symbol_dates(symbol: str, year: int) -> dict:
+    """Fetch earnings and ex-dividend dates for a symbol from yfinance.
+
+    Returns {"earnings": [date, ...], "dividends": [date, ...]}.
+    Runs in a thread pool worker — no DB access here.
+    """
+    year_start = date(year, 1, 1)
+    year_end = date(year, 12, 31)
+    result: dict[str, list[date]] = {"earnings": [], "dividends": []}
+
+    try:
+        ticker = yf.Ticker(symbol)
+    except Exception:
+        log.warning("yfinance: failed to create Ticker for %s", symbol)
+        return result
+
+    # Earnings dates
+    try:
+        df = ticker.get_earnings_dates(limit=20)
+        if df is not None and not df.empty:
+            for ts in df.index:
+                d = ts.date() if hasattr(ts, "date") else ts
+                if isinstance(d, datetime):
+                    d = d.date()
+                if year_start <= d <= year_end:
+                    result["earnings"].append(d)
+            # De-dup (yfinance sometimes returns duplicates)
+            result["earnings"] = sorted(set(result["earnings"]))
+    except Exception:
+        log.debug("yfinance: no earnings dates for %s", symbol)
+
+    # Ex-dividend dates (from dividend history)
+    try:
+        divs = ticker.dividends
+        if divs is not None and len(divs) > 0:
+            for ts in divs.index:
+                d = ts.date() if hasattr(ts, "date") else ts
+                if isinstance(d, datetime):
+                    d = d.date()
+                if year_start <= d <= year_end:
+                    result["dividends"].append(d)
+            result["dividends"] = sorted(set(result["dividends"]))
+    except Exception:
+        log.debug("yfinance: no dividend data for %s", symbol)
+
+    return result
+
+
+def seed_symbol_events(year: int, session: Session) -> dict:
+    """Fetch and seed earnings + ex-dividend events for all tracked Spot symbols.
+
+    Deletes existing symbol events for the year, then recreates from yfinance.
+    """
+    year_start = date(year, 1, 1)
+    year_end = date(year, 12, 31)
+
+    # Delete existing symbol events for this year
+    existing = session.exec(
+        select(MarketEvent).where(
+            MarketEvent.event_type.in_(_SYMBOL_EVENT_TYPES),
+            MarketEvent.event_date >= year_start,
+            MarketEvent.event_date <= year_end,
+            MarketEvent.symbol.is_not(None),
+        )
+    ).all()
+    for e in existing:
+        session.delete(e)
+    session.flush()
+
+    # Get all tracked symbols
+    spots = session.exec(select(Spot)).all()
+    if not spots:
+        session.commit()
+        return {"total": 0, "symbols": 0}
+
+    symbols = [s.symbol for s in spots]
+
+    # Fetch dates in parallel (yfinance is I/O-bound)
+    fetched: dict[str, dict] = {}
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        futures = {pool.submit(_fetch_symbol_dates, sym, year): sym for sym in symbols}
+        for future in as_completed(futures):
+            sym = futures[future]
+            try:
+                fetched[sym] = future.result()
+            except Exception:
+                log.warning("Failed to fetch dates for %s", sym)
+                fetched[sym] = {"earnings": [], "dividends": []}
+
+    # Create MarketEvent records
+    total = 0
+    symbols_with_events = 0
+    for sym in symbols:
+        data = fetched.get(sym, {"earnings": [], "dividends": []})
+        sym_count = 0
+
+        for d in data["earnings"]:
+            session.add(MarketEvent(
+                event_type=EventType.US_EARNINGS,
+                event_date=d,
+                symbol=sym,
+                title=f"{sym} Earnings",
+                source=EventSource.YFINANCE,
+                region="US",
+                impact=3,
+            ))
+            sym_count += 1
+
+        for d in data["dividends"]:
+            session.add(MarketEvent(
+                event_type=EventType.US_EX_DIVIDEND,
+                event_date=d,
+                symbol=sym,
+                title=f"{sym} Ex-Dividend",
+                source=EventSource.YFINANCE,
+                region="US",
+                impact=2,
+            ))
+            sym_count += 1
+
+        total += sym_count
+        if sym_count > 0:
+            symbols_with_events += 1
+
+    session.commit()
+    return {"total": total, "symbols": len(symbols), "with_events": symbols_with_events}
+
+
+def seed_all_events(year: int, session: Session) -> dict:
+    """Seed both macro and symbol events for a year."""
+    macro = seed_macro_events(year, session)
+    symbol = seed_symbol_events(year, session)
+    return {
+        "macro": macro["total"],
+        "symbol": symbol["total"],
+        "total": macro["total"] + symbol["total"],
+    }

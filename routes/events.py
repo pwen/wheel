@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 
 from db import get_session
 from models.market_event import MarketEvent, EventType
-from services.events import seed_macro_events
+from services.events import seed_macro_events, seed_symbol_events, seed_all_events
 from services.openai import get_event_summary
 
 log = logging.getLogger(__name__)
@@ -21,6 +21,26 @@ def seed_macro(
 ):
     """Reset and re-seed macro events for a given year. Deletes existing, then recreates."""
     result = seed_macro_events(year, session)
+    return {"year": year, **result}
+
+
+@router.post("/events/seed-symbols")
+def seed_symbols(
+    year: int = Query(..., ge=2025, le=2100),
+    session: Session = Depends(get_session),
+):
+    """Fetch and seed per-symbol events (earnings, ex-dividend) for all tracked symbols."""
+    result = seed_symbol_events(year, session)
+    return {"year": year, **result}
+
+
+@router.post("/events/seed-all")
+def seed_all(
+    year: int = Query(..., ge=2025, le=2100),
+    session: Session = Depends(get_session),
+):
+    """Reset and re-seed all events (macro + symbol) for a given year."""
+    result = seed_all_events(year, session)
     return {"year": year, **result}
 
 

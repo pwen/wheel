@@ -96,7 +96,7 @@ function initCalendar() {
     const yearInput = $("#cal-seed-year");
     yearInput.value = new Date().getFullYear();
 
-    // Seed button
+    // Seed macro events
     $("#cal-seed-btn").addEventListener("click", async () => {
         const year = parseInt(yearInput.value);
         if (!year || year < 2025 || year > 2100) return;
@@ -108,7 +108,7 @@ function initCalendar() {
         try {
             const r = await fetch(`/api/events/seed-macro?year=${year}`, { method: "POST" });
             const data = await r.json();
-            status.textContent = `✓ ${data.total} events seeded`;
+            status.textContent = `✓ ${data.total} macro events seeded`;
             status.className = "text-sm text-green-600 dark:text-green-400";
             renderAll();
         } catch (e) {
@@ -328,10 +328,14 @@ function renderDayEvents() {
 
         const linkIcon = ev.url ? ` <a href="${ev.url}" target="_blank" rel="noopener" class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 inline-block align-middle ml-1" title="Source"><svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>` : "";
 
+        const symbolBadge = ev.symbol
+            ? `<span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded ${type.bg} ${type.text} mr-1.5">${ev.symbol}</span>`
+            : "";
+
         const aiBtn = `<button onclick="window._fetchEventSummary(${ev.id}, this)" class="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors" title="AI Summary"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg></button>`;
 
         html += `<tr class="border-b dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/30">`;
-        html += `<td class="px-4 py-2.5"><span class="text-gray-900 dark:text-gray-100">${ev.title}</span>${linkIcon}</td>`;
+        html += `<td class="px-4 py-2.5">${symbolBadge}<span class="text-gray-900 dark:text-gray-100">${ev.title}</span>${linkIcon}</td>`;
         html += `<td class="px-3 py-2.5 whitespace-nowrap"><span class="mr-1">${flag}</span><span class="text-gray-600 dark:text-gray-400 text-xs">${ev.region}</span></td>`;
         html += `<td class="px-3 py-2.5"><span class="${impactColor} text-xs font-medium">${impactLabel}</span></td>`;
         html += `<td class="px-2 py-2.5 text-center">${aiBtn}</td>`;

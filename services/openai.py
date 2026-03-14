@@ -200,8 +200,12 @@ _REGULATORY_TYPES = {
     "davos_wef", "wuzhen_wic",
 }
 
+_EARNINGS_TYPES = {"us_earnings", "us_ex_dividend"}
+
 
 def _get_event_category(event_type: str) -> str:
+    if event_type in _EARNINGS_TYPES:
+        return "earnings"
     if event_type in _DATA_RELEASE_TYPES:
         return "data_release"
     if event_type in _POLICY_MEETING_TYPES:
@@ -219,6 +223,17 @@ def _get_event_category(event_type: str) -> str:
 
 # Past-event prompts by category
 _PAST_PROMPTS = {
+    "earnings": (
+        "Summarize this earnings report in two sections:\n"
+        "WHAT HAPPENED:\n"
+        "- EPS and revenue vs consensus estimates (beat/miss/inline)\n"
+        "- Key guidance changes: did they raise, lower, or maintain outlook\n"
+        "- How the stock moved after-hours and next day\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- What this means for the options premium and IV crush\n"
+        "- How peer stocks or the sector reacted\n"
+        "- Whether to adjust wheel strategy positioning on this name"
+    ),
     "data_release": (
         "Summarize this data release in two sections:\n"
         "WHAT HAPPENED:\n"
@@ -289,6 +304,17 @@ _PAST_PROMPTS = {
 
 # Future-event prompts by category
 _FUTURE_PROMPTS = {
+    "earnings": (
+        "Preview this upcoming earnings report in two sections:\n"
+        "WHAT TO EXPECT:\n"
+        "- Consensus EPS and revenue estimates\n"
+        "- Key metrics or guidance items the market cares most about\n"
+        "- Current implied move from options pricing\n\n"
+        "INVESTOR IMPLICATIONS:\n"
+        "- Whether to sell premium before or wait until after earnings\n"
+        "- Historical post-earnings move magnitude for this name\n"
+        "- How to size or adjust wheel positions around this event"
+    ),
     "data_release": (
         "Preview this upcoming data release in two sections:\n"
         "WHAT TO EXPECT:\n"
