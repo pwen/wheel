@@ -9,6 +9,8 @@ import yfinance as yf
 from sqlmodel import Session, select
 
 from models import ShareLot, Spot, StrategyType, Trade, TradeStatus
+from models.market_event import MarketEvent
+from models.spot import AssetType
 from services.yfinance import compute_greeks
 
 
@@ -131,6 +133,7 @@ def _build_leg_guidance(
     open_cc_contracts: int,
     avg_cost: float | None,
     current_price: float | None = None,
+    upcoming_events: list[dict] | None = None,
 ) -> dict:
     rules = REGIME_RULES.get(regime, REGIME_RULES["sideways"])[strategy]
     dte_lo, dte_hi = rules["dte"]
@@ -204,6 +207,33 @@ def _build_leg_guidance(
 
     if strategy == "CC" and avg_cost is not None:
         reasons.append(f"Prefer strikes at/above basis (${avg_cost:.2f}).")
+
+    # --- Event-aware flags for stocks ---
+    if upcoming_events:
+        best = candidates[0] if candidates else None
+        dte_window = best["dte"] if best else dte_hi
+        for ev in upcoming_events:
+            days_away = (ev["date"] - date.today()).days
+            if days_away < 0 or days_away > dte_window:
+                continue
+            if ev["type"] == "us_earnings":
+                if strategy == "CSP":
+                    flags.append(
+                        f"⚠ Earnings on {ev['date'].strftime('%b %d')} ({days_away}d away) — stock could gap below your strike on a miss. Consider waiting until after earnings or widening your strike."
+                    )
+                else:
+                    flags.append(
+                        f"⚠ Earnings on {ev['date'].strftime('%b %d')} ({days_away}d away) — IV crush will help CC decay, but a big beat could gap above your strike. Consider selling after earnings or using a higher strike."
+                    )
+            elif ev["type"] == "us_ex_dividend":
+                if strategy == "CC":
+                    flags.append(
+                        f"⚠ Ex-dividend on {ev['date'].strftime('%b %d')} ({days_away}d away) — if your CC is ITM, early assignment risk is elevated. The buyer may exercise to capture the dividend."
+                    )
+                else:
+                    flags.append(
+                        f"Ex-dividend on {ev['date'].strftime('%b %d')} ({days_away}d away) — stock will drop by the dividend amount, slightly favoring your CSP if strike is well below."
+                    )
 
     return {
         "strategy": strategy,
@@ -383,6 +413,19 @@ def generate_symbol_wheel_guidance(symbol: str, session: Session) -> dict:
     regime = vix.get("regime", "sideways")
     sentiment = _get_spot_sentiment(symbol)
 
+    # Fetch upcoming symbol events (earnings / ex-div) for stocks only
+    upcoming_events: list[dict] = []
+    if spot.asset_type != AssetType.ETF:
+        today = date.today()
+        ev_rows = session.exec(
+            select(MarketEvent)
+            .where(MarketEvent.symbol == symbol)
+            .where(MarketEvent.event_date >= today)
+            .where(MarketEvent.event_type.in_(["us_earnings", "us_ex_dividend"]))
+            .order_by(MarketEvent.event_date)
+        ).all()
+        upcoming_events = [{"type": e.event_type, "date": e.event_date} for e in ev_rows]
+
     cc_candidates: list[dict] = []
     csp_candidates: list[dict] = []
     cc_notes: list[str] = []
@@ -427,6 +470,7 @@ def generate_symbol_wheel_guidance(symbol: str, session: Session) -> dict:
         open_cc_contracts=open_cc_contracts,
         avg_cost=avg_cost,
         current_price=current_price if current_price > 0 else None,
+        upcoming_events=upcoming_events,
     )
     csp_guidance = _build_leg_guidance(
         strategy="CSP",
@@ -436,6 +480,7 @@ def generate_symbol_wheel_guidance(symbol: str, session: Session) -> dict:
         shares_held=shares_held,
         open_cc_contracts=open_cc_contracts,
         avg_cost=avg_cost,
+        upcoming_events=upcoming_events,
     )
     if cc_notes:
         cc_guidance["flags"].extend(cc_notes)
