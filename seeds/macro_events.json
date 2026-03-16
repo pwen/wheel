@@ -294,19 +294,19 @@
             ]
         },
         "eu_ecb": {
-            "_note": "ECB Governing Council rate decision dates. Source: ecb.europa.eu",
+            "_note": "ECB Governing Council rate decision dates (Day 2). Source: ecb.europa.eu",
             "region": "EU",
             "impact": 2,
             "url": "https://www.ecb.europa.eu/press/govcdec/mopo/html/index.en.html",
             "dates": [
                 "2026-01-22",
-                "2026-03-05",
-                "2026-04-16",
-                "2026-06-04",
-                "2026-07-16",
+                "2026-03-19",
+                "2026-04-30",
+                "2026-06-11",
+                "2026-07-23",
                 "2026-09-10",
-                "2026-10-22",
-                "2026-12-10"
+                "2026-10-29",
+                "2026-12-17"
             ]
         },
         "eu_cpi": {
@@ -417,18 +417,18 @@
             ]
         },
         "jp_boj": {
-            "_note": "BOJ Monetary Policy Meeting conclusion dates. Source: boj.or.jp",
+            "_note": "BOJ Monetary Policy Meeting conclusion dates (Day 2). Source: boj.or.jp",
             "region": "JP",
             "impact": 2,
             "url": "https://www.boj.or.jp/en/mopo/mpmdeci/index.htm",
             "dates": [
-                "2026-01-24",
-                "2026-03-13",
-                "2026-05-01",
+                "2026-01-23",
+                "2026-03-19",
+                "2026-04-28",
                 "2026-06-16",
-                "2026-07-17",
-                "2026-09-17",
-                "2026-10-29",
+                "2026-07-31",
+                "2026-09-18",
+                "2026-10-30",
                 "2026-12-18"
             ]
         },
