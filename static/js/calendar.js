@@ -363,39 +363,50 @@ async function renderAll() {
     await loadMonthAndRender();
 }
 
-// AI Summary — fetch and toggle
-window._fetchEventSummary = async function (eventId, btn) {
+// AI Summary — fetch, toggle, or refetch
+function _renderSummary(cell, summary, eventId) {
+    const formatted = summary
+        .trim()
+        .replace(/\r\n/g, '\n')
+        .replace(/^(WHAT HAPPENED|WHAT TO EXPECT|INVESTOR IMPLICATIONS)[:\s]*\n*/gm, '<div class="font-semibold text-gray-900 dark:text-gray-100 mt-3 mb-1">$1</div>')
+        .replace(/\n{2,}/g, '\n')
+        .replace(/\n/g, '<br>')
+        .replace(/<\/div>(\s*<br>\s*)+/g, '</div>');
+    cell.innerHTML = `<div class="text-sm leading-relaxed text-gray-700 dark:text-gray-300">${formatted}</div>`
+        + `<button onclick="window._fetchEventSummary(${eventId}, this, true)" class="mt-2 text-[10px] text-gray-400 hover:text-purple-500 transition-colors">↻ Refetch</button>`;
+    cell.dataset.loaded = "1";
+}
+
+window._fetchEventSummary = async function (eventId, btn, force = false) {
     const row = document.getElementById(`ai-summary-${eventId}`);
     if (!row) return;
+    const cell = row.querySelector("td");
 
-    // Toggle: if already visible, collapse
-    if (!row.classList.contains("hidden")) {
+    // Toggle: if already visible and not forcing, collapse
+    if (!force && !row.classList.contains("hidden")) {
         row.classList.add("hidden");
         return;
     }
 
-    const cell = row.querySelector("td");
-
-    // If already loaded, just show
-    if (cell.dataset.loaded) {
+    // If already loaded and not forcing, just show
+    if (!force && cell.dataset.loaded) {
         row.classList.remove("hidden");
         return;
     }
 
     // Loading state
     btn.disabled = true;
-    btn.classList.add("animate-pulse");
+    const origText = btn.textContent;
+    if (force) btn.textContent = "Refetching…";
+    else btn.classList.add("animate-pulse");
     cell.innerHTML = '<span class="text-purple-500 dark:text-purple-400 text-xs">Loading AI summary…</span>';
     row.classList.remove("hidden");
 
     try {
-        const r = await fetch(`/api/events/${eventId}/summary`);
+        const url = `/api/events/${eventId}/summary${force ? '?force=true' : ''}`;
+        const r = await fetch(url);
         const data = await r.json();
-        const formatted = data.summary
-            .replace(/^(WHAT HAPPENED|WHAT TO EXPECT|INVESTOR IMPLICATIONS)$/gm, '<div class="font-semibold text-gray-900 dark:text-gray-100 mt-3 mb-1">$1</div>')
-            .replace(/\n/g, '<br>');
-        cell.innerHTML = `<div class="text-sm leading-relaxed text-gray-700 dark:text-gray-300">${formatted}</div>`;
-        cell.dataset.loaded = "1";
+        _renderSummary(cell, data.summary, eventId);
     } catch (e) {
         cell.innerHTML = `<span class="text-red-500 text-xs">Failed to load summary</span>`;
     } finally {

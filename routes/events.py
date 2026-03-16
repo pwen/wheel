@@ -66,13 +66,17 @@ def list_events(
 
 
 @router.get("/events/{event_id}/summary")
-def event_summary(event_id: int, session: Session = Depends(get_session)):
+def event_summary(
+    event_id: int,
+    force: bool = Query(default=False),
+    session: Session = Depends(get_session),
+):
     """Get an AI-generated summary of a specific event. Cached after first call."""
     event = session.get(MarketEvent, event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
 
-    if event.ai_summary:
+    if event.ai_summary and not force:
         return {"event_id": event_id, "summary": event.ai_summary}
 
     summary = get_event_summary(
