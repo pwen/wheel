@@ -8,6 +8,7 @@ setup:
 
 run:
 	docker compose up -d
+	docker system prune -f
 
 db: 
 	docker compose up -d db
