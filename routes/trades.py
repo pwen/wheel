@@ -1,9 +1,9 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Optional
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlmodel import Session, select
 import yfinance as yf
 
@@ -14,6 +14,16 @@ from models import (
 )
 
 router = APIRouter(tags=["trades"])
+
+_TWO_PLACES = Decimal("0.01")
+
+
+def _round2(v: Optional[Decimal]) -> Optional[Decimal]:
+    return v.quantize(_TWO_PLACES, rounding=ROUND_HALF_UP) if v is not None else None
+
+
+def _round_spots_validator(*fields: str):
+    return field_validator(*fields, mode="after")(classmethod(lambda cls, v: _round2(v)))
 
 
 class TradeCreate(BaseModel):
@@ -27,6 +37,8 @@ class TradeCreate(BaseModel):
     spot_price_at_open: Optional[Decimal] = None
     iv_at_open: Optional[Decimal] = None
 
+    _round = _round_spots_validator("spot_price_at_open")
+
 
 class TradeClose(BaseModel):
     closed_at: date
@@ -34,10 +46,14 @@ class TradeClose(BaseModel):
     closing_spot: Optional[Decimal] = None
     status: TradeStatus = TradeStatus.EXPIRED
 
+    _round = _round_spots_validator("closing_spot")
+
 
 class TradeAssign(BaseModel):
     assigned_at: date
     closing_spot: Optional[Decimal] = None
+
+    _round = _round_spots_validator("closing_spot")
 
 
 class TradeRoll(BaseModel):
@@ -49,6 +65,8 @@ class TradeRoll(BaseModel):
     new_expiry_date: date
     new_total_premium: Decimal
     new_contracts: Optional[int] = None  # defaults to same qty
+
+    _round = _round_spots_validator("closing_spot")
 
 
 class TradeUpdate(BaseModel):
@@ -66,9 +84,40 @@ class TradeUpdate(BaseModel):
     closing_cost: Optional[Decimal] = None
     closing_spot: Optional[Decimal] = None
 
+    _round = _round_spots_validator("spot_price_at_open", "closing_spot")
 
-def _trade_to_dict(t: Trade) -> dict:
+
+def _get_trade_or_404(trade_id: int, session: Session) -> Trade:
+    trade = session.get(Trade, trade_id)
+    if not trade:
+        raise HTTPException(404, "Trade not found")
+    return trade
+
+
+def _require_open(trade: Trade) -> None:
+    if trade.status != TradeStatus.OPEN:
+        raise HTTPException(400, "Trade is not open")
+
+
+def _resolve_or_create_spot(symbol: str, session: Session) -> Spot:
+    symbol = symbol.upper()
+    spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
+    if not spot:
+        spot = Spot(symbol=symbol)
+        session.add(spot)
+        session.commit()
+        session.refresh(spot)
+        from services import populate_spot_info
+        try:
+            populate_spot_info(spot, session)
+        except Exception:
+            pass
+    return spot
+
+
+def _trade_to_dict(t: Trade, symbol: str) -> dict:
     d = t.model_dump()
+    d["symbol"] = symbol
     d["premium_per_share"] = float(t.premium_per_share)
     d["break_even"] = float(t.break_even)
     d["dte"] = t.dte
@@ -78,36 +127,26 @@ def _trade_to_dict(t: Trade) -> dict:
     return d
 
 
+def _symbol_for(trade: Trade, session: Session) -> str:
+    spot = session.get(Spot, trade.underlying_id)
+    return spot.symbol if spot else "?"
+
+
 @router.get("/trades")
 def list_trades(session: Session = Depends(get_session)):
-    trades = session.exec(
-        select(Trade).order_by(Trade.opened_at.desc())
+    # JOIN to avoid N+1 queries
+    rows = session.exec(
+        select(Trade, Spot.symbol)
+        .outerjoin(Spot, Trade.underlying_id == Spot.id)
+        .order_by(Trade.opened_at.desc())
     ).all()
-    results = []
-    for t in trades:
-        d = _trade_to_dict(t)
-        spot = session.get(Spot, t.underlying_id)
-        d["symbol"] = spot.symbol if spot else "?"
-        results.append(d)
-    return results
+    return [_trade_to_dict(t, sym or "?") for t, sym in rows]
 
 
 @router.post("/trades", status_code=201)
 def create_trade(body: TradeCreate, session: Session = Depends(get_session)):
-    # Resolve or create Spot
-    symbol = body.symbol.upper()
-    spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
-    if not spot:
-        spot = Spot(symbol=symbol)
-        session.add(spot)
-        session.commit()
-        session.refresh(spot)
-        # Auto-fetch metadata in background
-        from services import populate_spot_info
-        try:
-            populate_spot_info(spot, session)
-        except Exception:
-            pass
+    spot = _resolve_or_create_spot(body.symbol, session)
+    symbol = spot.symbol
 
     trade = Trade(
         underlying_id=spot.id,
@@ -135,25 +174,15 @@ def create_trade(body: TradeCreate, session: Session = Depends(get_session)):
     session.add(event)
     session.commit()
 
-    d = _trade_to_dict(trade)
-    d["symbol"] = symbol
-    return d
+    return _trade_to_dict(trade, symbol)
 
 
 @router.patch("/trades/{trade_id}")
 def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(get_session)):
-    trade = session.get(Trade, trade_id)
-    if not trade:
-        raise HTTPException(404, "Trade not found")
+    trade = _get_trade_or_404(trade_id, session)
 
     if body.symbol is not None:
-        symbol = body.symbol.upper()
-        spot = session.exec(select(Spot).where(Spot.symbol == symbol)).first()
-        if not spot:
-            spot = Spot(symbol=symbol)
-            session.add(spot)
-            session.commit()
-            session.refresh(spot)
+        spot = _resolve_or_create_spot(body.symbol, session)
         trade.underlying_id = spot.id
 
     for field in ["strategy_type", "strike", "expiry_date", "contracts",
@@ -163,7 +192,7 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
         if val is not None:
             setattr(trade, field, val)
 
-    trade.updated_at = datetime.utcnow()
+    trade.updated_at = datetime.now(timezone.utc)
 
     # --- Sync side-effects ---
     _sync_open_event(trade, session)
@@ -175,10 +204,7 @@ def update_trade(trade_id: int, body: TradeUpdate, session: Session = Depends(ge
     session.commit()
     session.refresh(trade)
 
-    d = _trade_to_dict(trade)
-    spot = session.get(Spot, trade.underlying_id)
-    d["symbol"] = spot.symbol if spot else "?"
-    return d
+    return _trade_to_dict(trade, _symbol_for(trade, session))
 
 
 def _sync_open_event(trade: Trade, session: Session):
@@ -243,11 +269,8 @@ def _sync_assignment_lot(trade: Trade, session: Session):
 @router.post("/trades/{trade_id}/close")
 def close_trade(trade_id: int, body: TradeClose, session: Session = Depends(get_session)):
     """Close a trade as Expired or BTC."""
-    trade = session.get(Trade, trade_id)
-    if not trade:
-        raise HTTPException(404, "Trade not found")
-    if trade.status != TradeStatus.OPEN:
-        raise HTTPException(400, "Trade is not open")
+    trade = _get_trade_or_404(trade_id, session)
+    _require_open(trade)
     if body.status not in (TradeStatus.EXPIRED, TradeStatus.BTC):
         raise HTTPException(400, "Use /assign or /roll for that status")
 
@@ -267,20 +290,14 @@ def close_trade(trade_id: int, body: TradeClose, session: Session = Depends(get_
     session.commit()
     session.refresh(trade)
 
-    d = _trade_to_dict(trade)
-    spot = session.get(Spot, trade.underlying_id)
-    d["symbol"] = spot.symbol if spot else "?"
-    return d
+    return _trade_to_dict(trade, _symbol_for(trade, session))
 
 
 @router.post("/trades/{trade_id}/assign")
 def assign_trade(trade_id: int, body: TradeAssign, session: Session = Depends(get_session)):
     """Handle option assignment. CSP → creates a ShareLot. CC → consumes ShareLots (FIFO)."""
-    trade = session.get(Trade, trade_id)
-    if not trade:
-        raise HTTPException(404, "Trade not found")
-    if trade.status != TradeStatus.OPEN:
-        raise HTTPException(400, "Trade is not open")
+    trade = _get_trade_or_404(trade_id, session)
+    _require_open(trade)
 
     # Update trade
     trade.closed_at = body.assigned_at
@@ -336,20 +353,14 @@ def assign_trade(trade_id: int, body: TradeAssign, session: Session = Depends(ge
     session.commit()
     session.refresh(trade)
 
-    d = _trade_to_dict(trade)
-    spot = session.get(Spot, trade.underlying_id)
-    d["symbol"] = spot.symbol if spot else "?"
-    return d
+    return _trade_to_dict(trade, _symbol_for(trade, session))
 
 
 @router.post("/trades/{trade_id}/roll")
 def roll_trade(trade_id: int, body: TradeRoll, session: Session = Depends(get_session)):
     """Roll a trade: close the old leg and open a new one, linked via TradeEvents."""
-    trade = session.get(Trade, trade_id)
-    if not trade:
-        raise HTTPException(404, "Trade not found")
-    if trade.status != TradeStatus.OPEN:
-        raise HTTPException(400, "Trade is not open")
+    trade = _get_trade_or_404(trade_id, session)
+    _require_open(trade)
 
     # --- Close old trade ---
     trade.closed_at = body.roll_date
@@ -365,11 +376,10 @@ def roll_trade(trade_id: int, body: TradeRoll, session: Session = Depends(get_se
         price=body.closing_cost,
     )
     session.add(roll_close_event)
-    session.commit()
-    session.refresh(roll_close_event)
+    session.flush()  # get roll_close_event.id without committing
 
     # --- Create new trade ---
-    new_contracts = body.new_contracts if body.new_contracts else trade.contracts
+    new_contracts = body.new_contracts or trade.contracts
     new_trade = Trade(
         underlying_id=trade.underlying_id,
         strategy_type=trade.strategy_type,
@@ -381,8 +391,7 @@ def roll_trade(trade_id: int, body: TradeRoll, session: Session = Depends(get_se
         spot_price_at_open=body.closing_spot,
     )
     session.add(new_trade)
-    session.commit()
-    session.refresh(new_trade)
+    session.flush()  # get new_trade.id without committing
 
     roll_open_event = TradeEvent(
         trade_id=new_trade.id,
@@ -393,36 +402,25 @@ def roll_trade(trade_id: int, body: TradeRoll, session: Session = Depends(get_se
         linked_event_id=roll_close_event.id,
     )
     session.add(roll_open_event)
-    session.commit()
-    session.refresh(new_trade)
+    session.commit()  # single atomic commit
 
-    spot = session.get(Spot, trade.underlying_id)
-    symbol = spot.symbol if spot else "?"
-
-    old_d = _trade_to_dict(trade)
-    old_d["symbol"] = symbol
-    new_d = _trade_to_dict(new_trade)
-    new_d["symbol"] = symbol
-    return {"closed_trade": old_d, "new_trade": new_d}
+    symbol = _symbol_for(trade, session)
+    return {
+        "closed_trade": _trade_to_dict(trade, symbol),
+        "new_trade": _trade_to_dict(new_trade, symbol),
+    }
 
 
 @router.get("/trades/{trade_id}")
 def get_trade(trade_id: int, session: Session = Depends(get_session)):
-    trade = session.get(Trade, trade_id)
-    if not trade:
-        raise HTTPException(404, "Trade not found")
-    d = _trade_to_dict(trade)
-    spot = session.get(Spot, trade.underlying_id)
-    d["symbol"] = spot.symbol if spot else "?"
-    return d
+    trade = _get_trade_or_404(trade_id, session)
+    return _trade_to_dict(trade, _symbol_for(trade, session))
 
 
 @router.delete("/trades/{trade_id}", status_code=204)
 def delete_trade(trade_id: int, session: Session = Depends(get_session)):
     """Delete a trade and all related events and share lots (via DB CASCADE)."""
-    trade = session.get(Trade, trade_id)
-    if not trade:
-        raise HTTPException(404, "Trade not found")
+    trade = _get_trade_or_404(trade_id, session)
     session.delete(trade)
     session.commit()
 
@@ -432,15 +430,9 @@ def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
     """Enriched trade view with live market data for decision-making."""
     from services import get_option_quotes, get_iv_rank, compute_greeks
 
-    trade = session.get(Trade, trade_id)
-    if not trade:
-        raise HTTPException(404, "Trade not found")
-
-    spot = session.get(Spot, trade.underlying_id)
-    symbol = spot.symbol if spot else "?"
-
-    d = _trade_to_dict(trade)
-    d["symbol"] = symbol
+    trade = _get_trade_or_404(trade_id, session)
+    symbol = _symbol_for(trade, session)
+    d = _trade_to_dict(trade, symbol)
 
     # Events timeline
     events = session.exec(
@@ -449,11 +441,12 @@ def get_trade_detail(trade_id: int, session: Session = Depends(get_session)):
     d["events"] = [e.model_dump() for e in events]
 
     # Spot info
+    spot_obj = session.get(Spot, trade.underlying_id)
     d["spot"] = {
-        "name": spot.name,
-        "asset_type": spot.asset_type,
-        "implied_volatility": float(spot.implied_volatility) if spot.implied_volatility else None,
-    } if spot else None
+        "name": spot_obj.name,
+        "asset_type": spot_obj.asset_type,
+        "implied_volatility": float(spot_obj.implied_volatility) if spot_obj.implied_volatility else None,
+    } if spot_obj else None
 
     # Live option data (only for open trades)
     d["live"] = None
